@@ -2,7 +2,30 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import SyncStatus from './SyncStatus';
 
-export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOut }) {
+function PersonTile({ name, emoji, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: '6px',
+        padding: '5px 12px', borderRadius: '20px',
+        border: '1px solid var(--border)',
+        background: hovered ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+        cursor: 'pointer', transition: 'all 0.15s',
+        fontFamily: 'var(--font-body)', fontSize: '13px',
+        fontWeight: '500', color: 'var(--text-secondary)',
+      }}
+    >
+      <span style={{ fontSize: '15px' }}>{emoji}</span>
+      {name}
+    </button>
+  );
+}
+
+export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOut, onShowJacob, onShowKatelin }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -16,14 +39,21 @@ export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOu
       justifyContent: 'space-between',
       padding: '0 0 20px 0',
     }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-        <span style={{
-          fontFamily: 'var(--font-display)', fontSize: '26px',
-          fontWeight: '700', color: 'var(--accent)', letterSpacing: '-0.02em',
-        }}>Home Base</span>
-        <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>
-          {format(now, 'EEEE, MMMM d')}
-        </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+          <span style={{
+            fontFamily: 'var(--font-display)', fontSize: '26px',
+            fontWeight: '700', color: 'var(--accent)', letterSpacing: '-0.02em',
+          }}>Home Base</span>
+          <span style={{ color: 'var(--text-tertiary)', fontSize: '13px' }}>
+            {format(now, 'EEEE, MMMM d')}
+          </span>
+        </div>
+        {/* Person tiles */}
+        <div style={{ display: 'flex', gap: '6px', marginLeft: '8px' }}>
+          <PersonTile name="Jacob"   emoji="👤" onClick={onShowJacob} />
+          <PersonTile name="Katelin" emoji="👤" onClick={onShowKatelin} />
+        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>

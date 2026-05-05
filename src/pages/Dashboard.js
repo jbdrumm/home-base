@@ -18,6 +18,7 @@ import TodoFullView from './TodoFullView';
 import FinancialFullView from './FinancialFullView';
 import VehicleFullView from './VehicleFullView';
 import WeatherFullView from './WeatherFullView';
+import PersonView from './PersonView';
 
 import { useLocalState } from '../hooks/useLocalState';
 import { useCalendarData } from '../hooks/useCalendarData';
@@ -72,6 +73,12 @@ export default function Dashboard({ token, profile, onSignOut }) {
   const syncLoading = calendar.loading || tasks.loading || weather.loading;
   const lastSync    = calendar.lastSync || tasks.lastSync || weather.lastSync;
 
+  if (view === 'jacob') return (
+    <PersonView name="Jacob" onBack={() => setView(null)} />
+  );
+  if (view === 'katelin') return (
+    <PersonView name="Katelin" onBack={() => setView(null)} />
+  );
   if (view === 'weather') return (
     <WeatherFullView onBack={() => setView(null)} />
   );
@@ -102,7 +109,9 @@ export default function Dashboard({ token, profile, onSignOut }) {
       maxWidth: '1800px', margin: '0 auto',
     }}>
       <HeaderBar lastSync={lastSync} loading={syncLoading}
-        onSync={handleSync} profile={profile} onSignOut={onSignOut} />
+        onSync={handleSync} profile={profile} onSignOut={onSignOut}
+        onShowJacob={() => setView('jacob')}
+        onShowKatelin={() => setView('katelin')} />
 
       {isMobile ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -126,8 +135,8 @@ export default function Dashboard({ token, profile, onSignOut }) {
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1fr 1.2fr',
-          gridTemplateRows: 'minmax(200px, auto) minmax(160px, auto) minmax(200px, auto)',
+          gridTemplateColumns: '1fr 1fr 1fr 1.2fr',
+          gridTemplateRows: 'minmax(200px, auto) minmax(180px, auto) minmax(200px, auto)',
           gap: '14px',
         }}>
           {/* Col 1 Row 1: Weather */}
@@ -140,18 +149,13 @@ export default function Dashboard({ token, profile, onSignOut }) {
             <CalendarWidget events={calendar.events} />
           </Tile>
 
-          {/* Col 3 Row 1: To-do */}
-          <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1' }}>
+          {/* Col 3 Rows 1-2: To-do */}
+          <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3' }}>
             <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
           </Tile>
 
-          {/* Col 4 Rows 1-3: Vehicles */}
+          {/* Col 4 Rows 1-3: Grocery */}
           <div style={{ gridColumn: '4', gridRow: '1 / 4' }}>
-            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
-          </div>
-
-          {/* Col 5 Rows 1-3: Grocery */}
-          <div style={{ gridColumn: '5', gridRow: '1 / 4' }}>
             <GroceryWidget items={groceries.items}
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
               onClearDone={() => groceries.clearWhere(i => i.done)} />
@@ -162,20 +166,20 @@ export default function Dashboard({ token, profile, onSignOut }) {
             <HomeStatusWidget wide />
           </Tile>
 
-          {/* Col 3 Row 2-3: Finances */}
-          <Tile onClick={() => setView('financial')} style={{ gridColumn: '3', gridRow: '2 / 4' }}>
-            <FinancialWidget bills={bills.items} />
-          </Tile>
-
           {/* Col 1 Row 3: Cameras */}
           <div style={{ gridColumn: '1', gridRow: '3' }}>
             <CameraWidget onClick={() => {}} />
           </div>
 
-          {/* Col 2 Row 3: CountdownWidget */}
-          <Tile style={{ gridColumn: '2', gridRow: '3' }}>
-            <CountdownWidget countdowns={seedCountdowns} messages={[]} />
+          {/* Col 2 Row 3: Finances */}
+          <Tile onClick={() => setView('financial')} style={{ gridColumn: '2', gridRow: '3' }}>
+            <FinancialWidget bills={bills.items} />
           </Tile>
+
+          {/* Col 3 Row 3: Vehicles */}
+          <div style={{ gridColumn: '3', gridRow: '3' }}>
+            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
+          </div>
         </div>
       )}
 
