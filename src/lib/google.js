@@ -69,26 +69,37 @@ export async function fetchCalendarEvents(token, calendarId = 'primary', daysAhe
 
 // Normalize a Google Calendar event to Home Base format
 export function normalizeCalendarEvent(event, owner = 'family') {
-  const start = event.start?.dateTime || event.start?.date;
-  const date  = new Date(start);
-  const today = new Date();
+  const startDT   = event.start?.dateTime;
+  const startDate = event.start?.date; // all-day: "YYYY-MM-DD"
+  const start     = startDT || startDate;
+
+  // For all-day events, parse date parts directly to avoid UTC offset shifting the day
+  let date;
+  if (startDate && !startDT) {
+    const [y, m, d] = startDate.split('-').map(Number);
+    date = new Date(y, m - 1, d);
+  } else {
+    date = new Date(start);
+  }
+
+  const today    = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
   let dateLabel = start;
-  if (date.toDateString() === today.toDateString())     dateLabel = 'today';
-  if (date.toDateString() === tomorrow.toDateString())  dateLabel = 'tomorrow';
+  if (date.toDateString() === today.toDateString())    dateLabel = 'today';
+  if (date.toDateString() === tomorrow.toDateString()) dateLabel = 'tomorrow';
 
   return {
-    id:      event.id,
-    title:   event.summary || '(No title)',
-    time:    event.start?.dateTime
-               ? new Date(event.start.dateTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-               : 'All day',
-    date:    dateLabel,
-    rawDate: start,
+    id:       event.id,
+    title:    event.summary || '(No title)',
+    time:     startDT
+                ? new Date(startDT).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+                : 'All day',
+    date:     dateLabel,
+    rawDate:  start,
     owner,
-    details: event.description || '',
+    details:  event.description || '',
     location: event.location || '',
   };
 }

@@ -17,19 +17,24 @@ function VehicleMiniCard({ vehicle, onClick }) {
         background: 'var(--bg-base)', border: '1px solid var(--border)',
         borderRadius: '10px', overflow: 'hidden', cursor: 'pointer',
         transition: 'border-color 0.15s, transform 0.15s',
+        display: 'flex', flexDirection: 'column',
       }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
-      {/* Photo — fixed height, cover fit */}
+      {/* Photo — always 72px tall regardless of tile width */}
       <div style={{
-        width: '100%', height: '76px', overflow: 'hidden', position: 'relative',
+        width: '100%', height: '72px', overflow: 'hidden', position: 'relative',
         background: 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px',
+        flexShrink: 0,
       }}>
         {vehicle.photo_url
-          ? <img src={vehicle.photo_url} alt={vehicle.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: vehicle.photo_position || 'center' }} />
+          ? <img src={vehicle.photo_url} alt={vehicle.name} style={{
+              width: '100%', height: '100%',
+              objectFit: 'cover',
+              objectPosition: vehicle.photo_position || 'center',
+            }} />
           : vehicle.emoji
         }
         {garaged && (
@@ -39,17 +44,19 @@ function VehicleMiniCard({ vehicle, onClick }) {
         )}
       </div>
 
-      {/* Info — name on top line, badge + odo on second line */}
-      <div style={{ padding: '6px 9px 8px' }}>
-        <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '3px' }}>
+      {/* Info */}
+      <div style={{ padding: '6px 8px 7px', flex: 1 }}>
+        {/* Vehicle name — full row, no truncation issues */}
+        <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '3px', lineHeight: 1.3, wordBreak: 'break-word' }}>
           {vehicle.year} {vehicle.make} {vehicle.model}
         </div>
+        {/* Odo + badge on same row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
             {odo ? `~${odo.toLocaleString()} mi` : '—'}
           </div>
           <span style={{
-            fontSize: '8px', fontWeight: '700', padding: '2px 6px', borderRadius: '20px',
+            fontSize: '8px', fontWeight: '700', padding: '2px 5px', borderRadius: '20px',
             background: chip.bg, color: chip.color, flexShrink: 0, whiteSpace: 'nowrap',
           }}>{chip.label}</span>
         </div>
