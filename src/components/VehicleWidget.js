@@ -30,11 +30,19 @@ function VehicleMiniCard({ vehicle, onClick }) {
         flexShrink: 0,
       }}>
         {vehicle.photo_url
-          ? <img src={vehicle.photo_url} alt={vehicle.name} style={{
-              width: '100%', height: '100%',
-              objectFit: vehicle.photo_fit || 'cover',
-              objectPosition: vehicle.photo_position || 'center',
-            }} />
+          ? vehicle.photo_scale
+            ? <div style={{
+                width: '100%', height: '100%',
+                backgroundImage: `url(${vehicle.photo_url})`,
+                backgroundSize: vehicle.photo_scale,
+                backgroundPosition: vehicle.photo_position || 'center',
+                backgroundRepeat: 'no-repeat',
+              }} />
+            : <img src={vehicle.photo_url} alt={vehicle.name} style={{
+                width: '100%', height: '100%',
+                objectFit: vehicle.photo_fit || 'cover',
+                objectPosition: vehicle.photo_position || 'center',
+              }} />
           : vehicle.emoji
         }
         {garaged && (
