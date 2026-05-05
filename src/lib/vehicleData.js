@@ -41,8 +41,9 @@ export const seedVehicles = [
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
     photo_url: 'https://autoimage.capitalone.com/stock-media/evox/2018-Honda-Odyssey-Elite-WA-12089_cc2400_032_WA.png',
-    photo_position: 'center 60%',
+    photo_position: '20% 60%',
     photo_fit: 'cover',
+    photo_scale: '110%',
   },
   {
     id: 'v3',
