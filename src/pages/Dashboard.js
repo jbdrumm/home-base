@@ -125,7 +125,7 @@ export default function Dashboard({ token, profile, onSignOut }) {
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1.5fr 1.2fr',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr 1.2fr',
           gridTemplateRows: 'minmax(220px, auto) minmax(200px, auto)',
           gap: '16px',
         }}>
