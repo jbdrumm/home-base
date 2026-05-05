@@ -22,18 +22,24 @@ export function useCalendarData(token) {
     try {
       const calendars = await fetchCalendarList(token);
       console.log('[Calendar] Found calendars:', calendars.map(c => c.summary));
-      const selected  = calendars.filter(c =>
-        c.selected !== false &&
-        ['owner','writer','reader'].includes(c.accessRole)
-      );
+      
+      // Include all calendars except declined/removed ones
+      const selected = calendars.filter(c => c.selected !== false);
+      console.log('[Calendar] Selected:', selected.map(c => c.summary));
 
       // Fetch events from all selected calendars in parallel
       const results = await Promise.all(
         selected.map(async cal => {
-          const raw = await fetchCalendarEvents(token, cal.id, 45);
-          const owner = cal.primary ? 'jacob' :
-                        cal.summary?.toLowerCase().includes('family') ? 'family' : 'wife';
-          return raw.map(e => normalizeCalendarEvent(e, owner));
+          try {
+            const raw = await fetchCalendarEvents(token, cal.id, 45);
+            console.log(`[Calendar] ${cal.summary}: ${raw.length} events`);
+            const owner = cal.primary ? 'jacob' :
+                          cal.summary?.toLowerCase().includes('family') ? 'family' : 'other';
+            return raw.map(e => normalizeCalendarEvent(e, owner));
+          } catch (e) {
+            console.warn(`[Calendar] Failed to fetch ${cal.summary}:`, e.message);
+            return [];
+          }
         })
       );
 

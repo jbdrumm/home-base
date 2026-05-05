@@ -19,6 +19,7 @@ export const seedVehicles = [
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
     photo_url: 'https://di-uploads-development.dealerinspire.com/kendalldodgechryslerjeepram1/uploads/2017/12/2017_dodge_durango_kendall_dodge1.png',
+    photo_position: 'center 60%',
   },
   {
     id: 'v2',
@@ -38,6 +39,7 @@ export const seedVehicles = [
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
     photo_url: 'https://autoimage.capitalone.com/stock-media/evox/2018-Honda-Odyssey-Elite-WA-12089_cc2400_032_WA.png',
+    photo_position: 'center',
   },
   {
     id: 'v3',
@@ -57,6 +59,7 @@ export const seedVehicles = [
     car_wash_pass: null,
     extended_use_plate: true,
     photo_url: 'https://www.motorcarclassics.com/galleria_images/388/388_main_l.jpg',
+    photo_position: 'center',
   },
   {
     id: 'v4',
@@ -76,6 +79,7 @@ export const seedVehicles = [
     car_wash_pass: null,
     extended_use_plate: true,
     photo_url: 'https://i.redd.it/l89wj6mw46qc1.png',
+    photo_position: 'center',
   },
 ];
 
