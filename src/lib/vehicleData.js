@@ -18,6 +18,7 @@ export const seedVehicles = [
     toll_tag: 'I-PASS · 400123456',
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
+    photo_url: null, // Upload via vehicle detail page → stored in Supabase Storage
   },
   {
     id: 'v2',

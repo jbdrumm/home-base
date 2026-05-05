@@ -275,9 +275,19 @@ function FuelLogTab({ vehicleId, onLogFillup }) {
 
 // ── Main VehicleFullView ───────────────────────────────────────────────────
 export default function VehicleFullView({ initialVehicleId, onBack }) {
-  const [activeVehicleId, setActiveVehicleId] = useState(initialVehicleId || seedVehicles[0].id);
+  const [activeVehicleId, setActiveVehicleId] = useState(
+    initialVehicleId || seedVehicles[0].id
+  );
   const [activeTab, setActiveTab] = useState('maintenance');
   const [showFillup, setShowFillup] = useState(false);
+
+  // When initialVehicleId changes (e.g. user clicks a different tile), sync it
+  React.useEffect(() => {
+    if (initialVehicleId) {
+      setActiveVehicleId(initialVehicleId);
+      setActiveTab('maintenance');
+    }
+  }, [initialVehicleId]);
 
   const vehicle = seedVehicles.find(v => v.id === activeVehicleId) || seedVehicles[0];
   const overallStatus = getVehicleStatus(activeVehicleId);
@@ -308,18 +318,51 @@ export default function VehicleFullView({ initialVehicleId, onBack }) {
           {/* Vehicle hero card */}
           <div className="card" style={{ padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{
-              width: '120px', height: '80px',
-              background: 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
-              borderRadius: '10px', display: 'flex', alignItems: 'center',
+              width: '160px', height: '100px',
+              background: vehicle.photo_url ? 'none' : 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
+              borderRadius: '10px', overflow: 'hidden',
+              display: 'flex', alignItems: 'center',
               justifyContent: 'center', fontSize: '40px', flexShrink: 0, position: 'relative',
-            }}>
-              {vehicle.emoji}
+              cursor: 'pointer',
+            }}
+              onClick={() => document.getElementById('veh-photo-input').click()}
+              title="Click to upload photo"
+            >
+              {vehicle.photo_url ? (
+                <img src={vehicle.photo_url} alt={vehicle.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <>
+                  {vehicle.emoji}
+                  <div style={{
+                    position: 'absolute', inset: 0, background: 'rgba(0,0,0,0)',
+                    display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                    paddingBottom: '6px', transition: 'background 0.2s',
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.3)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0)'}
+                  >
+                    <span style={{ fontSize: '10px', color: 'white', fontWeight: '600', opacity: 0, transition: 'opacity 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                    >📷 Add photo</span>
+                  </div>
+                </>
+              )}
               {garaged && (
                 <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <span style={{ fontSize: '10px', fontWeight: '700', color: 'white' }}>🏠 GARAGED</span>
                 </div>
               )}
             </div>
+            <input id="veh-photo-input" type="file" accept="image/*" style={{ display: 'none' }}
+              onChange={async e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                // For now store as object URL locally; Supabase Storage upload in Sprint 10
+                const url = URL.createObjectURL(file);
+                alert('Photo preview set locally. Supabase Storage upload coming in a future sprint.');
+                // Would call: supabase.storage.from('vehicle-photos').upload(...)
+              }}
+            />
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: '700' }}>
                 {vehicle.name}

@@ -33,14 +33,25 @@ function VehicleMiniCard({ vehicle, onClick }) {
       <div style={{
         width: '100%',
         height: '72px',
-        background: 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
+        background: vehicle.photo_url
+          ? 'none'
+          : 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '28px',
         position: 'relative',
+        overflow: 'hidden',
       }}>
-        {vehicle.emoji}
+        {vehicle.photo_url ? (
+          <img
+            src={vehicle.photo_url}
+            alt={vehicle.name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          vehicle.emoji
+        )}
         {garaged && (
           <div style={{
             position: 'absolute',
