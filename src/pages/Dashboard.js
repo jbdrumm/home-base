@@ -8,6 +8,7 @@ import CountdownWidget from '../components/CountdownWidget';
 import FinancialWidget from '../components/FinancialWidget';
 import WeatherWidget from '../components/WeatherWidget';
 import VehicleWidget from '../components/VehicleWidget';
+import CameraWidget from '../components/CameraWidget';
 import QuickActionFAB from '../components/QuickActionFAB';
 import QuickAddModal from '../components/QuickAddModal';
 import LogFillupModal from '../components/LogFillupModal';
@@ -126,31 +127,54 @@ export default function Dashboard({ token, profile, onSignOut }) {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr 1fr 1.2fr',
-          gridTemplateRows: 'minmax(220px, auto) minmax(200px, auto)',
-          gap: '16px',
+          gridTemplateRows: 'minmax(200px, auto) minmax(160px, auto) minmax(200px, auto)',
+          gap: '14px',
         }}>
-          <Tile onClick={() => setView('calendar')} style={{ gridColumn: '1', gridRow: '1' }}>
-            <CalendarWidget events={calendar.events} />
-          </Tile>
-          <Tile onClick={() => setView('todo')} style={{ gridColumn: '2', gridRow: '1' }}>
-            <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
-          </Tile>
-          <Tile onClick={() => setView('weather')} style={{ gridColumn: '3', gridRow: '1' }}>
+          {/* Col 1 Row 1: Weather */}
+          <Tile onClick={() => setView('weather')} style={{ gridColumn: '1', gridRow: '1' }}>
             <WeatherWidget />
           </Tile>
-          <div style={{ gridColumn: '4', gridRow: '1 / 3' }}>
+
+          {/* Col 2 Row 1: Calendar */}
+          <Tile onClick={() => setView('calendar')} style={{ gridColumn: '2', gridRow: '1' }}>
+            <CalendarWidget events={calendar.events} />
+          </Tile>
+
+          {/* Col 3 Row 1: To-do */}
+          <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1' }}>
+            <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
+          </Tile>
+
+          {/* Col 4 Rows 1-3: Vehicles */}
+          <div style={{ gridColumn: '4', gridRow: '1 / 4' }}>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
           </div>
-          <div style={{ gridColumn: '5', gridRow: '1 / 3' }}>
+
+          {/* Col 5 Rows 1-3: Grocery */}
+          <div style={{ gridColumn: '5', gridRow: '1 / 4' }}>
             <GroceryWidget items={groceries.items}
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
               onClearDone={() => groceries.clearWhere(i => i.done)} />
           </div>
+
+          {/* Cols 1-2 Row 2: Home Status */}
           <Tile onClick={() => setView('home')} style={{ gridColumn: '1 / 3', gridRow: '2' }}>
             <HomeStatusWidget wide />
           </Tile>
-          <Tile onClick={() => setView('financial')} style={{ gridColumn: '3', gridRow: '2' }}>
+
+          {/* Col 3 Row 2-3: Finances */}
+          <Tile onClick={() => setView('financial')} style={{ gridColumn: '3', gridRow: '2 / 4' }}>
             <FinancialWidget bills={bills.items} />
+          </Tile>
+
+          {/* Col 1 Row 3: Cameras */}
+          <div style={{ gridColumn: '1', gridRow: '3' }}>
+            <CameraWidget onClick={() => {}} />
+          </div>
+
+          {/* Col 2 Row 3: CountdownWidget */}
+          <Tile style={{ gridColumn: '2', gridRow: '3' }}>
+            <CountdownWidget countdowns={seedCountdowns} messages={[]} />
           </Tile>
         </div>
       )}
