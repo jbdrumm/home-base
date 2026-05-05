@@ -136,7 +136,7 @@ export default function Dashboard({ token, profile, onSignOut }) {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr 1.2fr',
-          gridTemplateRows: 'minmax(200px, auto) minmax(180px, auto) minmax(200px, auto)',
+          gridTemplateRows: 'minmax(200px, auto) minmax(180px, auto) minmax(180px, auto)',
           gap: '14px',
         }}>
           {/* Col 1 Row 1: Weather */}
@@ -154,8 +154,8 @@ export default function Dashboard({ token, profile, onSignOut }) {
             <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
           </Tile>
 
-          {/* Col 4 Rows 1-3: Grocery */}
-          <div style={{ gridColumn: '4', gridRow: '1 / 4' }}>
+          {/* Col 4 Rows 1-2: Grocery (top 2 rows) */}
+          <div style={{ gridColumn: '4', gridRow: '1 / 3' }}>
             <GroceryWidget items={groceries.items}
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
               onClearDone={() => groceries.clearWhere(i => i.done)} />
@@ -180,6 +180,11 @@ export default function Dashboard({ token, profile, onSignOut }) {
           <div style={{ gridColumn: '3', gridRow: '3' }}>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
           </div>
+
+          {/* Col 4 Row 3: Countdown (bottom 1 row) */}
+          <Tile style={{ gridColumn: '4', gridRow: '3' }}>
+            <CountdownWidget countdowns={seedCountdowns} messages={[]} />
+          </Tile>
         </div>
       )}
 
