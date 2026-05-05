@@ -125,3 +125,93 @@ create policy "household write" on bills for all    using (true);
 -- Auto-reset paid_this_month on the 1st of each month
 -- (wire this to a Supabase scheduled function in Sprint 3)
 -- create or replace function reset_bills_monthly() ...
+
+-- =============================================
+--  SPRINT 9 ADDITIONS — Vehicle Tracker
+-- =============================================
+
+-- ── VEHICLES ───────────────────────────────
+create table if not exists vehicles (
+  id                uuid primary key default uuid_generate_v4(),
+  name              text not null,               -- e.g. "2017 Dodge Durango GT"
+  make              text not null,
+  model             text not null,
+  year              integer not null,
+  trim              text,
+  engine            text,
+  color             text,
+  emoji             text default '🚗',
+  license_plate     text,
+  state             text default 'Illinois',
+  vin               text,
+  insurance_company text,
+  policy_number     text,
+  toll_tag          text,
+  car_wash_pass     text,
+  extended_use_plate boolean not null default false,
+  photo_url         text,
+  created_at        timestamptz not null default now(),
+  updated_at        timestamptz not null default now()
+);
+
+-- ── MAINTENANCE SCHEDULE ────────────────────
+create table if not exists maintenance_schedule (
+  id            uuid primary key default uuid_generate_v4(),
+  vehicle_id    uuid not null references vehicles(id) on delete cascade,
+  task          text not null,               -- e.g. "Oil Change"
+  notes         text,                        -- e.g. "5W-30 Synthetic"
+  interval_mi   integer,                     -- miles between service
+  interval_mo   integer,                     -- months between service (alt)
+  last_done_mi  integer,
+  last_done_at  date,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+-- ── FUEL LOG ───────────────────────────────
+create table if not exists fuel_log (
+  id            uuid primary key default uuid_generate_v4(),
+  vehicle_id    uuid not null references vehicles(id) on delete cascade,
+  logged_at     date not null default current_date,
+  odometer_mi   integer not null,
+  gallons       numeric(6,3) not null,
+  price_per_gal numeric(5,3) not null,
+  total_cost    numeric(8,2) not null,
+  mpg           numeric(5,1),
+  station       text,
+  notes         text,
+  created_at    timestamptz not null default now()
+);
+
+-- ── MAINTENANCE LOG ─────────────────────────
+create table if not exists maintenance_log (
+  id            uuid primary key default uuid_generate_v4(),
+  vehicle_id    uuid not null references vehicles(id) on delete cascade,
+  schedule_id   uuid references maintenance_schedule(id),
+  task          text not null,
+  odometer_mi   integer,
+  performed_at  date not null default current_date,
+  cost          numeric(8,2),
+  shop          text,
+  notes         text,
+  created_at    timestamptz not null default now()
+);
+
+-- ── updated_at triggers ────────────────────
+create trigger vehicles_updated_at before update on vehicles for each row execute procedure set_updated_at();
+create trigger maintenance_schedule_updated_at before update on maintenance_schedule for each row execute procedure set_updated_at();
+
+-- ── RLS ────────────────────────────────────
+alter table vehicles             enable row level security;
+alter table maintenance_schedule enable row level security;
+alter table fuel_log             enable row level security;
+alter table maintenance_log      enable row level security;
+
+create policy "household read"  on vehicles             for select using (true);
+create policy "household write" on vehicles             for all    using (true);
+create policy "household read"  on maintenance_schedule for select using (true);
+create policy "household write" on maintenance_schedule for all    using (true);
+create policy "household read"  on fuel_log             for select using (true);
+create policy "household write" on fuel_log             for all    using (true);
+create policy "household read"  on maintenance_log      for select using (true);
+create policy "household write" on maintenance_log      for all    using (true);

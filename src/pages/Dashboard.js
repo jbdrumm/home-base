@@ -7,18 +7,22 @@ import HomeStatusWidget from '../components/HomeStatusWidget';
 import CountdownWidget from '../components/CountdownWidget';
 import FinancialWidget from '../components/FinancialWidget';
 import WeatherWidget from '../components/WeatherWidget';
+import VehicleWidget from '../components/VehicleWidget';
 import QuickActionFAB from '../components/QuickActionFAB';
 import QuickAddModal from '../components/QuickAddModal';
+import LogFillupModal from '../components/LogFillupModal';
 
 import CalendarFullView from './CalendarFullView';
 import TodoFullView from './TodoFullView';
 import FinancialFullView from './FinancialFullView';
+import VehicleFullView from './VehicleFullView';
 
 import { useLocalState } from '../hooks/useLocalState';
 import { useCalendarData } from '../hooks/useCalendarData';
 import { useTasksData } from '../hooks/useTasksData';
 import { useWeather } from '../hooks/useWeather';
 import { seedGroceries, seedCountdowns, seedBills } from '../lib/seedData';
+import { seedVehicles } from '../lib/vehicleData';
 
 function Tile({ onClick, children, style }) {
   const [hovered, setHovered] = useState(false);
@@ -41,6 +45,8 @@ export default function Dashboard({ token, profile, onSignOut }) {
   const bills     = useLocalState(seedBills);
   const [view,  setView]  = useState(null);
   const [modal, setModal] = useState(null);
+  const [activeVehicleId, setActiveVehicleId] = useState(null);
+  const [showFillup, setShowFillup] = useState(false);
 
   const calendar = useCalendarData(token);
   const tasks    = useTasksData(token);
@@ -76,6 +82,12 @@ export default function Dashboard({ token, profile, onSignOut }) {
       onAdd={item => bills.addItem(item)} onDelete={id => bills.removeItem(id)}
       onBack={() => setView(null)} />
   );
+  if (view === 'vehicles') return (
+    <VehicleFullView
+      initialVehicleId={activeVehicleId}
+      onBack={() => { setView(null); setActiveVehicleId(null); }}
+    />
+  );
 
   return (
     <div style={{
@@ -99,13 +111,16 @@ export default function Dashboard({ token, profile, onSignOut }) {
           </div>
           <WeatherWidget />
           <Tile onClick={() => setView('financial')}><FinancialWidget bills={bills.items} /></Tile>
+          <Tile onClick={() => { setView('vehicles'); setActiveVehicleId(null); }}>
+            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
+          </Tile>
           <Tile onClick={() => setView('home')}><HomeStatusWidget /></Tile>
           <CountdownWidget countdowns={seedCountdowns} messages={[]} />
         </div>
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr 1fr 1.2fr',
+          gridTemplateColumns: '1fr 1fr 1fr 1fr 1.2fr',
           gridTemplateRows: 'minmax(220px, auto) minmax(200px, auto)',
           gap: '16px',
         }}>
@@ -118,7 +133,13 @@ export default function Dashboard({ token, profile, onSignOut }) {
           <div style={{ gridColumn: '3', gridRow: '1' }}>
             <WeatherWidget />
           </div>
-          <div style={{ gridColumn: '4', gridRow: '1 / 3' }}>
+          <Tile
+            onClick={() => { setView('vehicles'); setActiveVehicleId(null); }}
+            style={{ gridColumn: '4', gridRow: '1 / 3' }}
+          >
+            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
+          </Tile>
+          <div style={{ gridColumn: '5', gridRow: '1 / 3' }}>
             <GroceryWidget items={groceries.items}
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
               onClearDone={() => groceries.clearWhere(i => i.done)} />
@@ -132,9 +153,19 @@ export default function Dashboard({ token, profile, onSignOut }) {
         </div>
       )}
 
-      <QuickActionFAB onAction={type => setModal(type)} />
+      <QuickActionFAB onAction={type => {
+        if (type === 'fillup') { setShowFillup(true); return; }
+        setModal(type);
+      }} />
       {modal && (
         <QuickAddModal type={modal} onClose={() => setModal(null)} onAdd={handleQuickAdd} />
+      )}
+      {showFillup && (
+        <LogFillupModal
+          vehicles={seedVehicles}
+          onClose={() => setShowFillup(false)}
+          onSave={(data) => { console.log('Fillup logged from FAB:', data); setShowFillup(false); }}
+        />
       )}
     </div>
   );
