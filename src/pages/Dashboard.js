@@ -149,13 +149,13 @@ export default function Dashboard({ token, profile, onSignOut }) {
             <CalendarWidget events={calendar.events} />
           </Tile>
 
-          {/* Col 3 Rows 1-2: To-do */}
-          <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3' }}>
+          {/* Col 3 Rows 1-2: To-do (~270px each = spans 2 rows) */}
+          <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3', minHeight: '270px' }}>
             <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
           </Tile>
 
-          {/* Col 4 Rows 1-2: Grocery (top 2 rows) */}
-          <div style={{ gridColumn: '4', gridRow: '1 / 3' }}>
+          {/* Col 4 Rows 1-3: Grocery */}
+          <div style={{ gridColumn: '4', gridRow: '1 / 4' }}>
             <GroceryWidget items={groceries.items}
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
               onClearDone={() => groceries.clearWhere(i => i.done)} />
@@ -176,15 +176,10 @@ export default function Dashboard({ token, profile, onSignOut }) {
             <FinancialWidget bills={bills.items} />
           </Tile>
 
-          {/* Col 3 Row 3: Vehicles */}
-          <div style={{ gridColumn: '3', gridRow: '3' }}>
+          {/* Col 3 Row 3: Vehicles (~270px) */}
+          <div style={{ gridColumn: '3', gridRow: '3', minHeight: '270px' }}>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
           </div>
-
-          {/* Col 4 Row 3: Countdown (bottom 1 row) */}
-          <Tile style={{ gridColumn: '4', gridRow: '3' }}>
-            <CountdownWidget countdowns={seedCountdowns} messages={[]} />
-          </Tile>
         </div>
       )}
 
