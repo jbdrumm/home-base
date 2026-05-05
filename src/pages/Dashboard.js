@@ -136,7 +136,7 @@ export default function Dashboard({ token, profile, onSignOut }) {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr 1.2fr',
-          gridTemplateRows: 'minmax(180px, auto) minmax(180px, auto) minmax(180px, auto) minmax(180px, auto)',
+          gridTemplateRows: 'minmax(180px, auto) minmax(90px, auto) minmax(90px, auto) minmax(240px, auto)',
           gap: '14px',
         }}>
           {/* Col 1 Row 1: Weather */}

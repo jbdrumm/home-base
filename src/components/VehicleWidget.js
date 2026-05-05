@@ -55,12 +55,12 @@ function VehicleMiniCard({ vehicle, onClick }) {
       {/* Info */}
       <div style={{ padding: '6px 8px 7px', flex: 1 }}>
         {/* Vehicle name — full row, no truncation issues */}
-        <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '3px', lineHeight: 1.3, wordBreak: 'break-word' }}>
+        <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '3px', lineHeight: 1.3, wordBreak: 'break-word' }}>
           {vehicle.year} {vehicle.make} {vehicle.model}
         </div>
         {/* Odo + badge on same row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '4px' }}>
-          <div style={{ fontSize: '10px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+          <div style={{ fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
             {odo ? `~${odo.toLocaleString()} mi` : '—'}
           </div>
           <span style={{
