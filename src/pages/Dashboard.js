@@ -136,7 +136,7 @@ export default function Dashboard({ token, profile, onSignOut }) {
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr 1fr 1.2fr',
-          gridTemplateRows: 'minmax(200px, auto) minmax(180px, auto) minmax(180px, auto)',
+          gridTemplateRows: 'minmax(180px, auto) minmax(180px, auto) minmax(180px, auto) minmax(180px, auto)',
           gap: '14px',
         }}>
           {/* Col 1 Row 1: Weather */}
@@ -149,37 +149,37 @@ export default function Dashboard({ token, profile, onSignOut }) {
             <CalendarWidget events={calendar.events} />
           </Tile>
 
-          {/* Col 3 Rows 1-2: To-do (~270px each = spans 2 rows) */}
-          <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3', minHeight: '270px' }}>
+          {/* Col 3 Rows 1-2: To-do */}
+          <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3' }}>
             <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
           </Tile>
 
-          {/* Col 4 Rows 1-3: Grocery */}
-          <div style={{ gridColumn: '4', gridRow: '1 / 4' }}>
+          {/* Col 4 Rows 1-4: Grocery */}
+          <div style={{ gridColumn: '4', gridRow: '1 / 5' }}>
             <GroceryWidget items={groceries.items}
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
               onClearDone={() => groceries.clearWhere(i => i.done)} />
           </div>
 
-          {/* Cols 1-2 Row 2: Home Status */}
-          <Tile onClick={() => setView('home')} style={{ gridColumn: '1 / 3', gridRow: '2' }}>
+          {/* Cols 1-2 Rows 2-3: Home Status */}
+          <Tile onClick={() => setView('home')} style={{ gridColumn: '1 / 3', gridRow: '2 / 4' }}>
             <HomeStatusWidget wide />
           </Tile>
 
-          {/* Col 1 Row 3: Cameras */}
-          <div style={{ gridColumn: '1', gridRow: '3' }}>
+          {/* Col 3 Rows 3-4: Vehicles */}
+          <div style={{ gridColumn: '3', gridRow: '3 / 5' }}>
+            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
+          </div>
+
+          {/* Col 1 Row 4: Cameras */}
+          <div style={{ gridColumn: '1', gridRow: '4' }}>
             <CameraWidget onClick={() => {}} />
           </div>
 
-          {/* Col 2 Row 3: Finances */}
-          <Tile onClick={() => setView('financial')} style={{ gridColumn: '2', gridRow: '3' }}>
+          {/* Col 2 Row 4: Finances */}
+          <Tile onClick={() => setView('financial')} style={{ gridColumn: '2', gridRow: '4' }}>
             <FinancialWidget bills={bills.items} />
           </Tile>
-
-          {/* Col 3 Row 3: Vehicles (~270px) */}
-          <div style={{ gridColumn: '3', gridRow: '3', minHeight: '270px' }}>
-            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
-          </div>
         </div>
       )}
 
