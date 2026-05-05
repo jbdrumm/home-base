@@ -16,6 +16,7 @@ import CalendarFullView from './CalendarFullView';
 import TodoFullView from './TodoFullView';
 import FinancialFullView from './FinancialFullView';
 import VehicleFullView from './VehicleFullView';
+import WeatherFullView from './WeatherFullView';
 
 import { useLocalState } from '../hooks/useLocalState';
 import { useCalendarData } from '../hooks/useCalendarData';
@@ -70,6 +71,10 @@ export default function Dashboard({ token, profile, onSignOut }) {
   const syncLoading = calendar.loading || tasks.loading || weather.loading;
   const lastSync    = calendar.lastSync || tasks.lastSync || weather.lastSync;
 
+  if (view === 'weather') return (
+    <WeatherFullView onBack={() => setView(null)} />
+  );
+
   if (view === 'calendar') return (
     <CalendarFullView events={calendar.events} onBack={() => setView(null)} />
   );
@@ -109,7 +114,7 @@ export default function Dashboard({ token, profile, onSignOut }) {
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
               onClearDone={() => groceries.clearWhere(i => i.done)} />
           </div>
-          <WeatherWidget />
+          <Tile onClick={() => setView('weather')}><WeatherWidget /></Tile>
           <Tile onClick={() => setView('financial')}><FinancialWidget bills={bills.items} /></Tile>
           <div>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
@@ -130,9 +135,9 @@ export default function Dashboard({ token, profile, onSignOut }) {
           <Tile onClick={() => setView('todo')} style={{ gridColumn: '2', gridRow: '1' }}>
             <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
           </Tile>
-          <div style={{ gridColumn: '3', gridRow: '1' }}>
+          <Tile onClick={() => setView('weather')} style={{ gridColumn: '3', gridRow: '1' }}>
             <WeatherWidget />
-          </div>
+          </Tile>
           <div style={{ gridColumn: '4', gridRow: '1 / 3' }}>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
           </div>

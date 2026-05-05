@@ -12,12 +12,16 @@ export function useCalendarData(token) {
   const [lastSync, setLastSync] = useState(null);
 
   const sync = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      console.warn('[Calendar] No token available — skipping sync');
+      return;
+    }
+    console.log('[Calendar] Syncing with token:', token.slice(0, 12) + '...');
     setLoading(true);
     setError(null);
     try {
-      // Get all calendars and find shared/family ones
       const calendars = await fetchCalendarList(token);
+      console.log('[Calendar] Found calendars:', calendars.map(c => c.summary));
       const selected  = calendars.filter(c =>
         c.selected !== false &&
         ['owner','writer','reader'].includes(c.accessRole)
