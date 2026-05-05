@@ -18,7 +18,7 @@ export const seedVehicles = [
     toll_tag: 'I-PASS · 400123456',
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
-    photo_url: null, // Upload via vehicle detail page → stored in Supabase Storage
+    photo_url: null, // Paste a direct image URL here e.g. 'https://i.imgur.com/abc123.jpg'
   },
   {
     id: 'v2',
@@ -37,6 +37,7 @@ export const seedVehicles = [
     toll_tag: 'I-PASS · 400123457',
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
+    photo_url: null,
   },
   {
     id: 'v3',
@@ -54,7 +55,8 @@ export const seedVehicles = [
     policy_number: 'USAA-2024-IL-88473',
     toll_tag: null,
     car_wash_pass: null,
-    extended_use_plate: true,   // garaged Dec–Feb
+    extended_use_plate: true,
+    photo_url: null,
   },
   {
     id: 'v4',
@@ -72,7 +74,8 @@ export const seedVehicles = [
     policy_number: 'USAA-2024-IL-88474',
     toll_tag: null,
     car_wash_pass: null,
-    extended_use_plate: true,   // garaged Dec–Feb
+    extended_use_plate: true,
+    photo_url: null,
   },
 ];
 

@@ -111,9 +111,9 @@ export default function Dashboard({ token, profile, onSignOut }) {
           </div>
           <WeatherWidget />
           <Tile onClick={() => setView('financial')}><FinancialWidget bills={bills.items} /></Tile>
-          <Tile onClick={() => { setView('vehicles'); setActiveVehicleId(null); }}>
+          <div>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
-          </Tile>
+          </div>
           <Tile onClick={() => setView('home')}><HomeStatusWidget /></Tile>
           <CountdownWidget countdowns={seedCountdowns} messages={[]} />
         </div>
@@ -133,12 +133,9 @@ export default function Dashboard({ token, profile, onSignOut }) {
           <div style={{ gridColumn: '3', gridRow: '1' }}>
             <WeatherWidget />
           </div>
-          <Tile
-            onClick={() => { setView('vehicles'); setActiveVehicleId(null); }}
-            style={{ gridColumn: '4', gridRow: '1 / 3' }}
-          >
+          <div style={{ gridColumn: '4', gridRow: '1 / 3' }}>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
-          </Tile>
+          </div>
           <div style={{ gridColumn: '5', gridRow: '1 / 3' }}>
             <GroceryWidget items={groceries.items}
               onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}

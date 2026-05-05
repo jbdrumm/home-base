@@ -12,14 +12,34 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session) loadProfile(session);
+      if (session) {
+        // Restore persisted token if provider_token is missing (post-redirect)
+        if (!session.provider_token) {
+          const stored = sessionStorage.getItem('hb_provider_token');
+          if (stored) session.provider_token = stored;
+        } else {
+          sessionStorage.setItem('hb_provider_token', session.provider_token);
+        }
+        loadProfile(session);
+      }
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setSession(session);
-      if (session) loadProfile(session);
-      else { setProfile(null); setHouseholdProfiles([]); }
+      if (session) {
+        if (session.provider_token) {
+          sessionStorage.setItem('hb_provider_token', session.provider_token);
+        } else {
+          const stored = sessionStorage.getItem('hb_provider_token');
+          if (stored) session.provider_token = stored;
+        }
+        loadProfile(session);
+      } else {
+        sessionStorage.removeItem('hb_provider_token');
+        setProfile(null);
+        setHouseholdProfiles([]);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -98,7 +118,9 @@ export function AuthProvider({ children }) {
     setProfile(p => ({ ...p, household_id: householdId }));
   }
 
-  const googleToken = session?.provider_token || profile?.google_access_token;
+  const googleToken = session?.provider_token 
+    || profile?.google_access_token 
+    || sessionStorage.getItem('hb_provider_token');
 
   return (
     <AuthContext.Provider value={{
