@@ -18,7 +18,7 @@ export const seedVehicles = [
     toll_tag: 'I-PASS · 400123456',
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
-    photo_url: null, // Paste a direct image URL here e.g. 'https://i.imgur.com/abc123.jpg'
+    photo_url: 'https://di-uploads-development.dealerinspire.com/kendalldodgechryslerjeepram1/uploads/2017/12/2017_dodge_durango_kendall_dodge1.png',
   },
   {
     id: 'v2',
@@ -37,7 +37,7 @@ export const seedVehicles = [
     toll_tag: 'I-PASS · 400123457',
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
-    photo_url: null,
+    photo_url: 'https://autoimage.capitalone.com/stock-media/evox/2018-Honda-Odyssey-Elite-WA-12089_cc2400_032_WA.png',
   },
   {
     id: 'v3',
@@ -56,7 +56,7 @@ export const seedVehicles = [
     toll_tag: null,
     car_wash_pass: null,
     extended_use_plate: true,
-    photo_url: null,
+    photo_url: 'https://www.motorcarclassics.com/galleria_images/388/388_main_l.jpg',
   },
   {
     id: 'v4',
@@ -75,7 +75,7 @@ export const seedVehicles = [
     toll_tag: null,
     car_wash_pass: null,
     extended_use_plate: true,
-    photo_url: null,
+    photo_url: 'https://i.redd.it/l89wj6mw46qc1.png',
   },
 ];
 
