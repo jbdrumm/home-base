@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+.app-root { min-height: 100vh; background: var(--bg-base); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+/* Cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  transition: background 0.2s;
+}
+
+/* Section label */
+.section-label {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 12px;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: var(--accent);
+  color: var(--text-inverse);
+}
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--bg-card-hover); }
+.btn-danger {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* Chips */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.chip-warn   { background: var(--color-warn-bg);    color: var(--color-warn); }
+.chip-success{ background: var(--color-success-bg); color: var(--color-success); }
+.chip-info   { background: var(--color-info-bg);    color: var(--color-info); }
+.chip-store-meijer  { background: #ffeef1; color: var(--store-meijer); }
+.chip-store-walmart { background: #e8f3fd; color: var(--store-walmart); }
+.chip-store-sams    { background: #e5f6fd; color: var(--store-sams); }
+.chip-store-jewel   { background: #fdecea; color: var(--store-jewel); }
+[data-theme="dark"] .chip-store-meijer  { background: #3a0a12; color: #ff7a8e; }
+[data-theme="dark"] .chip-store-walmart { background: #0a1f3a; color: #60a5fa; }
+[data-theme="dark"] .chip-store-sams    { background: #061f2e; color: #67d2f0; }
+[data-theme="dark"] .chip-store-jewel   { background: #2a0e0c; color: #f87171; }
+
+/* Inputs */
+.input {
+  width: 100%;
+  background: var(--bg-base);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--text-tertiary); }
+select.input { cursor: pointer; }
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 0;
+  animation: fadeIn 0.2s ease;
+}
+.modal-sheet {
+  background: var(--bg-card);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 600px;
+  padding: 24px 24px 40px;
+  box-shadow: var(--shadow-modal);
+  animation: slideUp 0.25s ease;
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+}
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border-strong);
+  border-radius: 4px;
+  margin: 0 auto 20px;
+}
+
+@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slideUp { from { transform: translateY(60px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+
+/* Strikethrough for checked items */
+.item-done {
+  text-decoration: line-through;
+  color: var(--text-tertiary) !important;
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-sheet { max-width: 100%; }
+}

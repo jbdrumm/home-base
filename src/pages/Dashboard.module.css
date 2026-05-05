@@ -1,0 +1,86 @@
+.page {
+  padding: 20px 24px 80px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* 4-column grid on TV/desktop */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.card { min-width: 0; }
+
+.span2 { grid-column: span 2; }
+.span3 { grid-column: span 3; }
+
+/* Loading */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 60vh;
+}
+
+.loadingDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+/* Floating action button */
+.fab {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  z-index: 50;
+}
+
+.fab:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.26);
+}
+
+.fab:active { transform: scale(0.96); }
+
+/* Tablet: 2 columns */
+@media (max-width: 900px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .span2 { grid-column: span 2; }
+  .span3 { grid-column: span 2; }
+}
+
+/* Mobile: 1 column */
+@media (max-width: 560px) {
+  .page { padding: 12px 16px 80px; }
+  .grid { grid-template-columns: 1fr; gap: 12px; }
+  .span2, .span3 { grid-column: span 1; }
+}
+
+/* TV / large screens: emphasize font sizes slightly */
+@media (min-width: 1200px) {
+  .page { padding: 24px 32px 80px; }
+  .grid { gap: 20px; }
+}

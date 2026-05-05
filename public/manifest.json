@@ -1,0 +1,12 @@
+{
+  "short_name": "Home Base",
+  "name": "Home Base — Family Dashboard",
+  "icons": [
+    { "src": "favicon.ico", "sizes": "64x64 32x32 24x24 16x16", "type": "image/x-icon" }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#C8791A",
+  "background_color": "#F4F1EC",
+  "description": "Family dashboard: calendar, to-dos, grocery list, and home status."
+}

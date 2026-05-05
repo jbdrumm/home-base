@@ -1,0 +1,261 @@
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 160px;
+  overflow: hidden;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 12px;
+}
+
+.badge {
+  margin-left: auto;
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+.badgeMuted {
+  margin-left: 4px;
+  background: var(--bg-subtle);
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 20px;
+}
+
+.empty {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  padding: 12px 0;
+  text-align: center;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.section { margin-bottom: 10px; }
+.section:last-child { margin-bottom: 0; }
+
+.sectionLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+
+.eventRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.eventRow:last-child { border-bottom: none; }
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.eventInfo { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+
+.eventTitle {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.eventTime { font-size: 11px; color: var(--text-tertiary); }
+
+/* List rows (todos, grocery) */
+.list { display: flex; flex-direction: column; gap: 0; }
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.listRow:last-child { border-bottom: none; }
+
+.checkBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 4px;
+  transition: opacity var(--transition);
+}
+
+.checkBtn:hover { opacity: 0.7; }
+.checkBtn:disabled { opacity: 0.4; }
+
+.listTitle {
+  font-size: 13px;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.strikethrough {
+  text-decoration: line-through;
+  color: var(--text-tertiary);
+}
+
+.dueTag {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--amber);
+  flex-shrink: 0;
+}
+
+.priorityBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+/* Grocery specific */
+.groceryGroup { margin-bottom: 8px; }
+.groceryGroup:last-child { margin-bottom: 0; }
+
+.categoryLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+  padding-top: 4px;
+}
+
+.checkCircle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  display: block;
+  transition: all var(--transition);
+}
+
+.checkCircleDone {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.checkedSection {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.checkedRow { opacity: 0.5; }
+
+.more {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 6px 0 2px;
+  text-align: center;
+}
+
+/* Message board */
+.messageList { display: flex; flex-direction: column; gap: 8px; }
+
+.messageItem {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+}
+
+.messageItem.pinned {
+  border-left: 2px solid var(--accent);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  color: white;
+}
+
+.messageBody { flex: 1; min-width: 0; }
+.messageName { font-size: 11px; font-weight: 600; color: var(--text-tertiary); margin-bottom: 2px; }
+.messageText { font-size: 13px; color: var(--text-primary); }
+
+/* Countdown */
+.countdownList { display: flex; flex-direction: column; gap: 10px; }
+
+.countdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+}
+
+.countdownEmoji { font-size: 20px; line-height: 1; }
+
+.countdownInfo { flex: 1; min-width: 0; }
+.countdownLabel { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.countdownDate { font-size: 11px; color: var(--text-tertiary); }
+
+.countdownDays {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.countdownDayLabel { font-size: 10px; color: var(--text-tertiary); text-align: right; }
