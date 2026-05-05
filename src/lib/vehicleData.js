@@ -57,13 +57,13 @@ export const seedVehicles = [
   },
   {
     id: 'v4',
-    name: '1994 Jeep Wrangler Splash',
-    make: 'Jeep',
-    model: 'Wrangler',
+    name: '1994 Ford Ranger Splash',
+    make: 'Ford',
+    model: 'Ranger',
     year: 1994,
     trim: 'Splash',
-    engine: '2.5L 4-cyl',
-    color: 'Poppy Red',
+    engine: '2.3L 4-cyl',
+    color: 'Calypso Green',
     emoji: '🛻',
     license_plate: 'YJ 1994',
     state: 'Illinois',
@@ -97,10 +97,10 @@ export const seedMaintenanceSchedule = {
     { id: 'm3-4', task: 'Soft Top',         notes: 'Inspect & treat',  interval_mo: 12,    last_done_mi: 108000, last_done_at: '2024-04-01', status: 'soon' },
   ],
   v4: [
-    { id: 'm4-1', task: 'Oil Change',       notes: '10W-40',           interval_mi: 3000,  last_done_mi: 142000, last_done_at: '2025-01-20', status: 'overdue' },
-    { id: 'm4-2', task: 'Axle U-Joints',    notes: 'Grease & inspect', interval_mi: 15000, last_done_mi: 135000, last_done_at: '2024-06-01', status: 'soon' },
-    { id: 'm4-3', task: 'Transfer Case',    notes: 'NP231 fluid',      interval_mi: 30000, last_done_mi: 120000, last_done_at: '2023-01-01', status: 'soon' },
-    { id: 'm4-4', task: 'Soft Top',         notes: 'Clean & protect',  interval_mo: 12,    last_done_mi: 140000, last_done_at: '2024-03-15', status: 'good' },
+    { id: 'm4-1', task: 'Oil Change',       notes: '10W-40',             interval_mi: 3000,  last_done_mi: 142000, last_done_at: '2025-01-20', status: 'overdue' },
+    { id: 'm4-2', task: 'Axle U-Joints',    notes: 'Grease & inspect',   interval_mi: 15000, last_done_mi: 135000, last_done_at: '2024-06-01', status: 'soon' },
+    { id: 'm4-3', task: 'Transfer Case',    notes: 'Motorcraft fluid',   interval_mi: 30000, last_done_mi: 120000, last_done_at: '2023-01-01', status: 'soon' },
+    { id: 'm4-4', task: 'Soft Top',         notes: 'Clean & protect',    interval_mo: 12,    last_done_mi: 140000, last_done_at: '2024-03-15', status: 'good' },
   ],
 };
 
