@@ -1,82 +1,117 @@
 # 🏠 Home Base
 
-Family dashboard PWA — calendar, to-dos, grocery list, home status, countdowns, and message board.  
-Runs on a Raspberry Pi TV display (Chromium kiosk) and both Android phones (PWA install).
+Family dashboard PWA — calendar, to-dos, grocery list, vehicle tracker, home status, finances, cameras, and more.  
+Runs on a Raspberry Pi TV display (Chromium kiosk) and Android phones (PWA install).
 
 ---
 
 ## Stack
-- **Frontend:** React (PWA, installable)
+
+- **Frontend:** React 18 (PWA, installable)
 - **Backend / DB:** Supabase (Postgres + realtime)
-- **Google Integration:** Google Calendar + Tasks APIs (Sprint 2)
-- **Hosting:** Self-hosted on Raspberry Pi (or Netlify for remote access)
+- **Auth / Calendar:** Google OAuth + Calendar API
+- **Weather:** OpenWeather API
+- **AI:** Anthropic Claude API (Vision — fuel log photo parsing)
+- **Hosting:** Self-hosted on Raspberry Pi, or GitHub Codespaces for development
 
 ---
 
-## Getting Started
+## Environment Variables
 
-### 1. Clone & install
+Copy `.env.example` to `.env` and fill in all values:
+
+| Variable | Where to get it |
+|---|---|
+| `REACT_APP_SUPABASE_URL` | Supabase → project → Settings → API |
+| `REACT_APP_SUPABASE_ANON_KEY` | Same page |
+| `REACT_APP_GOOGLE_CLIENT_ID` | console.cloud.google.com → APIs & Services → Credentials |
+| `REACT_APP_OPENWEATHER_KEY` | home.openweathermap.org/api_keys |
+| `REACT_APP_ANTHROPIC_KEY` | console.anthropic.com → API Keys |
+
+---
+
+## Local Development
+
+Requires [Node.js LTS](https://nodejs.org).
+
 ```bash
-git clone <repo>
+git clone https://github.com/jbdrumm/home-base.git
 cd home-base
-npm install
-```
-
-### 2. Set up Supabase
-1. Create a project at [supabase.com](https://supabase.com)
-2. Go to **SQL Editor** and run the full contents of `supabase-schema.sql`
-3. Go to **Settings → API** and copy your Project URL and anon public key
-
-### 3. Configure environment
-```bash
 cp .env.example .env
-# Fill in REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY
-```
-
-### 4. Run locally
-```bash
+# Fill in your values in .env
+npm install --legacy-peer-deps
 npm start
 # Opens at http://localhost:3000
 ```
 
 ---
 
-## Raspberry Pi Kiosk Setup
+## GitHub Codespaces
+
+No local Node install needed — runs entirely in the browser.
+
+1. Go to the repo on GitHub
+2. Click the green **Code** button → **Codespaces** tab → **Create codespace**
+3. Add your 5 secrets at: github.com → Profile → Settings → Codespaces → Secrets
+4. In the Codespace terminal:
+
 ```bash
-# On the Pi, install Chromium
-sudo apt install chromium-browser
-
-# Auto-launch on boot (add to ~/.bashrc or a systemd service)
-chromium-browser --kiosk --noerrdialogs --disable-infobars \
-  --app=http://localhost:3000 &
-
-# Or if hosted remotely:
-chromium-browser --kiosk http://your-server-ip:3000
+git pull origin main
+rm -rf node_modules package-lock.json
+npm install --legacy-peer-deps
+npm start
 ```
 
-## Android Phone (PWA Install)
-1. Open Chrome on your Android phone
+5. Click the **forwarded port** link that appears (port 3000) to open the app
+
+> **Note:** Always run `git pull origin main` before reinstalling dependencies to make sure you have the latest `package.json`.
+
+---
+
+## Supabase Setup
+
+The full schema is in `supabase-schema.sql`. Applied automatically each sprint via Supabase MCP.
+
+For a fresh setup:
+1. Create a project at [supabase.com](https://supabase.com)
+2. Go to **SQL Editor** and run the full contents of `supabase-schema.sql`
+
+---
+
+## Raspberry Pi Kiosk Setup
+
+```bash
+sudo apt install chromium-browser
+
+# Add to ~/.bashrc or a systemd service
+chromium-browser --kiosk --noerrdialogs --disable-infobars \
+  --app=http://localhost:3000 &
+```
+
+## Android PWA Install
+
+1. Open Chrome on Android
 2. Navigate to the app URL
-3. Tap the browser menu → **"Add to Home screen"**
-4. Home Base will appear as an app icon
+3. Tap menu → **Add to Home screen**
 
 ---
 
 ## Sprint Roadmap
 
-| Sprint | Focus |
-|--------|-------|
-| ✅ 1 | Scaffold, UI, Supabase schema, seeded data |
-| 🔜 2 | Google OAuth + Calendar/Tasks API integration |
-| 🔜 3 | PWA service worker, Pi kiosk config, mobile polish |
-| 🔜 4 | Auto theme, smart home hooks, weather widget |
-
----
-
-## Google Cloud Setup (Sprint 2 prep)
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Create a new project called **Home Base**
-3. Enable: **Google Calendar API**, **Google Tasks API**
-4. Create OAuth 2.0 credentials (Web application type)
-5. Add your Pi's IP and `localhost:3000` to Authorized Origins
-6. Copy Client ID to `.env` as `REACT_APP_GOOGLE_CLIENT_ID`
+| Sprint | Focus | Status |
+|--------|-------|--------|
+| 1 | Scaffold, UI shell, Supabase schema, seed data | ✅ Done |
+| 2 | Google OAuth + Calendar API integration | ✅ Done |
+| 3 | PWA service worker, mobile polish | ✅ Done |
+| 4 | Weather widget, OpenWeather API | ✅ Done |
+| 5 | Grocery list — store filters, check off, clear | ✅ Done |
+| 6 | To-do lists — multi-list, priorities | ✅ Done |
+| 7 | Home status panel | ✅ Done |
+| 8 | Finances — bills, due dates, autopay flags | ✅ Done |
+| 9 | Vehicle tracker — maintenance, fuel log, Claude Vision fillup | ✅ Done |
+| 10 | Cameras — Lorex RTSP integration | 🔜 Next |
+| 11 | Packages — tracking auto-import via Make.com + Yahoo Mail | 🔜 Planned |
+| 12 | Monarch Money integration — live balances & transactions | 🔜 Planned |
+| 13 | Jacob's page — F1 news, personal weather, headlines | 🔜 Planned |
+| 14 | Family page — homeschool planner, meal plan | 🔜 Planned |
+| 15 | Pi kiosk hardening, offline mode, push notifications | 🔜 Planned |
