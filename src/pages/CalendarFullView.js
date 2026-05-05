@@ -12,9 +12,18 @@ const ownerColors = {
 
 function getEventsForDay(events, day) {
   return events.filter(e => {
-    if (e.date === 'today')    return isSameDay(day, new Date());
-    if (e.date === 'tomorrow') return isSameDay(day, new Date(Date.now() + 86400000));
-    return false;
+    // Parse rawDate safely — all-day events are "YYYY-MM-DD", timed are ISO strings
+    const raw = e.rawDate;
+    if (!raw) return false;
+    let eventDate;
+    if (raw.length === 10) {
+      // all-day: "2026-05-08" — parse as local date
+      const [y, m, d] = raw.split('-').map(Number);
+      eventDate = new Date(y, m - 1, d);
+    } else {
+      eventDate = new Date(raw);
+    }
+    return isSameDay(day, eventDate);
   });
 }
 

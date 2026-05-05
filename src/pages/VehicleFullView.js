@@ -329,7 +329,7 @@ export default function VehicleFullView({ initialVehicleId, onBack }) {
               title="Click to upload photo"
             >
               {vehicle.photo_url ? (
-                <img src={vehicle.photo_url} alt={vehicle.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: vehicle.photo_position || 'center' }} />
+                <img src={vehicle.photo_url} alt={vehicle.name} style={{ width: '100%', height: '100%', objectFit: vehicle.photo_fit || 'cover', objectPosition: vehicle.photo_position || 'center' }} />
               ) : (
                 <>
                   {vehicle.emoji}
