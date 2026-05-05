@@ -25,7 +25,7 @@ export function useDashboard() {
   const loadWeather = useCallback(async () => {
     const lat = process.env.REACT_APP_WEATHER_LAT;
     const lon = process.env.REACT_APP_WEATHER_LON;
-    const key = process.env.REACT_APP_OPENWEATHER_API_KEY;
+    const key = process.env.REACT_APP_OPENWEATHER_KEY;
     if (!lat || !lon || !key) return;
     try {
       const data = await fetchWeather(lat, lon, key);
