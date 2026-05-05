@@ -357,10 +357,8 @@ export default function VehicleFullView({ initialVehicleId, onBack }) {
               onChange={async e => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                // For now store as object URL locally; Supabase Storage upload in Sprint 10
-                const url = URL.createObjectURL(file);
-                alert('Photo preview set locally. Supabase Storage upload coming in a future sprint.');
-                // Would call: supabase.storage.from('vehicle-photos').upload(...)
+                // Supabase Storage upload coming in a future sprint
+                alert('Photo upload coming in a future sprint.');
               }}
             />
             <div style={{ flex: 1 }}>

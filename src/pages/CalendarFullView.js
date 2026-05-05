@@ -96,7 +96,7 @@ export default function CalendarFullView({ events, onBack }) {
               <div key={day.toString()}
                 onClick={() => handleDayClick(day)}
                 style={{
-                  minHeight: '90px',
+                  minHeight: '110px',
                   borderRadius: '10px',
                   padding: '8px 6px 6px',
                   background: isExp ? 'var(--accent-soft)' : todayDay ? 'var(--accent-soft)' : 'var(--bg-card)',
@@ -105,6 +105,7 @@ export default function CalendarFullView({ events, onBack }) {
                   cursor: dayEvents.length > 0 ? 'pointer' : 'default',
                   transition: 'all 0.15s',
                   display: 'flex', flexDirection: 'column', gap: '3px',
+                  overflow: 'hidden',
                 }}
               >
                 {/* Day number */}
@@ -113,6 +114,7 @@ export default function CalendarFullView({ events, onBack }) {
                   fontWeight: todayDay ? '700' : '400',
                   color: todayDay ? 'var(--accent)' : 'var(--text-primary)',
                   marginBottom: '4px',
+                  flexShrink: 0,
                 }}>{format(day, 'd')}</div>
 
                 {/* Events inside cell */}
@@ -124,18 +126,20 @@ export default function CalendarFullView({ events, onBack }) {
                       padding: '2px 5px', borderRadius: '4px',
                       background: ownerColors[event.owner] || 'var(--accent)',
                       color: 'white',
-                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                      cursor: 'pointer',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      cursor: 'pointer', flexShrink: 0,
+                      maxWidth: '100%',
                       outline: selected?.id === event.id ? '2px solid var(--accent)' : 'none',
                       outlineOffset: '1px',
                     }}
-                    title={event.title}
+                    title={`${event.time} ${event.title}`}
                   >
-                    {event.time} {event.title}
+                    {event.time !== 'All day' && <span style={{ opacity: 0.85 }}>{event.time} </span>}
+                    {event.title}
                   </div>
                 ))}
                 {dayEvents.length > 3 && (
-                  <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', paddingLeft: '4px' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', paddingLeft: '4px', flexShrink: 0 }}>
                     +{dayEvents.length - 3} more
                   </div>
                 )}
