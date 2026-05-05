@@ -19,7 +19,7 @@ export const seedVehicles = [
     car_wash_pass: 'Mister Car Wash',
     extended_use_plate: false,
     photo_url: 'https://di-uploads-development.dealerinspire.com/kendalldodgechryslerjeepram1/uploads/2017/12/2017_dodge_durango_kendall_dodge1.png',
-    photo_position: 'center 55%',
+    photo_position: 'center 30%',
     photo_fit: 'cover',
   },
   {
