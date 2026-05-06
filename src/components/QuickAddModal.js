@@ -51,6 +51,8 @@ export default function QuickAddModal({ type, onClose, onAdd }) {
     if (e.target === e.currentTarget) onClose();
   }
 
+  const isMobile = window.innerWidth < 768;
+
   return (
     <div
       onClick={handleBackdropClick}
@@ -60,24 +62,22 @@ export default function QuickAddModal({ type, onClose, onAdd }) {
         zIndex: 300,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-end',
+        justifyContent: isMobile ? 'flex-end' : 'center',
         alignItems: 'center',
       }}
     >
       <div
         style={{
           background: 'var(--bg-card)',
-          borderRadius: '20px 20px 0 0',
+          borderRadius: isMobile ? '20px 20px 0 0' : '16px',
           width: '100%',
-          maxWidth: '560px',
+          maxWidth: '480px',
           padding: '24px 24px 32px',
           boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
           animation: 'slideUp 0.25s ease',
-          // Shift up above keyboard
-          marginBottom: `${keyboardHeight}px`,
+          marginBottom: isMobile ? `${keyboardHeight}px` : '0',
           transition: 'margin-bottom 0.2s ease',
-          // Prevent clicks inside from closing
-          onClick: e => e.stopPropagation(),
+          margin: isMobile ? `0 0 ${keyboardHeight}px 0` : 'auto',
         }}
         onClick={e => e.stopPropagation()}
       >
