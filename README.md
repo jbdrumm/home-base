@@ -109,9 +109,15 @@ chromium-browser --kiosk --noerrdialogs --disable-infobars \
 | 7 | Home status panel | ✅ Done |
 | 8 | Finances — bills, due dates, autopay flags | ✅ Done |
 | 9 | Vehicle tracker — maintenance, fuel log, Claude Vision fillup | ✅ Done |
-| 10 | Cameras — Lorex RTSP integration | 🔜 Next |
-| 11 | Packages — tracking auto-import via Make.com + Yahoo Mail | 🔜 Planned |
-| 12 | Monarch Money integration — live balances & transactions | 🔜 Planned |
-| 13 | Jacob's page — F1 news, personal weather, headlines | 🔜 Planned |
-| 14 | Family page — homeschool planner, meal plan | 🔜 Planned |
-| 15 | Pi kiosk hardening, offline mode, push notifications | 🔜 Planned |
+| 10 | Mobile responsive layout | 🔜 Next |
+| 11 | Multi-account auth — Jacob + Katelin + Family Google accounts, merged dashboard view, account-aware task writes, "Who is this for?" selector | 🔜 Planned |
+| 12 | Cameras — go2rtc relay of Lorex RTSP sub-streams (desktop PC server) | 🔜 Planned |
+| 13 | Chores & Rewards — assign chores with schedules/rotations, point system, kid-friendly rewards | 🔜 Planned |
+| 14 | Meal Planning — weekly meal plan, recipe library, auto-populate grocery list from recipes | 🔜 Planned |
+| 15 | Countdowns tile — recurring annual events (auto-recalculate) + one-time events | 🔜 Planned |
+| 16 | Packages — tracking auto-import via Make.com + Yahoo Mail | 🔜 Planned |
+| 17 | Monarch Money integration — live balances & transactions behind PIN | 🔜 Planned |
+| 18 | Jacob's page — F1/IndyCar news, personal weather, headlines | 🔜 Planned |
+| 19 | Katelin's page — homeschool planner, family content | 🔜 Planned |
+| 20 | Screensaver / sleep mode — family photo slideshow when idle, auto sleep schedule | 🔜 Planned |
+| 21 | Pi kiosk hardening, offline mode, push notifications | 🔜 Planned |
