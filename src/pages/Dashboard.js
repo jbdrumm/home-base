@@ -62,7 +62,7 @@ export default function Dashboard({ token, profile, onSignOut }) {
   }
   function handleQuickAdd(item) {
     if (modal === 'grocery') groceries.addItem(item);
-    if (modal === 'todo')    tasks.addTodo({ ...item, list: 'General' });
+    if (modal === 'todo')    tasks.addTodo(item); // item.list is set by QuickAddModal
   }
   function handleSync() {
     calendar.sync();
