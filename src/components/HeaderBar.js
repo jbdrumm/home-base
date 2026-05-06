@@ -25,7 +25,7 @@ function PersonTile({ name, emoji, onClick }) {
   );
 }
 
-export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOut, onShowJacob, onShowKatelin }) {
+export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOut, onShowJacob, onShowKatelin, onShowHousehold }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -50,9 +50,22 @@ export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOu
           </span>
         </div>
         {/* Person tiles */}
-        <div style={{ display: 'flex', gap: '6px', marginLeft: '8px' }}>
-          <PersonTile name="Jacob"   emoji="👤" onClick={onShowJacob} />
-          <PersonTile name="Katelin" emoji="👤" onClick={onShowKatelin} />
+        <div style={{ display: 'flex', gap: '6px', marginLeft: '8px', alignItems: 'center' }}>
+          <PersonTile name="Jacob"   emoji="👨" onClick={onShowJacob} />
+          <PersonTile name="Katelin" emoji="👩" onClick={onShowKatelin} />
+          <button
+            onClick={onShowHousehold}
+            title="Household account settings"
+            style={{
+              width: '32px', height: '32px', borderRadius: '50%',
+              border: '1px solid var(--border)', background: 'var(--bg-card)',
+              cursor: 'pointer', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', fontSize: '14px',
+              transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-card)'}
+          >⚙️</button>
         </div>
       </div>
 

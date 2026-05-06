@@ -4,7 +4,6 @@ import CalendarWidget from '../components/CalendarWidget';
 import TodoWidget from '../components/TodoWidget';
 import GroceryWidget from '../components/GroceryWidget';
 import HomeStatusWidget from '../components/HomeStatusWidget';
-import CountdownWidget from '../components/CountdownWidget';
 import FinancialWidget from '../components/FinancialWidget';
 import WeatherWidget from '../components/WeatherWidget';
 import VehicleWidget from '../components/VehicleWidget';
@@ -12,6 +11,7 @@ import CameraWidget from '../components/CameraWidget';
 import QuickActionFAB from '../components/QuickActionFAB';
 import QuickAddModal from '../components/QuickAddModal';
 import LogFillupModal from '../components/LogFillupModal';
+import HouseholdSetup from '../components/HouseholdSetup';
 
 import CalendarFullView from './CalendarFullView';
 import TodoFullView from './TodoFullView';
@@ -21,10 +21,9 @@ import WeatherFullView from './WeatherFullView';
 import PersonView from './PersonView';
 
 import { useLocalState } from '../hooks/useLocalState';
-import { useCalendarData } from '../hooks/useCalendarData';
-import { useTasksData } from '../hooks/useTasksData';
+import { useMultiAccountData } from '../hooks/useMultiAccountData';
 import { useWeather } from '../hooks/useWeather';
-import { seedGroceries, seedCountdowns, seedBills } from '../lib/seedData';
+import { seedGroceries, seedBills } from '../lib/seedData';
 import { seedVehicles } from '../lib/vehicleData';
 
 function Tile({ onClick, children, style }) {
@@ -43,7 +42,7 @@ function Tile({ onClick, children, style }) {
   );
 }
 
-export default function Dashboard({ token, profile, onSignOut }) {
+export default function Dashboard({ token, profile, onSignOut, householdAuth }) {
   const groceries = useLocalState(seedGroceries);
   const bills     = useLocalState(seedBills);
   const [view,  setView]  = useState(null);
@@ -51,9 +50,13 @@ export default function Dashboard({ token, profile, onSignOut }) {
   const [activeVehicleId, setActiveVehicleId] = useState(null);
   const [showFillup, setShowFillup] = useState(false);
 
-  const calendar = useCalendarData(token);
-  const tasks    = useTasksData(token);
-  const weather  = useWeather();
+  const {
+    householdTokens, primaryMember, getTokenFor,
+    linkMember, unlinkMember, linkingMember, error: authError,
+  } = householdAuth || {};
+
+  const multiData = useMultiAccountData(getTokenFor || (() => null), householdTokens || {});
+  const weather   = useWeather();
 
   const isMobile = window.innerWidth < 768;
 
@@ -62,16 +65,38 @@ export default function Dashboard({ token, profile, onSignOut }) {
   }
   function handleQuickAdd(item) {
     if (modal === 'grocery') groceries.addItem(item);
-    if (modal === 'todo')    tasks.addTodo(item); // item.list is set by QuickAddModal
+    if (modal === 'todo')    multiData.addTask(item);
   }
   function handleSync() {
-    calendar.sync();
-    tasks.sync();
+    multiData.sync();
     weather.refresh();
   }
 
-  const syncLoading = calendar.loading || tasks.loading || weather.loading;
-  const lastSync    = calendar.lastSync || tasks.lastSync || weather.lastSync;
+  const syncLoading = multiData.loading || weather.loading;
+  const lastSync    = multiData.lastSync || weather.lastSync;
+
+  if (view === 'household') return (
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '0 28px', height: '60px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <button onClick={() => setView(null)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '14px', fontWeight: '500', fontFamily: 'var(--font-body)' }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Dashboard
+        </button>
+        <span style={{ color: 'var(--border-strong)', fontSize: '18px' }}>|</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '600' }}>Household Accounts</span>
+      </div>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '28px' }}>
+        <HouseholdSetup
+          householdTokens={householdTokens || {}}
+          linkMember={linkMember}
+          unlinkMember={unlinkMember}
+          linkingMember={linkingMember}
+          error={authError}
+          onClose={() => setView(null)}
+        />
+      </div>
+    </div>
+  );
 
   if (view === 'jacob') return (
     <PersonView name="Jacob" onBack={() => setView(null)} />
@@ -84,11 +109,16 @@ export default function Dashboard({ token, profile, onSignOut }) {
   );
 
   if (view === 'calendar') return (
-    <CalendarFullView events={calendar.events} onBack={() => setView(null)} />
+    <CalendarFullView events={multiData.events} onBack={() => setView(null)} />
   );
   if (view === 'todo') return (
-    <TodoFullView todosByList={tasks.todosByList} onToggle={tasks.toggleTodo}
-      onAdd={tasks.addTodo} onDelete={tasks.deleteTodo} onBack={() => setView(null)} />
+    <TodoFullView
+      todosByList={multiData.todosByList}
+      onAdd={multiData.addTask}
+      onBack={() => setView(null)}
+      householdTokens={householdTokens || {}}
+      primaryMember={primaryMember}
+    />
   );
   if (view === 'financial') return (
     <FinancialFullView bills={bills.items} onTogglePaid={toggleBillPaid}
@@ -111,13 +141,14 @@ export default function Dashboard({ token, profile, onSignOut }) {
       <HeaderBar lastSync={lastSync} loading={syncLoading}
         onSync={handleSync} profile={profile} onSignOut={onSignOut}
         onShowJacob={() => setView('jacob')}
-        onShowKatelin={() => setView('katelin')} />
+        onShowKatelin={() => setView('katelin')}
+        onShowHousehold={() => setView('household')} />
 
       {isMobile ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <Tile onClick={() => setView('calendar')}><CalendarWidget events={calendar.events} /></Tile>
+          <Tile onClick={() => setView('calendar')}><CalendarWidget events={multiData.events} /></Tile>
           <Tile onClick={() => setView('todo')}>
-            <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
+            <TodoWidget todosByList={multiData.todosByList} />
           </Tile>
           <div style={{ height: '420px' }}>
             <GroceryWidget items={groceries.items}
@@ -130,7 +161,6 @@ export default function Dashboard({ token, profile, onSignOut }) {
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
           </div>
           <Tile onClick={() => setView('home')}><HomeStatusWidget /></Tile>
-          <CountdownWidget countdowns={seedCountdowns} messages={[]} />
         </div>
       ) : (
         <div style={{
@@ -146,12 +176,12 @@ export default function Dashboard({ token, profile, onSignOut }) {
 
           {/* Col 2 Row 1: Calendar */}
           <Tile onClick={() => setView('calendar')} style={{ gridColumn: '2', gridRow: '1' }}>
-            <CalendarWidget events={calendar.events} />
+            <CalendarWidget events={multiData.events} />
           </Tile>
 
           {/* Col 3 Rows 1-2: To-do */}
           <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3' }}>
-            <TodoWidget todosByList={tasks.todosByList} onToggle={tasks.toggleTodo} />
+            <TodoWidget todosByList={multiData.todosByList} />
           </Tile>
 
           {/* Col 4 Rows 1-4: Grocery */}
@@ -188,7 +218,13 @@ export default function Dashboard({ token, profile, onSignOut }) {
         setModal(type);
       }} />
       {modal && (
-        <QuickAddModal type={modal} onClose={() => setModal(null)} onAdd={handleQuickAdd} />
+        <QuickAddModal
+          type={modal}
+          onClose={() => setModal(null)}
+          onAdd={handleQuickAdd}
+          primaryMember={primaryMember}
+          householdTokens={householdTokens || {}}
+        />
       )}
       {showFillup && (
         <LogFillupModal

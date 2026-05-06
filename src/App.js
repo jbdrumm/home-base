@@ -3,6 +3,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import Dashboard from './pages/Dashboard';
 import SignInPrompt from './components/SignInPrompt';
 import { useGoogleAuth } from './hooks/useGoogleAuth';
+import { useHouseholdAuth } from './hooks/useHouseholdAuth';
 import './styles/theme.css';
 import './styles/global.css';
 
@@ -14,6 +15,7 @@ function getAutoTheme() {
 function AppInner() {
   const [theme, setTheme] = useState(getAutoTheme());
   const { token, profile, isSignedIn, login, logout, error } = useGoogleAuth();
+  const householdAuth = useHouseholdAuth();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -30,7 +32,12 @@ function AppInner() {
 
   return (
     <div className="app-root">
-      <Dashboard token={token} profile={profile} onSignOut={logout} />
+      <Dashboard
+        token={token}
+        profile={profile}
+        onSignOut={logout}
+        householdAuth={householdAuth}
+      />
     </div>
   );
 }

@@ -63,6 +63,7 @@
 | 1–8 | Scaffold, auth, calendar, tasks, grocery, home status, finances, weather, PWA |
 | 9 | Vehicle tracker — 4 vehicles (Durango GT, Odyssey Elite, S2000, Ranger Splash), maintenance table, fuel log, Claude Vision fillup flow, extended-use plate logic |
 | Post-9 fixes | Calendar all-day event timezone fix, full calendar event display, weather drilldown, vehicle nav fix, badge overlap fix, photo support per vehicle, QuickAdd list routing fix, modal keyboard behavior fix, desktop modal centering |
+| 10 | Multi-account auth — household_tokens Supabase table, useHouseholdAuth hook, useMultiAccountData merging all 3 accounts, HouseholdSetup UI (⚙️ in header), QuickAdd "Who is this for?" selector (Jacob/Family/Katelin), Family Tasks list auto-created on Family Google account, account-aware task writes |
 
 ---
 
@@ -93,7 +94,7 @@
 
 ---
 
-### Sprint 11 — Mobile Responsive Layout
+### Sprint 11 — Mobile Responsive Layout ⬅ NEXT
 **Goal:** App looks and works great on phones.
 
 **Known issues to fix:**
