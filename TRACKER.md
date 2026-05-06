@@ -196,12 +196,13 @@
 
 | # | Description | Priority |
 |---|---|---|
-| 1 | Katelin's Google account not yet integrated — she sees only her own data | Blocked by Sprint 10 |
-| 2 | Family Google account not yet connected | Blocked by Sprint 10 |
+| 1 | Katelin's Google account not yet integrated — she sees only her own data | Blocked by Sprint 10 setup |
+| 2 | Family Google account not yet connected | Blocked by Sprint 10 setup |
 | 3 | Camera tile is placeholder only | Blocked by Sprint 12 |
 | 4 | Vehicle photos stored as seed data URLs — need Supabase Storage upload for user-added photos | Sprint TBD |
 | 5 | Fuel log MPG calculation needs previous odometer reading for accuracy | Sprint TBD |
 | 6 | Bills in Finances are seed data only — not yet editable/persistent in Supabase | Sprint TBD |
+| 7 | Primary Google OAuth token expires after 1 hour — switch to Supabase-backed Google OAuth with refresh tokens for true persistent login (critical for always-on wall display) | Sprint TBD |
 
 ---
 
