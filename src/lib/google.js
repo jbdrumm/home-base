@@ -11,20 +11,20 @@ export const TASK_LIST_NAMES = ['General', 'House', 'Yard', 'Vehicles'];
 // ── Auth token storage ────────────────────────
 export function saveToken(tokenResponse) {
   const expiry = Date.now() + tokenResponse.expires_in * 1000;
-  sessionStorage.setItem('hb_access_token', tokenResponse.access_token);
-  sessionStorage.setItem('hb_token_expiry', expiry.toString());
+  localStorage.setItem('hb_access_token', tokenResponse.access_token);
+  localStorage.setItem('hb_token_expiry', expiry.toString());
 }
 
 export function getToken() {
-  const token  = sessionStorage.getItem('hb_access_token');
-  const expiry = parseInt(sessionStorage.getItem('hb_token_expiry') || '0');
+  const token  = localStorage.getItem('hb_access_token');
+  const expiry = parseInt(localStorage.getItem('hb_token_expiry') || '0');
   if (!token || Date.now() > expiry) return null;
   return token;
 }
 
 export function clearToken() {
-  sessionStorage.removeItem('hb_access_token');
-  sessionStorage.removeItem('hb_token_expiry');
+  localStorage.removeItem('hb_access_token');
+  localStorage.removeItem('hb_token_expiry');
 }
 
 // ── Generic fetch wrapper ─────────────────────

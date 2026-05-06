@@ -5,7 +5,7 @@ import { saveToken, getToken, clearToken } from '../lib/google';
 export function useGoogleAuth() {
   const [token,   setToken]   = useState(() => getToken());
   const [profile, setProfile] = useState(() => {
-    const p = sessionStorage.getItem('hb_profile');
+    const p = localStorage.getItem('hb_profile');
     return p ? JSON.parse(p) : null;
   });
   const [loading] = useState(false);
@@ -27,7 +27,7 @@ export function useGoogleAuth() {
           headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
         });
         const data = await res.json();
-        sessionStorage.setItem('hb_profile', JSON.stringify(data));
+        localStorage.setItem('hb_profile', JSON.stringify(data));
         setProfile(data);
       } catch (e) {
         console.warn('Could not fetch profile', e);
@@ -42,7 +42,7 @@ export function useGoogleAuth() {
 
   const logout = useCallback(() => {
     clearToken();
-    sessionStorage.removeItem('hb_profile');
+    localStorage.removeItem('hb_profile');
     setToken(null);
     setProfile(null);
   }, []);
