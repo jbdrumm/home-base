@@ -164,10 +164,45 @@
 - Auto-import tracking numbers via Make.com + Yahoo Mail
 - Show carrier, status, estimated delivery, progress bar
 
-### Sprint 17 — Monarch Money
-- Live account balances and transactions
-- Behind PIN for privacy
-- Finances tile shows spending summary
+### Sprint 12 — Financial Integration (Monarch Money)
+
+**Platform decision:** Monarch Money ($99/yr) — see `FINANCIAL_DECISIONS.md` for full evaluation log.
+
+**Pre-sprint action items (time sensitive):**
+- [ ] Subscribe to Monarch before 4-day trial expires
+- [ ] Set a Monarch password — API requires password auth, Google login won't work
+- [ ] Cancel Simplifi when ~2 month subscription expires
+
+**Architecture:**
+- Monarch unofficial API: `bradleyseanf/monarchmoneycommunity` Python library
+- Runs as a local service on the always-on desktop PC
+- No financial data stored in Supabase — live fetch only
+- PIN protection gates financial drill-down from kids/casual observers
+
+**Scope:**
+- Monarch API connection via Python service on desktop PC
+- 3x daily sync (morning/lunch/night) — account balances, transactions, net worth
+- Zillow home values pulled via Monarch (native integration)
+- VinAudit vehicle values pulled via Monarch (native integration)
+- Principal 401k via Monarch (MX/Finicity, not Plaid)
+- **Dashboard finances tile** — upcoming bills with due date + auto-draft vs manual flag (manual entry toggle, set once per bill)
+- **PIN-protected drill-down:**
+  - Account balances (all institutions)
+  - Net worth calculator (assets - liabilities + Zillow + vehicles)
+  - Cash flow projection — day-by-day balance visualization built natively in Home Base
+  - Transaction history
+- **Receipt photo capture:**
+  - Claude Vision parses merchant, amount, date from photo
+  - Stores dual dates: date of realization (when transaction occurred) + date posted (when bank posts it)
+  - Example: groceries bought Mar 30, posted Apr 1 → recorded in March
+  - Auto-links to matching posted transaction when it appears from Monarch
+- Auto-draft vs manual: manual toggle per bill (not auto-detected — bank data cannot distinguish)
+- Variable bills (utilities): manual amount entry, not auto-detected
+
+**Institutions confirmed working with Monarch:**
+USAA, Capital One, M&T Bank, Huntington Bank, Ally, Principal 401k
+
+**Annual cost: $99/yr (replacing Simplifi at $70/yr)**
 
 ### Sprint 18 — Jacob's Page
 - F1 and IndyCar news/calendar
