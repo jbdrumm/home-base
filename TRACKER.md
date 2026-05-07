@@ -48,8 +48,8 @@
 |---|---|---|---|---|
 | **Row 1** | Weather | Calendar | To-do ↕ (rows 1-2) | Grocery ↕↕↕↕ |
 | **Row 2** | Home Status ←→ (cols 1-2) | | (cont.) | (cont.) |
-| **Row 3** | Cameras | Finances | Vehicles ↕ (rows 3-4) | (cont.) |
-| **Row 4** | (cont.) | (cont.) | (cont.) | (cont.) |
+| **Row 3** | (cont.) | (cont.) | (cont.) | (cont.) |
+| **Row 4** | Cameras | Finances | Vehicles ↕ (rows 3-4) | (cont.) |
 
 - Header: Logo + date + **Jacob** and **Katelin** person tiles + sync status + clock
 - FAB: Add grocery / Add to-do / Log fillup
