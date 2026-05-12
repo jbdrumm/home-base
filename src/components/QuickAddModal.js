@@ -1,13 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CATEGORIES, STORES, TODO_LISTS } from '../lib/seedData';
-import { MEMBER_LABELS, getDefaultTaskOwner, getTaskOwnerOptions } from '../lib/householdTokens';
+import { MEMBER_LABELS, getDefaultTaskOwner } from '../lib/householdTokens';
 
 const MEMBER_EMOJIS = { jacob: '👨', katelin: '👩', family: '🏠' };
 
+// Owner options for the quick add modal:
+// - Wall/desktop (>= 768px): all three — Jacob | Family | Katelin
+// - Mobile: always show Family + whoever the primary member is.
+//   If primaryMember is null/unknown, show Jacob + Family as safe default.
+function getOwnerOptions(primaryMember, isTabletOrDesktop, householdTokens) {
+  if (isTabletOrDesktop) {
+    return ['jacob', 'family', 'katelin'].filter(m =>
+      m === 'family' || householdTokens?.[m]?.isValid
+    );
+  }
+  // Mobile: personal account + family
+  const personal = primaryMember || 'jacob';
+  // Always include family if linked, or even if not linked (greyed out) so user knows it exists
+  return [personal, 'family'];
+}
+
 export default function QuickAddModal({ type, onClose, onAdd, primaryMember, householdTokens }) {
-  const isGrocery       = type === 'grocery';
+  const isGrocery         = type === 'grocery';
   const isTabletOrDesktop = window.innerWidth >= 768;
-  const isMobile        = !isTabletOrDesktop;
+  const isMobile          = !isTabletOrDesktop;
 
   const [name,     setName]     = useState('');
   const [category, setCategory] = useState('Produce');
@@ -17,32 +33,35 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
   const [owner,    setOwner]    = useState(() =>
     getDefaultTaskOwner(primaryMember, isTabletOrDesktop)
   );
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  // Keyboard height tracking via visualViewport
+  const [viewportBottom, setViewportBottom] = useState(0);
   const inputRef = useRef(null);
 
-  const ownerOptions = getTaskOwnerOptions(primaryMember, isTabletOrDesktop);
-
-  // Detect virtual keyboard
   useEffect(() => {
-    function onResize() {
-      const viewport = window.visualViewport;
-      if (!viewport) return;
-      setKeyboardHeight(Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop));
+    function update() {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      // How far the viewport bottom is from the page bottom
+      const fromBottom = window.innerHeight - (vv.offsetTop + vv.height);
+      setViewportBottom(Math.max(0, fromBottom));
     }
-    window.visualViewport?.addEventListener('resize', onResize);
-    window.visualViewport?.addEventListener('scroll', onResize);
-    onResize();
+    window.visualViewport?.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('scroll', update);
+    update();
     return () => {
-      window.visualViewport?.removeEventListener('resize', onResize);
-      window.visualViewport?.removeEventListener('scroll', onResize);
+      window.visualViewport?.removeEventListener('resize', update);
+      window.visualViewport?.removeEventListener('scroll', update);
     };
   }, []);
 
-  // Auto-focus
+  // Auto-focus after mount
   useEffect(() => {
-    const timer = setTimeout(() => inputRef.current?.focus(), 100);
+    const timer = setTimeout(() => inputRef.current?.focus(), 120);
     return () => clearTimeout(timer);
   }, []);
+
+  const ownerOptions = getOwnerOptions(primaryMember, isTabletOrDesktop, householdTokens);
 
   function handleSubmit() {
     if (!name.trim()) return;
@@ -59,28 +78,50 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
   }
 
   return (
-    <div onClick={handleBackdropClick} style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(0,0,0,0.45)', zIndex: 300,
-      display: 'flex', flexDirection: 'column',
-      justifyContent: isMobile ? 'flex-end' : 'center',
-      alignItems: 'center',
-    }}>
+    <div
+      onClick={handleBackdropClick}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.45)', zIndex: 300,
+        // Don't use flexbox centering here on mobile — we position the sheet manually
+        display: 'block',
+      }}
+    >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
+        style={isMobile ? {
+          // Mobile: pinned to viewport bottom, rises with keyboard
+          position: 'fixed',
+          left: 0, right: 0,
+          bottom: viewportBottom,
           background: 'var(--bg-card)',
-          borderRadius: isMobile ? '20px 20px 0 0' : '16px',
+          borderRadius: '20px 20px 0 0',
+          padding: '24px 24px 32px',
+          boxShadow: '0 -4px 40px rgba(0,0,0,0.2)',
+          animation: 'slideUp 0.25s ease',
+          transition: 'bottom 0.15s ease',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+        } : {
+          // Desktop: centered modal
+          position: 'fixed',
+          top: '50%', left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'var(--bg-card)',
+          borderRadius: '16px',
           width: '100%', maxWidth: '480px',
           padding: '24px 24px 32px',
-          boxShadow: '0 -4px 40px rgba(0,0,0,0.14)',
-          animation: 'slideUp 0.25s ease',
-          margin: isMobile ? `0 0 ${keyboardHeight}px 0` : 'auto',
-          transition: 'margin-bottom 0.2s ease',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.18)',
+          animation: 'slideUp 0.2s ease',
         }}
       >
-        <style>{`@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
-        <div style={{ width: '36px', height: '4px', background: 'var(--border-strong)', borderRadius: '4px', margin: '0 auto 20px' }} />
+        <style>{`@keyframes slideUp{from{transform:${isMobile ? 'translateY(60px)' : 'translate(-50%,-45%)'};opacity:0}to{transform:${isMobile ? 'translateY(0)' : 'translate(-50%,-50%)'};opacity:1}}`}</style>
+
+        {/* Handle */}
+        {isMobile && (
+          <div style={{ width: '36px', height: '4px', background: 'var(--border-strong)', borderRadius: '4px', margin: '0 auto 20px' }} />
+        )}
+
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: '600', marginBottom: '20px' }}>
           {isGrocery ? '🛒 Add grocery item' : '✅ Add to‑do'}
         </div>
@@ -131,7 +172,7 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
                           background: owner === m ? 'var(--accent)' : 'var(--bg-base)',
                           color: owner === m ? 'white' : 'var(--text-secondary)',
                           transition: 'all 0.15s',
-                          opacity: linked === false ? 0.5 : 1,
+                          opacity: linked === false && m !== 'family' ? 0.45 : 1,
                           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px',
                         }}
                       >
@@ -143,25 +184,34 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
                 </div>
               </div>
 
-              {/* List selector */}
-              <div>
-                <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '6px' }}>List</label>
-                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  {TODO_LISTS.map(l => (
-                    <button key={l}
-                      onMouseDown={e => { e.preventDefault(); setList(l); }}
-                      onTouchStart={e => { e.preventDefault(); setList(l); }}
-                      style={{
-                        padding: '5px 12px', borderRadius: '20px', cursor: 'pointer',
-                        fontSize: '12px', fontWeight: '500', border: '1px solid var(--border)',
-                        background: list === l ? 'var(--accent)' : 'var(--bg-base)',
-                        color: list === l ? 'white' : 'var(--text-secondary)',
-                        transition: 'all 0.15s',
-                      }}
-                    >{l}</button>
-                  ))}
+              {/* List selector — hide for family (always goes to Family Tasks) */}
+              {owner !== 'family' && (
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '6px' }}>List</label>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {TODO_LISTS.map(l => (
+                      <button key={l}
+                        onMouseDown={e => { e.preventDefault(); setList(l); }}
+                        onTouchStart={e => { e.preventDefault(); setList(l); }}
+                        style={{
+                          padding: '5px 12px', borderRadius: '20px', cursor: 'pointer',
+                          fontSize: '12px', fontWeight: '500', border: '1px solid var(--border)',
+                          background: list === l ? 'var(--accent)' : 'var(--bg-base)',
+                          color: list === l ? 'white' : 'var(--text-secondary)',
+                          transition: 'all 0.15s',
+                        }}
+                      >{l}</button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Family Tasks hint */}
+              {owner === 'family' && (
+                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '4px 0' }}>
+                  🏠 Goes to Family Tasks — visible on all Google Hubs
+                </div>
+              )}
 
               {/* Priority */}
               <div>
