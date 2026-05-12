@@ -56,6 +56,10 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth }) 
   } = householdAuth || {};
 
   const multiData = useMultiAccountData(getTokenFor || (() => null), householdTokens || {});
+
+  function handleTaskToggle(params) { multiData.toggleTask && multiData.toggleTask(params); }
+  function handleTaskDelete(params) { multiData.removeTask && multiData.removeTask(params); }
+  function handleTaskMove(params)   { multiData.moveTask   && multiData.moveTask(params); }
   const weather   = useWeather();
 
   const isMobile = window.innerWidth < 768;
@@ -115,6 +119,9 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth }) 
     <TodoFullView
       todosByList={multiData.todosByList}
       onAdd={multiData.addTask}
+      onToggle={handleTaskToggle}
+      onDelete={handleTaskDelete}
+      onMove={handleTaskMove}
       onBack={() => setView(null)}
       householdTokens={householdTokens || {}}
       primaryMember={primaryMember}

@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   fetchCalendarList, fetchCalendarEvents, normalizeCalendarEvent,
   fetchTaskLists, ensureTaskList, fetchTasks, normalizeTask,
-  createTask, TASK_LIST_NAMES,
+  createTask, updateTask, deleteTask, TASK_LIST_NAMES,
 } from '../lib/google';
 
 const MEMBER_OWNER_MAP = {
@@ -163,5 +163,76 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
     }
   }, [getTokenFor, taskListIds]);
 
-  return { events, todosByList, taskListIds, loading, lastSync, sync, addTask };
+  // ── Toggle task done/undone ──
+  const toggleTask = useCallback(async ({ id, listKey, owner, done }) => {
+    const token = getTokenFor(owner);
+    if (!token) return;
+    const listName = owner === 'family' ? listKey : listKey.replace(`${owner}:`, '');
+    const listId   = taskListIds[owner]?.[listName];
+    if (!listId) return;
+    setTodosByList(prev => ({
+      ...prev,
+      [listKey]: (prev[listKey] || []).map(t => t.id === id ? { ...t, done: !done } : t),
+    }));
+    try {
+      await updateTask(token, listId, id, {
+        status: done ? 'needsAction' : 'completed',
+        completed: done ? null : new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('[MultiAccount] Toggle task failed:', e);
+      setTodosByList(prev => ({
+        ...prev,
+        [listKey]: (prev[listKey] || []).map(t => t.id === id ? { ...t, done } : t),
+      }));
+    }
+  }, [getTokenFor, taskListIds]);
+
+  // ── Delete a task ──
+  const removeTask = useCallback(async ({ id, listKey, owner }) => {
+    const token = getTokenFor(owner);
+    if (!token) return;
+    const listName = owner === 'family' ? listKey : listKey.replace(`${owner}:`, '');
+    const listId   = taskListIds[owner]?.[listName];
+    if (!listId) return;
+    setTodosByList(prev => ({
+      ...prev,
+      [listKey]: (prev[listKey] || []).filter(t => t.id !== id),
+    }));
+    try {
+      await deleteTask(token, listId, id);
+    } catch (e) {
+      console.error('[MultiAccount] Delete task failed:', e);
+      sync();
+    }
+  }, [getTokenFor, taskListIds, sync]);
+
+  // ── Move task to a different list (within same owner) ──
+  const moveTask = useCallback(async ({ id, fromListKey, toListName, owner, title }) => {
+    const token = getTokenFor(owner);
+    if (!token) return;
+    const fromListName = owner === 'family' ? fromListKey : fromListKey.replace(`${owner}:`, '');
+    const fromListId   = taskListIds[owner]?.[fromListName];
+    const toListId     = taskListIds[owner]?.[toListName];
+    const toListKey    = owner === 'family' ? toListName : `${owner}:${toListName}`;
+    if (!fromListId || !toListId) return;
+    setTodosByList(prev => {
+      const item = (prev[fromListKey] || []).find(t => t.id === id);
+      if (!item) return prev;
+      return {
+        ...prev,
+        [fromListKey]: (prev[fromListKey] || []).filter(t => t.id !== id),
+        [toListKey]:   [{ ...item, list: toListName, taskListId: toListId }, ...(prev[toListKey] || [])],
+      };
+    });
+    try {
+      await createTask(token, toListId, title);
+      await deleteTask(token, fromListId, id);
+    } catch (e) {
+      console.error('[MultiAccount] Move task failed:', e);
+      sync();
+    }
+  }, [getTokenFor, taskListIds, sync]);
+
+  return { events, todosByList, taskListIds, loading, lastSync, sync, addTask, toggleTask, removeTask, moveTask };
 }
