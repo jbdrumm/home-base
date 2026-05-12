@@ -13,6 +13,13 @@ const priorityConfig = {
   low:    { color: 'var(--color-success)' },
 };
 
+// Owner ring colors
+const ownerColor = {
+  jacob:   '#007AFF', // blue
+  katelin: '#FF2D78', // pink
+  family:  '#34C759', // green
+};
+
 // Collect all tasks for a given list name across all visible members
 function getItemsForList(todosByList, listName, visibleMembers) {
   const items = [];
@@ -261,6 +268,7 @@ export default function TodoFullView({
 function TodoRow({ item, listName, todosByList, visibleMembers, showOwnerBadge, onToggle, onDelete, onMove }) {
   const [showMove, setShowMove] = useState(false);
   const p = priorityConfig[item.priority] || priorityConfig.low;
+  const ringColor = ownerColor[item.owner] || p.color;
 
   // Determine the listKey for this item
   const listKey = item.owner === 'family' ? listName : `${item.owner}:${listName}`;
@@ -283,7 +291,7 @@ function TodoRow({ item, listName, todosByList, visibleMembers, showOwnerBadge, 
           onClick={() => onToggle && onToggle({ id: item.id, listKey, owner: item.owner, done: item.done })}
           style={{
             width: '16px', height: '16px', borderRadius: '50%', flexShrink: 0,
-            border: item.done ? 'none' : `2px solid ${p.color}`,
+            border: item.done ? 'none' : `2px solid ${ringColor}`,
             background: item.done ? 'var(--color-success)' : 'transparent',
             cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
             transition: 'all 0.15s',

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { TODO_LISTS } from '../lib/seedData';
 
-const priorityConfig = {
-  high:   { color: 'var(--color-danger)'  },
-  medium: { color: 'var(--color-warn)'    },
-  low:    { color: 'var(--color-success)' },
+const ownerColor = {
+  jacob:   '#007AFF',
+  katelin: '#FF2D78',
+  family:  '#34C759',
 };
 
 // Merge tasks from all matching keys for a given list name
@@ -61,7 +61,7 @@ export default function TodoWidget({ todosByList = {} }) {
       {/* Items */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
         {active.map(t => {
-          const p = priorityConfig[t.priority] || priorityConfig.low;
+          const ringColor = ownerColor[t.owner] || 'var(--color-warn)';
           return (
             <div key={t.id}
               onClick={e => e.stopPropagation()}
@@ -75,7 +75,7 @@ export default function TodoWidget({ todosByList = {} }) {
             >
               <div style={{
                 width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
-                border: `2px solid ${p.color}`,
+                border: `2px solid ${ringColor}`,
               }}/>
               <span style={{ fontSize: '13px', color: 'var(--text-primary)', flex: 1 }}>{t.title}</span>
             </div>
