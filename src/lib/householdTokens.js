@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────────
 //  Household token storage — Supabase
-//  Stores Google OAuth tokens for jacob, katelin, and family
+//  Stores Google OAuth tokens for jacob, katelin, and family.
+//  Uses refresh tokens so accounts stay linked indefinitely.
 // ─────────────────────────────────────────────────────────────
 import { supabase } from './supabase';
 
@@ -15,16 +16,22 @@ export const MEMBER_LABELS = {
 // Save or update a token for a household member
 export async function saveHouseholdToken(member, tokenResponse, profile) {
   const expires_at = Date.now() + (tokenResponse.expires_in || 3600) * 1000;
+  const row = {
+    member,
+    display_name:  profile?.name  || member,
+    email:         profile?.email || null,
+    access_token:  tokenResponse.access_token,
+    expires_at,
+    scope:         tokenResponse.scope || null,
+  };
+  // Only update refresh_token if we got a new one
+  // (refresh requests don't return a new refresh_token)
+  if (tokenResponse.refresh_token) {
+    row.refresh_token = tokenResponse.refresh_token;
+  }
   const { error } = await supabase
     .from('household_tokens')
-    .upsert({
-      member,
-      display_name: profile?.name || member,
-      email:        profile?.email || null,
-      access_token: tokenResponse.access_token,
-      expires_at,
-      scope:        tokenResponse.scope || null,
-    }, { onConflict: 'member' });
+    .upsert(row, { onConflict: 'member' });
   if (error) throw error;
 }
 
@@ -34,20 +41,48 @@ export async function loadHouseholdTokens() {
     .from('household_tokens')
     .select('*');
   if (error) throw error;
-  // Return as { jacob: { token, email, ... }, katelin: {...}, family: {...} }
+
   const result = {};
   for (const row of data || []) {
-    // Check if token is still valid
-    const isValid = row.expires_at > Date.now();
+    const isExpired = row.expires_at <= Date.now() + 60_000; // 1 min buffer
+    const isValid   = !isExpired && !!row.access_token;
     result[row.member] = {
-      token:       isValid ? row.access_token : null,
-      email:       row.email,
-      displayName: row.display_name,
-      expiresAt:   row.expires_at,
+      token:        isValid ? row.access_token : null,
+      refreshToken: row.refresh_token || null,
+      email:        row.email,
+      displayName:  row.display_name,
+      expiresAt:    row.expires_at,
       isValid,
+      needsRefresh: isExpired && !!row.refresh_token,
     };
   }
   return result;
+}
+
+// Silently refresh an expired access token using the refresh token.
+// Calls our Netlify function so the client secret stays server-side.
+export async function refreshAccessToken(member, refreshToken) {
+  const baseUrl = process.env.REACT_APP_URL || window.location.origin;
+  const resp = await fetch(`${baseUrl}/.netlify/functions/google-refresh`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ refreshToken }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    throw new Error(err.error || `Refresh failed: ${resp.status}`);
+  }
+
+  const data = await resp.json();
+
+  // Save new access token to Supabase (refresh_token unchanged)
+  await saveHouseholdToken(member, {
+    access_token: data.access_token,
+    expires_in:   data.expires_in,
+  }, null);
+
+  return data.access_token;
 }
 
 // Remove a household member's token
@@ -68,18 +103,12 @@ export function detectPrimaryMember(email, householdTokens) {
   return null;
 }
 
-// Determine default "who is this for" based on device width and current user
 export function getDefaultTaskOwner(primaryMember, isTabletOrDesktop) {
-  if (isTabletOrDesktop) return 'family';  // wall display
-  return primaryMember || 'family';        // personal phone defaults to own account
+  if (isTabletOrDesktop) return 'family';
+  return primaryMember || 'family';
 }
 
-// Get the task owner options to show in the quick add selector
 export function getTaskOwnerOptions(primaryMember, isTabletOrDesktop) {
-  if (isTabletOrDesktop) {
-    // Wall display shows all three: Jacob | Family | Katelin
-    return ['jacob', 'family', 'katelin'];
-  }
-  // Personal phone shows Personal + Family
+  if (isTabletOrDesktop) return ['jacob', 'family', 'katelin'];
   return [primaryMember || 'jacob', 'family'];
 }
