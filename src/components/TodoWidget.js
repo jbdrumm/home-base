@@ -7,9 +7,23 @@ const priorityConfig = {
   low:    { color: 'var(--color-success)' },
 };
 
-export default function TodoWidget({ todosByList, onToggle }) {
+// Merge tasks from all matching keys for a given list name
+// Multi-account keys: "jacob:General", "katelin:General", "Family Tasks"
+// Single-account fallback: "General"
+function getItemsForList(todosByList, listName) {
+  const items = [];
+  for (const [key, tasks] of Object.entries(todosByList)) {
+    // Matches "jacob:General", "katelin:General", or plain "General"
+    if (key === listName || key.endsWith(`:${listName}`)) {
+      items.push(...tasks);
+    }
+  }
+  return items;
+}
+
+export default function TodoWidget({ todosByList = {} }) {
   const [activeList, setActiveList] = useState('General');
-  const items  = (todosByList[activeList] || []);
+  const items  = getItemsForList(todosByList, activeList);
   const active = items.filter(t => !t.done);
   const done   = items.filter(t => t.done);
 
@@ -18,7 +32,7 @@ export default function TodoWidget({ todosByList, onToggle }) {
       {/* List switcher tabs */}
       <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', flexWrap: 'wrap' }}>
         {TODO_LISTS.map(list => {
-          const count = (todosByList[list] || []).filter(t => !t.done).length;
+          const count = getItemsForList(todosByList, list).filter(t => !t.done).length;
           return (
             <button key={list}
               onClick={e => { e.stopPropagation(); setActiveList(list); }}
@@ -50,10 +64,10 @@ export default function TodoWidget({ todosByList, onToggle }) {
           const p = priorityConfig[t.priority] || priorityConfig.low;
           return (
             <div key={t.id}
-              onClick={e => { e.stopPropagation(); onToggle(t.id, activeList); }}
+              onClick={e => e.stopPropagation()}
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
-                padding: '6px', borderRadius: '8px', cursor: 'pointer',
+                padding: '6px', borderRadius: '8px',
                 transition: 'background 0.15s',
               }}
               onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
@@ -69,8 +83,8 @@ export default function TodoWidget({ todosByList, onToggle }) {
         })}
         {done.slice(0, 2).map(t => (
           <div key={t.id}
-            onClick={e => { e.stopPropagation(); onToggle(t.id, activeList); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px', cursor: 'pointer', opacity: 0.5 }}
+            onClick={e => e.stopPropagation()}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px', opacity: 0.5 }}
           >
             <div style={{
               width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
