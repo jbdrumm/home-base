@@ -63,13 +63,13 @@
 | 1–8 | Scaffold, auth, calendar, tasks, grocery, home status, finances, weather, PWA |
 | 9 | Vehicle tracker — 4 vehicles (Durango GT, Odyssey Elite, S2000, Ranger Splash), maintenance table, fuel log, Claude Vision fillup flow, extended-use plate logic |
 | Post-9 fixes | Calendar all-day event timezone fix, full calendar event display, weather drilldown, vehicle nav fix, badge overlap fix, photo support per vehicle, QuickAdd list routing fix, modal keyboard behavior fix, desktop modal centering |
-| 10 | Multi-account auth — household_tokens Supabase table, useHouseholdAuth hook, useMultiAccountData merging all 3 accounts, HouseholdSetup UI (⚙️ in header), QuickAdd "Who is this for?" selector (Jacob/Family/Katelin), Family Tasks list auto-created on Family Google account, account-aware task writes |
+| 10 | Multi-account auth — household_tokens Supabase table, useHouseholdAuth hook, useMultiAccountData merging all 3 accounts, HouseholdSetup UI (⚙️ in header), QuickAdd "Who is this for?" selector (Jacob/Family/Katelin), Family Tasks list auto-created on Family Google account, account-aware task writes, TodoFullView account filter chips (Jacob\|Family\|Katelin), per-task toggleTask/removeTask/moveTask wired to Google Tasks API, "Move to..." dropdown on each task item |
 
 ---
 
 ## 🔜 Sprint Roadmap
 
-### Sprint 10 — Multi-Account Auth ⬅ NEXT
+### Sprint 10 — Multi-Account Auth ✅ COMPLETE
 **Goal:** Dashboard reads from all 3 Google accounts merged. Writes route to correct account.
 
 **Spec:**
