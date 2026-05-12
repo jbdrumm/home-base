@@ -1,12 +1,40 @@
 {
   "short_name": "Home Base",
   "name": "Home Base — Family Dashboard",
-  "icons": [
-    { "src": "favicon.ico", "sizes": "64x64 32x32 24x24 16x16", "type": "image/x-icon" }
-  ],
-  "start_url": ".",
+  "description": "Family dashboard: calendar, to-dos, grocery list, vehicles, and home status.",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#C8791A",
-  "background_color": "#F4F1EC",
-  "description": "Family dashboard: calendar, to-dos, grocery list, and home status."
+  "orientation": "any",
+  "theme_color": "#007AFF",
+  "background_color": "#F5F5F7",
+  "scope": "/",
+  "icons": [
+    { "src": "/icons/icon-72x72.png",   "sizes": "72x72",   "type": "image/png" },
+    { "src": "/icons/icon-96x96.png",   "sizes": "96x96",   "type": "image/png" },
+    { "src": "/icons/icon-128x128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon-144x144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/icons/icon-152x152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-192x192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-384x384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512x512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Add To-do",
+      "short_name": "To-do",
+      "description": "Quickly add a task",
+      "url": "/?quick=todo",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Add Grocery Item",
+      "short_name": "Grocery",
+      "description": "Add to grocery list",
+      "url": "/?quick=grocery",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
 }

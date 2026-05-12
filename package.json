@@ -9,6 +9,7 @@
     "ajv": "^8.11.0",
     "cra-template-pwa": "2.0.0",
     "date-fns": "^3.6.0",
+    "firebase": "^12.13.0",
     "lucide-react": "^0.383.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

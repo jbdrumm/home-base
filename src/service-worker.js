@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-globals */
+/* eslint-disable no-restricted-globals, no-undef */
 
 // This service worker can be customized!
 // See https://developers.google.com/web/tools/workbox/modules
@@ -70,3 +70,54 @@ self.addEventListener('message', (event) => {
 });
 
 // Any other custom service worker logic can go here.
+
+
+// ── Push Notifications ────────────────────────────────────────
+// Handle background push messages from Firebase Cloud Messaging
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let data = {};
+  try { data = event.data.json(); } catch { data = { title: 'Home Base', body: event.data.text() }; }
+
+  const title   = data.notification?.title || data.title || 'Home Base';
+  const options = {
+    body:    data.notification?.body || data.body || '',
+    icon:    '/icons/icon-192x192.png',
+    badge:   '/icons/icon-96x96.png',
+    vibrate: [200, 100, 200],
+    data:    data.data || {},
+    tag:     data.data?.tag || 'homebase',
+    actions: [
+      { action: 'open',    title: 'Open' },
+      { action: 'dismiss', title: 'Dismiss' },
+    ],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Handle notification click — open app to correct view
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'dismiss') return;
+
+  const view = event.notification.data?.view || '';
+  const url  = self.location.origin + (view ? `/?view=${view}` : '/');
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      // Focus existing window if open
+      for (const client of clientList) {
+        if (client.url.startsWith(self.location.origin) && 'focus' in client) {
+          client.postMessage({ type: 'NOTIFICATION_CLICK', view });
+          return client.focus();
+        }
+      }
+      // Otherwise open new window
+      if (clients.openWindow) return clients.openWindow(url);
+    })
+  );
+});

@@ -6,6 +6,7 @@ import { useGoogleAuth } from './hooks/useGoogleAuth';
 import { useHouseholdAuth } from './hooks/useHouseholdAuth';
 import './styles/theme.css';
 import './styles/global.css';
+import PWAPrompt from './components/PWAPrompt';
 
 function getAutoTheme() {
   const hour = new Date().getHours();
@@ -26,19 +27,31 @@ function AppInner() {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle ?quick= shortcuts from PWA home screen shortcuts
+  const initialQuickAdd = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('quick');
+    if (q) window.history.replaceState({}, '', window.location.pathname);
+    return q || null;
+  })();
+
   if (!isSignedIn) {
     return <SignInPrompt onSignIn={login} error={error} />;
   }
 
   return (
-    <div className="app-root">
-      <Dashboard
-        token={token}
-        profile={profile}
-        onSignOut={logout}
-        householdAuth={householdAuth}
-      />
-    </div>
+    <>
+      <PWAPrompt />
+      <div className="app-root">
+        <Dashboard
+          initialQuickAdd={initialQuickAdd}
+          token={token}
+          profile={profile}
+          onSignOut={logout}
+          householdAuth={householdAuth}
+        />
+      </div>
+    </>
   );
 }
 
