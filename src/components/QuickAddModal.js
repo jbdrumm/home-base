@@ -184,34 +184,25 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
                 </div>
               </div>
 
-              {/* List selector — hide for family (always goes to Family Tasks) */}
-              {owner !== 'family' && (
-                <div>
-                  <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '6px' }}>List</label>
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    {TODO_LISTS.map(l => (
-                      <button key={l}
-                        onMouseDown={e => { e.preventDefault(); setList(l); }}
-                        onTouchStart={e => { e.preventDefault(); setList(l); }}
-                        style={{
-                          padding: '5px 12px', borderRadius: '20px', cursor: 'pointer',
-                          fontSize: '12px', fontWeight: '500', border: '1px solid var(--border)',
-                          background: list === l ? 'var(--accent)' : 'var(--bg-base)',
-                          color: list === l ? 'white' : 'var(--text-secondary)',
-                          transition: 'all 0.15s',
-                        }}
-                      >{l}</button>
-                    ))}
-                  </div>
+              {/* List selector */}
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '6px' }}>List</label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {TODO_LISTS.map(l => (
+                    <button key={l}
+                      onMouseDown={e => { e.preventDefault(); setList(l); }}
+                      onTouchStart={e => { e.preventDefault(); setList(l); }}
+                      style={{
+                        padding: '5px 12px', borderRadius: '20px', cursor: 'pointer',
+                        fontSize: '12px', fontWeight: '500', border: '1px solid var(--border)',
+                        background: list === l ? 'var(--accent)' : 'var(--bg-base)',
+                        color: list === l ? 'white' : 'var(--text-secondary)',
+                        transition: 'all 0.15s',
+                      }}
+                    >{l}</button>
+                  ))}
                 </div>
-              )}
-
-              {/* Family Tasks hint */}
-              {owner === 'family' && (
-                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', padding: '4px 0' }}>
-                  🏠 Goes to Family Tasks — visible on all Google Hubs
-                </div>
-              )}
+              </div>
 
               {/* Priority */}
               <div>
