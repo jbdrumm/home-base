@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import HeaderBar from '../components/HeaderBar';
 import CalendarWidget from '../components/CalendarWidget';
 import TodoWidget from '../components/TodoWidget';
@@ -15,6 +15,7 @@ import HouseholdSetup from '../components/HouseholdSetup';
 
 import CalendarFullView from './CalendarFullView';
 import TodoFullView from './TodoFullView';
+import GroceryFullView from './GroceryFullView';
 import FinancialFullView from './FinancialFullView';
 import VehicleFullView from './VehicleFullView';
 import WeatherFullView from './WeatherFullView';
@@ -42,11 +43,20 @@ function Tile({ onClick, children, style }) {
   );
 }
 
-export default function Dashboard({ token, profile, onSignOut, householdAuth }) {
+export default function Dashboard({ token, profile, onSignOut, householdAuth, initialQuickAdd }) {
   const groceries = useLocalState(seedGroceries);
   const bills     = useLocalState(seedBills);
   const [view,  setView]  = useState(null);
   const [modal, setModal] = useState(null);
+
+  // Open quick-add modal from PWA home screen shortcut
+  useEffect(() => {
+    if (initialQuickAdd && (initialQuickAdd === 'todo' || initialQuickAdd === 'grocery')) {
+      setModal(initialQuickAdd);
+      sessionStorage.removeItem('hb_quick');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [activeVehicleId, setActiveVehicleId] = useState(null);
   const [showFillup, setShowFillup] = useState(false);
 
@@ -115,6 +125,16 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth }) 
   if (view === 'calendar') return (
     <CalendarFullView events={multiData.events} onBack={() => setView(null)} />
   );
+  if (view === 'grocery') return (
+    <GroceryFullView
+      items={groceries.items}
+      onAdd={item => groceries.addItem(item)}
+      onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id)?.done })}
+      onDelete={id => groceries.removeItem(id)}
+      onClearDone={() => groceries.items.filter(i => i.done).forEach(i => groceries.removeItem(i.id))}
+      onBack={() => setView(null)}
+    />
+  );
   if (view === 'todo') return (
     <TodoFullView
       todosByList={multiData.todosByList}
@@ -155,12 +175,14 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth }) 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <Tile onClick={() => setView('calendar')}><CalendarWidget events={multiData.events} /></Tile>
           <Tile onClick={() => setView('todo')}>
-            <TodoWidget todosByList={multiData.todosByList} />
+            <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} />
           </Tile>
           <div style={{ height: '420px' }}>
-            <GroceryWidget items={groceries.items}
-              onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
-              onClearDone={() => groceries.clearWhere(i => i.done)} />
+            <div onClick={() => setView('grocery')} style={{ cursor: 'pointer', height: '100%' }}>
+              <GroceryWidget items={groceries.items}
+                onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
+                onClearDone={() => groceries.clearWhere(i => i.done)} />
+            </div>
           </div>
           <Tile onClick={() => setView('weather')}><WeatherWidget /></Tile>
           <Tile onClick={() => setView('financial')}><FinancialWidget bills={bills.items} /></Tile>
@@ -188,14 +210,16 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth }) 
 
           {/* Col 3 Rows 1-2: To-do */}
           <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3' }}>
-            <TodoWidget todosByList={multiData.todosByList} />
+            <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} />
           </Tile>
 
           {/* Col 4 Rows 1-4: Grocery */}
           <div style={{ gridColumn: '4', gridRow: '1 / 5' }}>
-            <GroceryWidget items={groceries.items}
-              onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
-              onClearDone={() => groceries.clearWhere(i => i.done)} />
+            <div onClick={() => setView('grocery')} style={{ cursor: 'pointer', height: '100%' }}>
+              <GroceryWidget items={groceries.items}
+                onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
+                onClearDone={() => groceries.clearWhere(i => i.done)} />
+            </div>
           </div>
 
           {/* Cols 1-2 Rows 2-3: Home Status */}

@@ -28,11 +28,15 @@ function AppInner() {
   }, []);
 
   // Handle ?quick= shortcuts from PWA home screen shortcuts
+  // Store in sessionStorage so it survives the sign-in redirect
   const initialQuickAdd = (() => {
     const params = new URLSearchParams(window.location.search);
     const q = params.get('quick');
-    if (q) window.history.replaceState({}, '', window.location.pathname);
-    return q || null;
+    if (q) {
+      sessionStorage.setItem('hb_quick', q);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    return sessionStorage.getItem('hb_quick') || null;
   })();
 
   if (!isSignedIn) {

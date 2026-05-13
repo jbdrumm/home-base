@@ -54,11 +54,18 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
         }
       }));
 
-      // Deduplicate events by id
-      const seen = new Set();
+      // Deduplicate events:
+      // 1. By Google event ID (same event shared across accounts)
+      // 2. By title+date (holidays/public events that appear in every account's calendar)
+      const seenIds   = new Set();
+      const seenTitleDate = new Set();
       const dedupedEvents = allEvents.filter(e => {
-        if (seen.has(e.id)) return false;
-        seen.add(e.id);
+        if (seenIds.has(e.id)) return false;
+        seenIds.add(e.id);
+        // Normalize title for holiday dedup (lowercase, trim)
+        const titleDateKey = `${e.title.toLowerCase().trim()}|${e.rawDate?.slice(0, 10)}`;
+        if (seenTitleDate.has(titleDateKey)) return false;
+        seenTitleDate.add(titleDateKey);
         return true;
       });
       // Sort by date
