@@ -11,7 +11,7 @@
 | **Repo** | https://github.com/jbdrumm/home-base |
 | **GitHub user** | jbdrumm |
 | **Supabase project** | https://spqzbyiihwebetycyard.supabase.co |
-| **Netlify URL** | https://home-base-drumm.netlify.app |
+| **Netlify URL** | https://home-base22.netlify.app |
 | **Netlify site ID** | 69cb2bbc-ed1d-453b-9b93-4c19fc36d0d1 |
 | **Dev environment** | GitHub Codespaces (port 3000, keep public for mobile testing) |
 | **Netlify deploys** | Manual only — auto-publish is OFF to conserve build credits |
@@ -282,4 +282,4 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 - **Pi 5** → Returned. Not needed.
 - **Wall display** → 22" Android 13 touchscreen (~$220, offset by Pi 5 return of $190)
 - **Netlify credits** → Manual deploys only. Use Codespace public port for testing.
-- Google OAuth authorized origins: localhost:3000, Codespace URL, https://home-base-drumm.netlify.app
+- Google OAuth authorized origins: localhost:3000, Codespace URL, https://home-base22.netlify.app
