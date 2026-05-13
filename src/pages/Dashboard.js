@@ -23,6 +23,9 @@ import WeatherFullView from './WeatherFullView';
 import PersonView from './PersonView';
 
 import { useSupabaseList } from '../hooks/useSupabaseList';
+import { useNotificationPrefs } from '../hooks/useNotificationPrefs';
+import { useNotificationTriggers } from '../hooks/useNotificationTriggers';
+import { registerFCMToken } from '../lib/firebase';
 import { useMultiAccountData } from '../hooks/useMultiAccountData';
 import { useWeather } from '../hooks/useWeather';
 import { seedGroceries, seedBills } from '../lib/seedData';
@@ -74,6 +77,31 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   const weather   = useWeather();
 
   const isMobile = window.innerWidth < 768;
+
+  // Notification prefs for this device's primary member
+  const { prefs: notifPrefs } = useNotificationPrefs(primaryMember);
+
+  // Register FCM token for push notifications (once per member per device)
+  useEffect(() => {
+    if (!primaryMember) return;
+    const storageKey = `hb_fcm_registered_${primaryMember}`;
+    if (sessionStorage.getItem(storageKey)) return;
+    registerFCMToken(primaryMember).then(token => {
+      if (token) sessionStorage.setItem(storageKey, '1');
+    });
+  }, [primaryMember]);
+
+  // Notification triggers — watches state and fires per saved prefs
+  const householdMembers = Object.keys(householdTokens || {}).filter(m => householdTokens[m]?.isValid);
+  useNotificationTriggers({
+    primaryMember,
+    prefs:           notifPrefs,
+    bills:           bills.items,
+    todosByList:     multiData.todosByList,
+    groceries:       groceries.items,
+    events:          multiData.events,
+    householdMembers,
+  });
 
   function toggleBillPaid(id) {
     bills.updateItem(id, { paid_this_month: !bills.items.find(b => b.id === id).paid_this_month });

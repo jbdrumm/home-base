@@ -50,3 +50,18 @@ CREATE TABLE IF NOT EXISTS notification_prefs (
 
 ALTER TABLE notification_prefs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all_notif_prefs" ON notification_prefs FOR ALL USING (true) WITH CHECK (true);
+
+
+-- ── FCM tokens ────────────────────────────────────────────────
+-- Stores device FCM tokens per member so server can push to them
+CREATE TABLE IF NOT EXISTS fcm_tokens (
+  id         BIGSERIAL PRIMARY KEY,
+  member     TEXT        NOT NULL,
+  token      TEXT        NOT NULL UNIQUE,
+  device     TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE fcm_tokens ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all_fcm_tokens" ON fcm_tokens FOR ALL USING (true) WITH CHECK (true);
