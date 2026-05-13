@@ -14,13 +14,6 @@ const priorityConfig = {
   low:    { color: 'var(--color-success)' },
 };
 
-// Owner ring colors
-const ownerColor = {
-  jacob:   '#007AFF', // blue
-  katelin: '#FF2D78', // pink
-  family:  '#34C759', // green
-};
-
 // Collect all tasks for a given list name across all visible members
 function getItemsForList(todosByList, listName, visibleMembers) {
   const items = [];
