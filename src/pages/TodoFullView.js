@@ -3,48 +3,25 @@ import FullScreenView from '../components/FullScreenView';
 import { TaskRow } from '../components/TodoWidget';
 import { TASK_LIST_NAMES } from '../lib/google';
 import { MEMBER_LABELS } from '../lib/householdTokens';
-import { FAMILY_TASKS_LIST } from '../hooks/useMultiAccountData';
 
 const MEMBER_EMOJIS = { jacob: '👨', katelin: '👩', family: '🏠' };
 const MEMBER_ORDER  = ['jacob', 'family', 'katelin'];
 
-const priorityConfig = {
-  high:   { color: 'var(--color-danger)'  },
-  medium: { color: 'var(--color-warn)'    },
-  low:    { color: 'var(--color-success)' },
-};
-
-// Collect all tasks for a given list name across all visible members
+// Collect tasks for a list name across all visible members
 function getItemsForList(todosByList, listName, visibleMembers) {
   const items = [];
   for (const [key, tasks] of Object.entries(todosByList)) {
-    // Determine which member owns this key
-    let owner = null;
-    if (key === listName) {
-      // Plain key (old format or Family Tasks)
-      owner = 'family';
-    } else {
-      for (const m of MEMBER_ORDER) {
-        if (key === `${m}:${listName}`) { owner = m; break; }
-      }
-    }
-    if (!owner || !visibleMembers.includes(owner)) continue;
+    // Key format is always "owner:listName" e.g. "jacob:General", "family:General"
+    const [owner, ...rest] = key.split(':');
+    const keyList = rest.join(':');
+    if (keyList !== listName) continue;
+    if (!visibleMembers.includes(owner)) continue;
     items.push(...tasks.map(t => ({ ...t, owner: t.owner || owner })));
   }
   return items;
 }
 
-// Which columns to show — standard lists + Family Tasks if family is visible
-function getColumns(visibleMembers) {
-  const cols = [...TASK_LIST_NAMES];
-  if (visibleMembers.includes('family')) cols.push(FAMILY_TASKS_LIST);
-  return cols;
-}
-
-// For "add" in a merged column, pick the default owner
-function defaultOwnerForList(listName, visibleMembers, primaryMember) {
-  if (listName === FAMILY_TASKS_LIST) return 'family';
-  // Prefer the primary member if visible, else first visible non-family member
+function defaultOwnerForList(visibleMembers, primaryMember) {
   if (primaryMember && visibleMembers.includes(primaryMember)) return primaryMember;
   return visibleMembers.find(m => m !== 'family') || visibleMembers[0];
 }
@@ -57,11 +34,10 @@ export default function TodoFullView({
   const [visibleMembers, setVisibleMembers] = useState(
     linkedMembers.length > 0 ? linkedMembers : ['jacob']
   );
-
-  const [addingTo,    setAddingTo]    = useState(null); // listName
+  const [addingTo,    setAddingTo]    = useState(null);
   const [newTitle,    setNewTitle]    = useState('');
   const [newPriority, setNewPriority] = useState('medium');
-  const [addOwner,    setAddOwner]    = useState(null); // who to add for
+  const [addOwner,    setAddOwner]    = useState(null);
 
   function toggleMemberVisible(member) {
     setVisibleMembers(prev =>
@@ -72,9 +48,8 @@ export default function TodoFullView({
   }
 
   function openAdd(listName) {
-    const owner = defaultOwnerForList(listName, visibleMembers, primaryMember);
     setAddingTo(listName);
-    setAddOwner(owner);
+    setAddOwner(defaultOwnerForList(visibleMembers, primaryMember));
     setNewTitle('');
     setNewPriority('medium');
   }
@@ -88,18 +63,23 @@ export default function TodoFullView({
     setAddOwner(null);
   }
 
-  const columns = getColumns(visibleMembers);
+  // Build listDefs for move targets
+  const listDefs = TASK_LIST_NAMES.flatMap(listName =>
+    visibleMembers.map(owner => ({
+      key: `${owner}:${listName}`,
+      listName,
+      owner,
+    }))
+  );
 
-  // Members eligible to add in a given column (not family for standard lists)
-  function addOwnerOptions(listName) {
-    if (listName === FAMILY_TASKS_LIST) return ['family'];
-    return visibleMembers.filter(m => m !== 'family');
-  }
+  // Owner options for add form (all visible members)
+  const addOwnerOptions = visibleMembers;
+  const showOwnerBadge  = visibleMembers.filter(m => m).length > 1;
 
   return (
     <FullScreenView title="To‑do" onBack={onBack}>
 
-      {/* ── Account filter chips ── */}
+      {/* Account filter chips */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           Showing:
@@ -128,19 +108,18 @@ export default function TodoFullView({
         })}
       </div>
 
-      {/* ── Merged list columns ── */}
+      {/* One column per list, tasks from all visible members merged */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${columns.length}, 1fr)`,
+        gridTemplateColumns: `repeat(${TASK_LIST_NAMES.length}, 1fr)`,
         gap: '14px',
         alignItems: 'start',
       }}>
-        {columns.map(listName => {
+        {TASK_LIST_NAMES.map(listName => {
           const items    = getItemsForList(todosByList, listName, visibleMembers);
           const active   = items.filter(t => !t.done);
           const done     = items.filter(t => t.done);
           const isAdding = addingTo === listName;
-          const ownerOpts = addOwnerOptions(listName);
 
           return (
             <div key={listName} className="card" style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -157,18 +136,10 @@ export default function TodoFullView({
                     </span>
                   )}
                 </div>
-                {listName !== FAMILY_TASKS_LIST && (
-                  <button
-                    onClick={() => isAdding ? setAddingTo(null) : openAdd(listName)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: isAdding ? 'var(--color-danger)' : 'var(--accent)', fontSize: '20px', lineHeight: 1, padding: '2px', fontWeight: '300' }}
-                  >{isAdding ? '×' : '+'}</button>
-                )}
-                {listName === FAMILY_TASKS_LIST && (
-                  <button
-                    onClick={() => isAdding ? setAddingTo(null) : openAdd(listName)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: isAdding ? 'var(--color-danger)' : 'var(--accent)', fontSize: '20px', lineHeight: 1, padding: '2px', fontWeight: '300' }}
-                  >{isAdding ? '×' : '+'}</button>
-                )}
+                <button
+                  onClick={() => isAdding ? setAddingTo(null) : openAdd(listName)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: isAdding ? 'var(--color-danger)' : 'var(--accent)', fontSize: '20px', lineHeight: 1, padding: '2px' }}
+                >{isAdding ? '×' : '+'}</button>
               </div>
 
               {/* Add form */}
@@ -182,10 +153,10 @@ export default function TodoFullView({
                     onKeyDown={e => e.key === 'Enter' && handleAdd()}
                     style={{ fontSize: '13px', padding: '7px 10px' }}
                   />
-                  {/* Owner picker — only show if multiple options */}
-                  {ownerOpts.length > 1 && (
+                  {/* Owner picker — show when multiple accounts visible */}
+                  {addOwnerOptions.length > 1 && (
                     <div style={{ display: 'flex', gap: '5px' }}>
-                      {ownerOpts.map(m => (
+                      {addOwnerOptions.map(m => (
                         <button key={m} onClick={() => setAddOwner(m)} style={{
                           flex: 1, padding: '4px 6px', borderRadius: '6px', cursor: 'pointer',
                           fontSize: '11px', fontWeight: '600', border: '1px solid var(--border)',
@@ -204,9 +175,9 @@ export default function TodoFullView({
                       <button key={p} onClick={() => setNewPriority(p)} style={{
                         flex: 1, padding: '4px', borderRadius: '6px', cursor: 'pointer',
                         fontSize: '10px', fontWeight: '600',
-                        border: `1px solid ${priorityConfig[p].color}`,
-                        background: newPriority === p ? priorityConfig[p].color : 'transparent',
-                        color: newPriority === p ? 'white' : priorityConfig[p].color,
+                        border: `1px solid ${p === 'high' ? 'var(--color-danger)' : p === 'medium' ? 'var(--color-warn)' : 'var(--color-success)'}`,
+                        background: newPriority === p ? (p === 'high' ? 'var(--color-danger)' : p === 'medium' ? 'var(--color-warn)' : 'var(--color-success)') : 'transparent',
+                        color: newPriority === p ? 'white' : 'var(--text-secondary)',
                         textTransform: 'capitalize', transition: 'all 0.15s',
                       }}>{p}</button>
                     ))}
@@ -222,8 +193,7 @@ export default function TodoFullView({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {active.map(t => (
                   <TaskRow key={`${t.owner}-${t.id}`} task={t} listName={listName}
-                    todosByList={todosByList} visibleMembers={visibleMembers}
-                    showOwnerBadge={visibleMembers.filter(m => m !== 'family').length > 1}
+                    listDefs={listDefs} showOwnerBadge={showOwnerBadge}
                     onToggle={onToggle} onDelete={onDelete} onMove={onMove} />
                 ))}
               </div>
@@ -238,8 +208,7 @@ export default function TodoFullView({
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {done.map(t => (
                       <TaskRow key={`${t.owner}-${t.id}`} task={t} listName={listName}
-                        todosByList={todosByList} visibleMembers={visibleMembers}
-                        showOwnerBadge={visibleMembers.filter(m => m !== 'family').length > 1}
+                        listDefs={listDefs} showOwnerBadge={showOwnerBadge}
                         onToggle={onToggle} onDelete={onDelete} onMove={onMove} />
                     ))}
                   </div>

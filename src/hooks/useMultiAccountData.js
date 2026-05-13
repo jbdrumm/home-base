@@ -15,9 +15,6 @@ const MEMBER_OWNER_MAP = {
   family:  'family',
 };
 
-// Family Tasks list name — must match exactly for Google Hub voice commands
-export const FAMILY_TASKS_LIST = 'Family Tasks';
-
 export function useMultiAccountData(getTokenFor, householdTokens) {
   const [events,      setEvents]      = useState([]);
   const [todosByList, setTodosByList] = useState({});
@@ -85,10 +82,8 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
           const allLists = await fetchTaskLists(token);
 
           // Jacob and Katelin get the 4 standard lists
-          // Family gets "Family Tasks" list (+ standard lists for completeness)
-          const listsToEnsure = member === 'family'
-            ? [FAMILY_TASKS_LIST, ...TASK_LIST_NAMES]
-            : TASK_LIST_NAMES;
+          // All accounts get the same standard lists
+          const listsToEnsure = TASK_LIST_NAMES;
 
           for (const listName of listsToEnsure) {
             try {
@@ -104,8 +99,8 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
                   owner: MEMBER_OWNER_MAP[member],
                 }));
 
-              // Namespace list key: "jacob:General", "family:Family Tasks", etc.
-              const key = member === 'family' ? listName : `${member}:${listName}`;
+              // Namespace list key: "jacob:General", "family:General", etc.
+              const key = `${member}:${listName}`;
               allTodosByList[key] = normalized;
             } catch (e) {
               console.warn(`[MultiAccount] Task list ${listName} failed for ${member}:`, e.message);
@@ -143,11 +138,11 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
 
     // Determine which list name and member
     const member   = owner;
-    const listName = owner === 'family' ? FAMILY_TASKS_LIST : list;
+    const listName = list;
     const listId   = taskListIds[member]?.[listName];
 
     const tempId  = `temp-${Date.now()}`;
-    const key     = owner === 'family' ? listName : `${owner}:${listName}`;
+    const key     = `${owner}:${listName}`;
     const newItem = { id: tempId, title, list: listName, owner, priority, done: false };
 
     // Optimistic update
@@ -174,7 +169,7 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
   const toggleTask = useCallback(async ({ id, listKey, owner, done }) => {
     const token = getTokenFor(owner);
     if (!token) return;
-    const listName = owner === 'family' ? listKey : listKey.replace(`${owner}:`, '');
+    const listName = listKey.replace(`${owner}:`, '');
     const listId   = taskListIds[owner]?.[listName];
     if (!listId) return;
     setTodosByList(prev => ({
@@ -199,7 +194,7 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
   const removeTask = useCallback(async ({ id, listKey, owner }) => {
     const token = getTokenFor(owner);
     if (!token) return;
-    const listName = owner === 'family' ? listKey : listKey.replace(`${owner}:`, '');
+    const listName = listKey.replace(`${owner}:`, '');
     const listId   = taskListIds[owner]?.[listName];
     if (!listId) return;
     setTodosByList(prev => ({
@@ -218,10 +213,10 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
   const moveTask = useCallback(async ({ id, fromListKey, toListName, owner, title }) => {
     const token = getTokenFor(owner);
     if (!token) return;
-    const fromListName = owner === 'family' ? fromListKey : fromListKey.replace(`${owner}:`, '');
+    const fromListName = fromListKey.replace(`${owner}:`, '');
     const fromListId   = taskListIds[owner]?.[fromListName];
     const toListId     = taskListIds[owner]?.[toListName];
-    const toListKey    = owner === 'family' ? toListName : `${owner}:${toListName}`;
+    const toListKey    = `${owner}:${toListName}`;
     if (!fromListId || !toListId) return;
     setTodosByList(prev => {
       const item = (prev[fromListKey] || []).find(t => t.id === id);
