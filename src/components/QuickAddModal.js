@@ -26,6 +26,7 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
   const isMobile          = !isTabletOrDesktop;
 
   const [name,     setName]     = useState('');
+  const [addMore,  setAddMore]  = useState(false);
   const [category, setCategory] = useState('Produce');
   const [store,    setStore]    = useState('Meijer');
   const [priority, setPriority] = useState('medium');
@@ -67,10 +68,16 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
     if (!name.trim()) return;
     if (isGrocery) {
       onAdd({ name: name.trim(), category, store, done: false });
+      if (addMore) {
+        setName('');
+        setTimeout(() => inputRef.current?.focus(), 50);
+      } else {
+        onClose();
+      }
     } else {
       onAdd({ title: name.trim(), priority, list, owner, done: false, due_date: null });
+      onClose();
     }
-    onClose();
   }
 
   function handleBackdropClick(e) {
@@ -226,6 +233,32 @@ export default function QuickAddModal({ type, onClose, onAdd, primaryMember, hou
             </>
           )}
 
+          {isGrocery && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                onClick={() => setAddMore(v => !v)}
+                style={{
+                  width: '20px', height: '20px', borderRadius: '5px', flexShrink: 0,
+                  border: addMore ? 'none' : '2px solid var(--border-strong)',
+                  background: addMore ? 'var(--accent)' : 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {addMore && (
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                    <path d="M2 5.5l2.5 2.5 4.5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </div>
+              <span
+                onClick={() => setAddMore(v => !v)}
+                style={{ fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}
+              >
+                Add more items
+              </span>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
             <button className="btn btn-ghost" style={{ flex: 1 }}
               onMouseDown={e => { e.preventDefault(); onClose(); }}

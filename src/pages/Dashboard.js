@@ -12,6 +12,7 @@ import QuickActionFAB from '../components/QuickActionFAB';
 import QuickAddModal from '../components/QuickAddModal';
 import LogFillupModal from '../components/LogFillupModal';
 import HouseholdSetup from '../components/HouseholdSetup';
+import NotificationSettings from '../components/NotificationSettings';
 
 import CalendarFullView from './CalendarFullView';
 import TodoFullView from './TodoFullView';
@@ -90,26 +91,14 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   const lastSync    = multiData.lastSync || weather.lastSync;
 
   if (view === 'household') return (
-    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 200, display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '0 28px', height: '60px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
-        <button onClick={() => setView(null)} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '14px', fontWeight: '500', fontFamily: 'var(--font-body)' }}>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-          Dashboard
-        </button>
-        <span style={{ color: 'var(--border-strong)', fontSize: '18px' }}>|</span>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '600' }}>Household Accounts</span>
-      </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px' }}>
-        <HouseholdSetup
-          householdTokens={householdTokens || {}}
-          linkMember={linkMember}
-          unlinkMember={unlinkMember}
-          linkingMember={linkingMember}
-          error={authError}
-          onClose={() => setView(null)}
-        />
-      </div>
-    </div>
+    <HouseholdSettingsView
+      householdTokens={householdTokens || {}}
+      linkMember={linkMember}
+      unlinkMember={unlinkMember}
+      linkingMember={linkingMember}
+      authError={authError}
+      onClose={() => setView(null)}
+    />
   );
 
   if (view === 'jacob') return (
@@ -264,6 +253,64 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
           onSave={(data) => { console.log('Fillup logged from FAB:', data); setShowFillup(false); }}
         />
       )}
+    </div>
+  );
+}
+
+// ── Tabbed household settings (Accounts + Notifications) ─────
+function HouseholdSettingsView({ householdTokens, linkMember, unlinkMember, linkingMember, authError, onClose }) {
+  const [tab, setTab] = React.useState('accounts');
+
+  const tabs = [
+    { id: 'accounts',      label: '👤 Accounts'      },
+    { id: 'notifications', label: '🔔 Notifications'  },
+  ];
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 200, display: 'flex', flexDirection: 'column' }}>
+      {/* Top bar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '0 28px', height: '60px', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontSize: '14px', fontWeight: '500', fontFamily: 'var(--font-body)' }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Dashboard
+        </button>
+        <span style={{ color: 'var(--border-strong)', fontSize: '18px' }}>|</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '600' }}>Settings</span>
+      </div>
+
+      {/* Tab bar */}
+      <div style={{ display: 'flex', gap: '4px', padding: '16px 28px 0', background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{
+            padding: '8px 20px', borderRadius: '8px 8px 0 0', cursor: 'pointer',
+            fontFamily: 'var(--font-body)', fontSize: '14px', fontWeight: '600',
+            border: '1px solid var(--border)', borderBottom: tab === t.id ? '1px solid var(--bg-card)' : '1px solid var(--border)',
+            background: tab === t.id ? 'var(--bg-base)' : 'var(--bg-card)',
+            color: tab === t.id ? 'var(--text-primary)' : 'var(--text-tertiary)',
+            marginBottom: tab === t.id ? '-1px' : '0',
+            transition: 'all 0.15s',
+          }}>{t.label}</button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '28px' }}>
+        <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+          {tab === 'accounts' && (
+            <HouseholdSetup
+              householdTokens={householdTokens}
+              linkMember={linkMember}
+              unlinkMember={unlinkMember}
+              linkingMember={linkingMember}
+              error={authError}
+              onClose={onClose}
+            />
+          )}
+          {tab === 'notifications' && (
+            <NotificationSettings householdTokens={householdTokens} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
