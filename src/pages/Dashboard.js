@@ -21,7 +21,7 @@ import VehicleFullView from './VehicleFullView';
 import WeatherFullView from './WeatherFullView';
 import PersonView from './PersonView';
 
-import { useLocalState } from '../hooks/useLocalState';
+import { useSupabaseList } from '../hooks/useSupabaseList';
 import { useMultiAccountData } from '../hooks/useMultiAccountData';
 import { useWeather } from '../hooks/useWeather';
 import { seedGroceries, seedBills } from '../lib/seedData';
@@ -44,8 +44,8 @@ function Tile({ onClick, children, style }) {
 }
 
 export default function Dashboard({ token, profile, onSignOut, householdAuth, initialQuickAdd }) {
-  const groceries = useLocalState(seedGroceries);
-  const bills     = useLocalState(seedBills);
+  const groceries = useSupabaseList('groceries', seedGroceries, 'id');
+  const bills     = useSupabaseList('bills', seedBills, 'due_day');
   const [view,  setView]  = useState(null);
   const [modal, setModal] = useState(null);
 
