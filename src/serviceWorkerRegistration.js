@@ -64,13 +64,15 @@ function registerValidSW(swUrl, config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
-              // At this point, the updated precached content has been fetched,
-              // but the previous service worker will still serve the older
-              // content until all client tabs are closed.
-              console.log(
-                'New content is available and will be used when all ' +
-                  'tabs for this page are closed. See https://cra.link/PWA.'
-              );
+              // New content available — skip waiting and reload immediately
+              // so the installed PWA always gets updates without manual cache clear.
+              console.log('[SW] New version available — reloading to update.');
+              installingWorker.addEventListener('statechange', () => {
+                if (installingWorker.state === 'activated') {
+                  window.location.reload();
+                }
+              });
+              installingWorker.postMessage({ type: 'SKIP_WAITING' });
 
               // Execute callback
               if (config && config.onUpdate) {
