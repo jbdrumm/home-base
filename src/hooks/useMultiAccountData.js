@@ -53,14 +53,18 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
 
       // Deduplicate events:
       // 1. By Google event ID (same event shared across accounts)
-      // 2. By title+date (holidays/public events that appear in every account's calendar)
-      const seenIds   = new Set();
+      // 2. By title+date+time for all-day holidays (same title, same date, no specific time)
+      //    We only dedup all-day events by title+date — timed events need title+date+time
+      //    to avoid collapsing different sessions of the same recurring event.
+      const seenIds       = new Set();
       const seenTitleDate = new Set();
       const dedupedEvents = allEvents.filter(e => {
         if (seenIds.has(e.id)) return false;
         seenIds.add(e.id);
-        // Normalize title for holiday dedup (lowercase, trim)
-        const titleDateKey = `${e.title.toLowerCase().trim()}|${e.rawDate?.slice(0, 10)}`;
+        // Only dedup all-day events by title+date (holidays, birthdays)
+        // Timed events use title+date+time so recurring events at different times are kept
+        const timeKey = e.time === 'All day' ? 'allday' : e.time;
+        const titleDateKey = `${e.title.toLowerCase().trim()}|${e.rawDate?.slice(0, 10)}|${timeKey}`;
         if (seenTitleDate.has(titleDateKey)) return false;
         seenTitleDate.add(titleDateKey);
         return true;
