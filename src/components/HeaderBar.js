@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import SyncStatus from './SyncStatus';
 
 export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOut, onShowJacob, onShowKatelin, onShowHousehold }) {
-  const [now, setNow] = useState(new Date());
+  const [now, setNow]       = useState(new Date());
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -19,51 +19,73 @@ export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOu
 
   return (
     <header style={{
-      display: 'flex', alignItems: 'center',
+      display: 'flex',
+      alignItems: 'center',
       justifyContent: 'space-between',
       padding: '0 0 20px 0',
-      gap: '12px',
+      gap: '10px',
+      // Ensure nothing overlaps the header
+      position: 'relative',
+      zIndex: 10,
     }}>
-      {/* Left: logo + nav */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+
+      {/* Left: logo + gear (always) + person tiles (desktop only) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
         <span style={{
-          fontFamily: 'var(--font-display)', fontSize: isMobile ? '20px' : '26px',
-          fontWeight: '700', color: 'var(--accent)', letterSpacing: '-0.02em',
+          fontFamily: 'var(--font-display)',
+          fontSize: isMobile ? '18px' : '24px',
+          fontWeight: '700',
+          color: 'var(--accent)',
+          letterSpacing: '-0.02em',
           flexShrink: 0,
-        }}>Home Base</span>
+          whiteSpace: 'nowrap',
+        }}>
+          Home Base
+        </span>
 
-        {!isMobile && (
-          <span style={{ color: 'var(--text-tertiary)', fontSize: '13px', whiteSpace: 'nowrap' }}>
-            {format(now, 'EEEE, MMMM d')}
-          </span>
-        )}
-
-        {/* Person tiles — desktop only; on mobile just show gear */}
-        {!isMobile && (
-          <div style={{ display: 'flex', gap: '6px', marginLeft: '4px', alignItems: 'center' }}>
-            <PersonTile name="Jacob"   emoji="👨" onClick={onShowJacob} />
-            <PersonTile name="Katelin" emoji="👩" onClick={onShowKatelin} />
-          </div>
-        )}
-
-        {/* Gear — always visible */}
+        {/* Gear — always visible, immediately after logo */}
         <button
           onClick={onShowHousehold}
-          title="Household account settings"
+          title="Settings"
           style={{
             width: '36px', height: '36px', borderRadius: '50%',
-            border: '1px solid var(--border)', background: 'var(--bg-card)',
-            cursor: 'pointer', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: '16px',
-            transition: 'all 0.15s', flexShrink: 0,
+            border: '1px solid var(--border)',
+            background: 'var(--bg-card)',
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '16px', flexShrink: 0,
+            // Large tap target on mobile
+            WebkitTapHighlightColor: 'transparent',
+            transition: 'background 0.15s',
           }}
           onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
           onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-card)'}
         >⚙️</button>
+
+        {/* Date — desktop only */}
+        {!isMobile && (
+          <span style={{ fontSize: '13px', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>
+            {format(now, 'EEEE, MMMM d')}
+          </span>
+        )}
+
+        {/* Person tiles — desktop only */}
+        {!isMobile && (
+          <>
+            <PersonTile name="Jacob"   emoji="👨" onClick={onShowJacob}   />
+            <PersonTile name="Katelin" emoji="👩" onClick={onShowKatelin} />
+          </>
+        )}
       </div>
 
-      {/* Right: sync + clock */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '10px' : '20px', flexShrink: 0 }}>
+      {/* Right: sync status + clock — stacked on mobile to save space */}
+      <div style={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-end' : 'center',
+        gap: isMobile ? '2px' : '16px',
+        flexShrink: 0,
+      }}>
         {onSync && (
           <SyncStatus
             lastSync={lastSync} loading={loading}
@@ -71,12 +93,19 @@ export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOu
           />
         )}
         <div style={{
-          fontFamily: 'var(--font-mono)', fontSize: isMobile ? '20px' : '28px',
-          fontWeight: '500', color: 'var(--text-secondary)',
+          fontFamily: 'var(--font-mono)',
+          fontSize: isMobile ? '18px' : '26px',
+          fontWeight: '500',
+          color: 'var(--text-secondary)',
           letterSpacing: '-0.02em',
+          whiteSpace: 'nowrap',
         }}>
           {format(now, 'h:mm')}
-          <span style={{ fontSize: isMobile ? '11px' : '14px', marginLeft: '3px', color: 'var(--text-tertiary)' }}>
+          <span style={{
+            fontSize: isMobile ? '10px' : '13px',
+            marginLeft: '2px',
+            color: 'var(--text-tertiary)',
+          }}>
             {format(now, 'a')}
           </span>
         </div>
@@ -100,6 +129,7 @@ function PersonTile({ name, emoji, onClick }) {
         cursor: 'pointer', transition: 'all 0.15s',
         fontFamily: 'var(--font-body)', fontSize: '13px',
         fontWeight: '500', color: 'var(--text-secondary)',
+        flexShrink: 0,
       }}
     >
       <span style={{ fontSize: '15px' }}>{emoji}</span>

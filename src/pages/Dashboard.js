@@ -82,12 +82,22 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   const { prefs: notifPrefs } = useNotificationPrefs(primaryMember);
 
   // Register FCM token for push notifications (once per member per device)
+  // Falls back to 'jacob' if primaryMember not yet detected (email match pending)
   useEffect(() => {
-    if (!primaryMember) return;
-    const storageKey = `hb_fcm_registered_${primaryMember}`;
-    if (sessionStorage.getItem(storageKey)) return;
-    registerFCMToken(primaryMember).then(token => {
-      if (token) sessionStorage.setItem(storageKey, '1');
+    const member = primaryMember || (() => {
+      try {
+        const p = JSON.parse(localStorage.getItem('hb_profile') || '{}');
+        if (p.email === 'jacob.b.drumm@gmail.com')   return 'jacob';
+        if (p.email === 'drummkatelin@gmail.com')     return 'katelin';
+        if (p.email === 'drummfam@gmail.com')         return 'family';
+      } catch {}
+      return null;
+    })();
+    if (!member) return;
+    const storageKey = `hb_fcm_registered_${member}`;
+    if (localStorage.getItem(storageKey)) return; // already registered on this device
+    registerFCMToken(member).then(token => {
+      if (token) localStorage.setItem(storageKey, '1');
     });
   }, [primaryMember]);
 
