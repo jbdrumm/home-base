@@ -31,10 +31,11 @@ REACT_APP_FIREBASE_VAPID_KEY=your_vapid_key
 
 Then redeploy.
 
-## 4. Add Firebase domain to authorized origins
+## 4. Done
 
-In Firebase Console → Authentication → Settings → Authorized domains:
-- Add `home-base-drumm.netlify.app`
+No additional Firebase configuration needed. Home Base uses Firebase
+only for Cloud Messaging — Firebase Authentication is not used, so
+there are no authorized domains to configure.
 
 ## What notifications fire automatically
 
