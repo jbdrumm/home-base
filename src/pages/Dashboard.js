@@ -175,7 +175,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <Tile onClick={() => setView('calendar')}><CalendarWidget events={multiData.events} /></Tile>
           <Tile onClick={() => setView('todo')}>
-            <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} />
+            <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} onToggle={handleTaskToggle} onDelete={handleTaskDelete} />
           </Tile>
           <div style={{ height: '420px' }}>
             <div onClick={() => setView('grocery')} style={{ cursor: 'pointer', height: '100%' }}>
@@ -210,7 +210,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
 
           {/* Col 3 Rows 1-2: To-do */}
           <Tile onClick={() => setView('todo')} style={{ gridColumn: '3', gridRow: '1 / 3' }}>
-            <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} />
+            <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} onToggle={handleTaskToggle} onDelete={handleTaskDelete} />
           </Tile>
 
           {/* Col 4 Rows 1-4: Grocery */}
