@@ -258,10 +258,37 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 
 Ideas captured for future consideration — not committed to a sprint yet.
 
+### 🤖 Agent Ideas
+
 | Idea | Description | Notes |
 |---|---|---|
-| Grocery restocking agent | Agentic workflow that monitors grocery list completion history, learns restock cadence per item (e.g. milk every 6 days), and proactively re-adds items before they run out — no human trigger needed | Would use Agent SDK + Supabase grocery history. Katelin's request. |
-| Garden soil moisture monitoring | Soil moisture sensors in Katelin's garden feed readings to Home Base. An agent reviews latest readings on a schedule and sends Katelin a push notification identifying which plants/beds need watering. | Hardware: sensors wired to Pi 3 or a dedicated ESP32 via Home Assistant. Agent logic compares readings to per-plant thresholds. |
+| Grocery restocking agent | Monitors grocery list completion history, learns restock cadence per item (e.g. milk every 6 days), proactively re-adds items before they run out | Agent SDK + Supabase grocery history. Katelin's request. |
+| Garden soil moisture agent | Soil moisture sensors in Katelin's garden (ESP32 or Pi via HA). Agent reviews readings on schedule, notifies Katelin which beds need watering. Cross-references Tomorrow.io forecast — skip notification if rain expected tomorrow. | Hardware: sensors + ESP32 or Pi 3 via Home Assistant |
+| Boiler pressure diagnostic agent | Logs overnight pressure readings. Agent correlates pressure drops with heating cycles to help identify root cause of weekly upstairs radiator bleeding (likely failing auto air vent, micro-leak, or waterlogged expansion tank). | High value — active known issue. Pairs with pressure sensor on boiler loop. |
+| Electrical anomaly agent | Learns baseline panel draw by time-of-day and day-of-week via Emporia Vue. Alerts when draw is meaningfully outside normal (e.g. "2am, 800W above baseline"). Catches stuck appliances, failed relays, slow faults. | Better fit than time-of-use optimization since rate is locked 24/7. |
+| Pool fill agent | Pool level sensor triggers solenoid fill valve when level drops. Agent checks: (1) pool cover open via tilt/contact sensor — if closed, skip fill and notify instead. (2) Cross-reference Tomorrow.io — skip if heavy rain expected. Tracks daily fill volume over time, alerts if leak rate accelerates. | Pool has known slow leak. Cover sensor is prerequisite. |
+
+### 🔧 Sensor / Hardware Ideas
+
+| Idea | Status | Notes |
+|---|---|---|
+| Pool water level + auto-fill solenoid | **Add to sprint backlog** | Float valve sensor + solenoid on water line. Prerequisite: pool cover tilt/contact sensor. |
+| Pool water temperature sensor | **Add to sprint backlog** | Pair with pool fill sprint. Useful for knowing when pool is naturally swimworthy. |
+| Pool cover open/closed sensor | **Add to sprint backlog** | Tilt or magnetic contact sensor on cover mechanism. Prerequisite for fill agent logic. |
+| Sump pump high-water alert | Keep simple | Basic float/overflow sensor only. Push notification if water reaches high-water mark. No cycle monitoring — french drain makes frequency data noisy. |
+| Boiler hydronic pressure sensor | High value | Log pressure on closed loop. Overnight drop pattern helps diagnose weekly radiator bleeding issue. |
+| Boiler flue temperature sensor | High value | 1970s original unit. Flue temp degradation = early warning of combustion efficiency loss before safety issue or surprise repair. |
+| Boiler zone valve + room temp sensors | Future | Pairs with planned Taco controller/circulator hydronic upgrade next year. Revisit during that project. |
+| Water leak pads | Recommended | ~$15 each (Govee). Place under boiler, water heater, water softener. Detects slow leak before floor damage. Already have Govee ecosystem. |
+| Emporia Vue 3 panel monitor | Recommended | ~$80–110 with 8–16 circuit sensors. Clamp-on CT install, HA integration, 200A split-phase compatible. Good value. Key circuits: pool pump, well pump, dryer, water heater. |
+| Door/window contact sensors | Recommended | Use Z-Wave or Zigbee (not WiFi) to avoid network congestion. Pi 3 + USB Z-Wave/Zigbee stick as HA coordinator. ~$10–20/sensor. |
+| Dryer vent airflow sensor | Recommended | ~$15 at exterior vent cap. Safety play — clogged dryer vents are a leading house fire cause. |
+| Gas leak detectors (boiler room) | Buy dumb ones | $25 hardwired detector from big box store. Smart integration not worth the cost for a primary residence where someone is usually home. |
+| CO/Smoke detectors | Evaluate | First Alert Safe & Sound (SMCO600NVACA) has HA integration via Resideo. Newer SC5 does not yet. If replacing detectors anyway, Safe & Sound is the smart-home-compatible choice. |
+| Well pump pressure tank monitor | Low priority | Well is irrigation-only, infrequent use. Monitor if cost is minimal, otherwise skip. |
+| Pool chemical monitor | Research needed | Atlas Scientific sensors for pH/chemistry. Cost TBD — could be significant. Manual weekly testing may be sufficient. |
+| Pool sand filter pump runtime | Low value | Pump is on a timer so cycle monitoring is moot. Skip. |
+| HVAC zone sensors | Deferred | Ecobee already handles room occupancy + temp well. HA has native Ecobee integration — pull into Home Base when Ecobee sprint arrives. |
 
 ---
 
