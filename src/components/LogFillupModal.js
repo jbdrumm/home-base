@@ -22,7 +22,7 @@ function PhotoUploadStep({ label, stepNum, done, parsed, onUpload }) {
         marginBottom: '12px',
       }}
     >
-      <input ref={ref} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+      <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }}
         onChange={e => handleFile(e.target.files?.[0])} />
       {done ? (
         <>
@@ -50,36 +50,81 @@ async function parsePhotoWithClaude(file, promptText) {
   });
 
   const mediaType = file.type || 'image/jpeg';
-
   const apiKey = process.env.REACT_APP_ANTHROPIC_KEY;
   if (!apiKey) throw new Error('REACT_APP_ANTHROPIC_KEY is not set');
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-          { type: 'text', text: promptText },
-        ],
-      }],
-    }),
-  });
+  // 30 second timeout — API can be slow on mobile
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
 
-  const data = await response.json();
-  const text = data.content?.find(b => b.type === 'text')?.text || '';
-  // Strip any markdown fences
-  const clean = text.replace(/```json|```/g, '').trim();
-  try { return JSON.parse(clean); } catch { return null; }
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 256,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: promptText },
+          ],
+        }],
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      await logError('fillup_parse', `API error ${response.status}`, err);
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    try { return JSON.parse(clean); } catch {
+      await logError('fillup_parse', 'JSON parse failed', { raw: text });
+      return null;
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      await logError('fillup_parse', 'Request timed out after 30s', {});
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function logError(context, message, details = {}) {
+  try {
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) return;
+    await fetch(`${supabaseUrl}/rest/v1/error_logs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        context,
+        message,
+        details: JSON.stringify(details),
+        user_agent: navigator.userAgent.slice(0, 200),
+      }),
+    });
+  } catch { /* never let error logging crash the app */ }
 }
 
 export default function LogFillupModal({ vehicles, onClose, onSave }) {
@@ -140,7 +185,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
   const currentVehicle = vehicles?.find(v => v.id === selectedVehicle);
 
   return (
-    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+    <div className="modal-overlay">
       <div className="modal-sheet" style={{ maxWidth: '480px' }}>
         <div className="modal-handle" />
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>

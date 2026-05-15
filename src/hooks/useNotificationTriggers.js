@@ -84,14 +84,13 @@ export function useNotificationTriggers({
         if (isOwnTask    && prefs.new_task_own)    { notify.newTask(task.title, owner); markNotified(key); }
         if (isFamilyTask && prefs.new_task_family) { notify.newTask(task.title, owner); markNotified(key); }
 
-        // Push to other members if it's their task
+        // Push to other members — pass prefKey so server checks their prefs
         if (!isOwnTask) {
-          sendPushToMember(owner, '✅ New Task', task.title, { view: 'todo' });
+          sendPushToMember(owner, '✅ New Task', task.title, { view: 'todo', prefKey: 'new_task_own' });
         }
         if (isFamilyTask) {
-          // Push to all other linked members
           for (const m of householdMembers) {
-            if (m !== primaryMember) sendPushToMember(m, '✅ New Family Task', task.title, { view: 'todo' });
+            if (m !== primaryMember) sendPushToMember(m, '✅ New Family Task', task.title, { view: 'todo', prefKey: 'new_task_family' });
           }
         }
       }
@@ -112,10 +111,9 @@ export function useNotificationTriggers({
         if (isOwnTask    && prefs.completed_task_own)    { notify.completedTask(task.title, owner); markNotified(key); }
         if (isFamilyTask && prefs.completed_task_family) { notify.completedTask(task.title, owner); markNotified(key); }
 
-        // Push other members
         if (isFamilyTask) {
           for (const m of householdMembers) {
-            if (m !== primaryMember) sendPushToMember(m, '✅ Family Task Done', task.title, { view: 'todo' });
+            if (m !== primaryMember) sendPushToMember(m, '✅ Family Task Done', task.title, { view: 'todo', prefKey: 'completed_task_family' });
           }
         }
       }
@@ -138,9 +136,8 @@ export function useNotificationTriggers({
 
       if (prefs.new_grocery) { notify.newGrocery(item.name); markNotified(key); }
 
-      // Push to all other members
       for (const m of householdMembers) {
-        if (m !== primaryMember) sendPushToMember(m, '🛒 Grocery Item Added', item.name, { view: 'grocery' });
+        if (m !== primaryMember) sendPushToMember(m, '🛒 Grocery Item Added', item.name, { view: 'grocery', prefKey: 'new_grocery' });
       }
     }
 
@@ -163,9 +160,8 @@ export function useNotificationTriggers({
 
       if (prefs.new_calendar_family) { notify.newCalendarEvent(event.title); markNotified(key); }
 
-      // Push to all other members
       for (const m of householdMembers) {
-        if (m !== primaryMember) sendPushToMember(m, '📅 New Family Event', event.title, { view: 'calendar' });
+        if (m !== primaryMember) sendPushToMember(m, '📅 New Family Event', event.title, { view: 'calendar', prefKey: 'new_calendar_family' });
       }
     }
 

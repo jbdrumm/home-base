@@ -65,3 +65,16 @@ CREATE TABLE IF NOT EXISTS fcm_tokens (
 
 ALTER TABLE fcm_tokens ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all_fcm_tokens" ON fcm_tokens FOR ALL USING (true) WITH CHECK (true);
+
+
+-- ── Error logs ────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS error_logs (
+  id         BIGSERIAL PRIMARY KEY,
+  context    TEXT,
+  message    TEXT,
+  details    TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE error_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all_error_logs" ON error_logs FOR ALL USING (true) WITH CHECK (true);
