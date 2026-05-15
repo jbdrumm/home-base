@@ -37,7 +37,7 @@ All three must be added as OAuth Test Users in Google Cloud Console → APIs & S
 - **Backend:** Supabase (Postgres + RLS)
 - **Auth/Calendar/Tasks:** Google OAuth via @react-oauth/google (auth-code flow with refresh tokens)
 - **Token persistence:** Supabase `household_tokens` table stores refresh tokens — accounts stay linked indefinitely
-- **Weather:** OpenWeather API
+- **Weather:** OpenWeather API → **switching to Tomorrow.io** (free tier, 500 calls/day, more accurate hyperlocal precipitation) — planned for Sprint 11 or standalone task
 - **AI:** Anthropic Claude API (Vision — fuel log photo parsing)
 - **Push notifications:** Firebase Cloud Messaging (FCM) — configured, keys in Netlify env vars
 - **Hosting:** Netlify (production), GitHub Codespaces (dev)
@@ -168,6 +168,7 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Weekly grid (Mon–Sun)
 - Recipe library (URL import via Claude Vision or manual)
 - Auto-populate grocery list from recipes
+- **"Paste a shopping list" feature:** textarea input → Claude Vision parses items, quantities, categories → confirm screen → bulk-inserts into Supabase grocery list. Works for any text source (ChatGPT meal plan output, recipe sites, text messages, etc.). Primary use case: Katelin pastes her ChatGPT-generated ingredient list directly into Home Base.
 
 ### Sprint 15 — Countdowns Tile
 - Recurring annual (e.g. Anniversary) — auto-recalculates each year
