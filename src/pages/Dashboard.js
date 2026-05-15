@@ -200,23 +200,29 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
 
       {isMobile ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          {/* 1. Weather */}
+          <Tile onClick={() => setView('weather')}><WeatherWidget /></Tile>
+          {/* 2. Calendar */}
           <Tile onClick={() => setView('calendar')}><CalendarWidget events={multiData.events} /></Tile>
+          {/* 3. To-do */}
           <Tile onClick={() => setView('todo')}>
             <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} onToggle={handleTaskToggle} onDelete={handleTaskDelete} />
           </Tile>
-          <div style={{ height: '420px' }}>
-            <div onClick={() => setView('grocery')} style={{ cursor: 'pointer', height: '100%' }}>
-              <GroceryWidget items={groceries.items}
-                onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
-                onClearDone={() => groceries.clearWhere(i => i.done)} />
-            </div>
+          {/* 4. Grocery — no outer click wrapper; GroceryWidget handles its own taps */}
+          <div style={{ minHeight: '380px' }}>
+            <GroceryWidget items={groceries.items}
+              onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
+              onClearDone={() => groceries.clearWhere(i => i.done)}
+              onOpenFullscreen={() => setView('grocery')} />
           </div>
-          <Tile onClick={() => setView('weather')}><WeatherWidget /></Tile>
-          <Tile onClick={() => setView('financial')}><FinancialWidget bills={bills.items} /></Tile>
+          {/* 5. Home Status */}
+          <Tile onClick={() => setView('home')}><HomeStatusWidget /></Tile>
+          {/* 6. Vehicles */}
           <div>
             <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
           </div>
-          <Tile onClick={() => setView('home')}><HomeStatusWidget /></Tile>
+          {/* 7. Bills */}
+          <Tile onClick={() => setView('financial')}><FinancialWidget bills={bills.items} /></Tile>
         </div>
       ) : (
         <div style={{

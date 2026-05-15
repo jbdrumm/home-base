@@ -8,7 +8,7 @@ const storeChipClass = {
   'Jewel-Osco':  'chip chip-store-jewel',
 };
 
-export default function GroceryWidget({ items, onToggle, onClearDone }) {
+export default function GroceryWidget({ items, onToggle, onClearDone, onOpenFullscreen }) {
   const [filterStore, setFilterStore] = useState('All');
 
   const visible = filterStore === 'All' ? items : items.filter(i => i.store === filterStore);
@@ -23,10 +23,12 @@ export default function GroceryWidget({ items, onToggle, onClearDone }) {
 
   return (
     <div className="card" style={{ padding: '18px 20px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+      <div
+        onClick={onOpenFullscreen}
+        style={{ cursor: onOpenFullscreen ? 'pointer' : 'default', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
         <div className="section-label" style={{ marginBottom: 0 }}>Grocery list</div>
         {doneCount > 0 && (
-          <button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: '11px' }} onClick={onClearDone}>
+          <button className="btn btn-danger" style={{ padding: '4px 10px', fontSize: '11px' }} onClick={e => { e.stopPropagation(); onClearDone(); }}>
             Clear {doneCount} checked
           </button>
         )}
@@ -36,7 +38,7 @@ export default function GroceryWidget({ items, onToggle, onClearDone }) {
       <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
         {['All', ...STORES].map(s => (
           <button key={s}
-            onClick={() => setFilterStore(s)}
+            onClick={e => { e.stopPropagation(); setFilterStore(s); }}
             style={{
               padding: '3px 10px',
               borderRadius: '20px',
@@ -61,7 +63,7 @@ export default function GroceryWidget({ items, onToggle, onClearDone }) {
             </div>
             {catItems.map(item => (
               <div key={item.id}
-                onClick={() => onToggle(item.id)}
+                onClick={e => { e.stopPropagation(); onToggle(item.id); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '10px',
                   padding: '6px 6px', borderRadius: '8px', cursor: 'pointer',
@@ -101,6 +103,14 @@ export default function GroceryWidget({ items, onToggle, onClearDone }) {
           </div>
         )}
       </div>
+      {onOpenFullscreen && (
+        <div
+          onClick={onOpenFullscreen}
+          style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid var(--border)', fontSize: '11px', color: 'var(--text-tertiary)', cursor: 'pointer' }}
+        >
+          Tap to manage full list →
+        </div>
+      )}
     </div>
   );
 }

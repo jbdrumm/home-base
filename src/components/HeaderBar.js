@@ -43,24 +43,7 @@ export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOu
           Home Base
         </span>
 
-        {/* Gear — always visible, immediately after logo */}
-        <button
-          onClick={onShowHousehold}
-          title="Settings"
-          style={{
-            width: '36px', height: '36px', borderRadius: '50%',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-card)',
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '16px', flexShrink: 0,
-            // Large tap target on mobile
-            WebkitTapHighlightColor: 'transparent',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-card-hover)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-card)'}
-        >⚙️</button>
+
 
         {/* Date — desktop only */}
         {!isMobile && (
@@ -89,7 +72,7 @@ export default function HeaderBar({ lastSync, loading, onSync, profile, onSignOu
         {onSync && (
           <SyncStatus
             lastSync={lastSync} loading={loading}
-            onSync={onSync} profile={profile} onSignOut={onSignOut}
+            onSync={onSync} profile={profile} onSignOut={onSignOut} onShowSettings={onShowHousehold}
           />
         )}
         <div style={{
