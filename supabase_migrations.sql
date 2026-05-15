@@ -126,3 +126,20 @@ CREATE POLICY IF NOT EXISTS "allow_all_error_logs" ON public.error_logs FOR ALL 
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+
+
+-- ── Seen calendar events (prevents re-notification on sync window expansion) ──
+-- Stores Google Calendar event IDs that have already triggered notifications.
+-- Permanent record — never expires. Solves the "9-month window adds old events
+-- that look new" problem by tracking seen state in Supabase rather than
+-- date-keyed localStorage.
+CREATE TABLE IF NOT EXISTS public.seen_calendar_events (
+  id         BIGSERIAL PRIMARY KEY,
+  event_id   TEXT        NOT NULL UNIQUE,
+  seen_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.seen_calendar_events TO authenticated;
+GRANT SELECT, INSERT ON public.seen_calendar_events TO anon;
+GRANT ALL ON public.seen_calendar_events TO service_role;
+ALTER TABLE public.seen_calendar_events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY IF NOT EXISTS "allow_all_seen_calendar_events" ON public.seen_calendar_events FOR ALL USING (true) WITH CHECK (true);

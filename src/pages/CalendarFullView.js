@@ -96,28 +96,36 @@ export default function CalendarFullView({ events, onBack }) {
               <div key={day.toString()}
                 onClick={() => handleDayClick(day)}
                 style={{
-                  minHeight: '110px',
+                  minHeight: '90px',
                   borderRadius: '10px',
-                  padding: '8px 6px 6px',
-                  background: isExp ? 'var(--accent-soft)' : todayDay ? 'var(--accent-soft)' : 'var(--bg-card)',
-                  border: todayDay ? '1.5px solid var(--accent)' : '1px solid var(--border)',
-                  opacity: inMonth ? 1 : 0.35,
+                  padding: '7px 5px 5px',
+                  background: isExp ? 'var(--accent-soft)' : 'var(--bg-card)',
+                  border: todayDay ? '2px solid var(--accent)' : '1px solid var(--border)',
+                  opacity: inMonth ? 1 : 0.3,
                   cursor: dayEvents.length > 0 ? 'pointer' : 'default',
                   transition: 'all 0.15s',
-                  display: 'flex', flexDirection: 'column', gap: '3px',
+                  display: 'flex', flexDirection: 'column', gap: '2px',
                   overflow: 'hidden',
                 }}
               >
                 {/* Day number */}
-                <div style={{
-                  fontSize: '13px',
-                  fontWeight: todayDay ? '700' : '400',
-                  color: todayDay ? 'var(--accent)' : 'var(--text-primary)',
-                  marginBottom: '4px',
-                  flexShrink: 0,
-                }}>{format(day, 'd')}</div>
+                <div style={{ flexShrink: 0, marginBottom: '3px' }}>
+                  {todayDay ? (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      width: '24px', height: '24px', borderRadius: '50%',
+                      background: 'var(--accent)', color: 'white',
+                      fontSize: '13px', fontWeight: '700',
+                    }}>{format(day, 'd')}</span>
+                  ) : (
+                    <span style={{
+                      fontSize: '13px', fontWeight: '400',
+                      color: inMonth ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                    }}>{format(day, 'd')}</span>
+                  )}
+                </div>
 
-                {/* Events inside cell */}
+                {/* Events inside cell — title first, no time in pill */}
                 {dayEvents.slice(0, 3).map(event => (
                   <div key={event.id}
                     onClick={e => handleEventClick(e, event)}
@@ -129,17 +137,23 @@ export default function CalendarFullView({ events, onBack }) {
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       cursor: 'pointer', flexShrink: 0,
                       maxWidth: '100%',
-                      outline: selected?.id === event.id ? '2px solid var(--accent)' : 'none',
+                      outline: selected?.id === event.id ? '2px solid rgba(0,0,0,0.3)' : 'none',
                       outlineOffset: '1px',
                     }}
-                    title={`${event.time} ${event.title}`}
+                    title={`${event.title} · ${event.time}`}
                   >
-                    {event.time !== 'All day' && <span style={{ opacity: 0.85 }}>{event.time} </span>}
                     {event.title}
                   </div>
                 ))}
                 {dayEvents.length > 3 && (
-                  <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', paddingLeft: '4px', flexShrink: 0 }}>
+                  <div
+                    onClick={e => { e.stopPropagation(); handleDayClick(day); }}
+                    style={{
+                      fontSize: '10px', color: 'var(--accent)',
+                      fontWeight: '600', paddingLeft: '2px',
+                      flexShrink: 0, cursor: 'pointer',
+                    }}
+                  >
                     +{dayEvents.length - 3} more
                   </div>
                 )}

@@ -31,7 +31,7 @@ export function useCalendarData(token) {
       const results = await Promise.all(
         selected.map(async cal => {
           try {
-            const raw = await fetchCalendarEvents(token, cal.id, 45);
+            const raw = await fetchCalendarEvents(token, cal.id, 270);
             console.log(`[Calendar] ${cal.summary}: ${raw.length} events`);
             const owner = cal.primary ? 'jacob' :
                           cal.summary?.toLowerCase().includes('family') ? 'family' : 'other';

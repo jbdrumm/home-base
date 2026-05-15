@@ -66,6 +66,18 @@ exports.handler = async (event) => {
   let sent = 0;
   const staleTokens = [];
 
+  // Map notification category to icon path
+  const categoryIcons = {
+    grocery:  '/icons/notif-grocery.png',
+    todo:     '/icons/notif-todo.png',
+    bill:     '/icons/notif-bill.png',
+    calendar: '/icons/notif-calendar.png',
+    vehicle:  '/icons/notif-vehicle.png',
+    package:  '/icons/notif-package.png',
+    home:     '/icons/notif-home.png',
+  };
+  const notifIcon = categoryIcons[data?.category] || '/icons/icon-192x192.png';
+
   await Promise.all(tokens.map(async ({ token }) => {
     const resp = await fetch(
       `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
@@ -82,8 +94,8 @@ exports.handler = async (event) => {
             webpush: {
               notification: {
                 title, body,
-                icon:    '/icons/icon-192x192.png',
-                badge:   '/icons/icon-96x96.png',
+                icon:    notifIcon,
+                badge:   '/icons/badge-mono.png',
                 vibrate: [200, 100, 200],
               },
               fcm_options: { link: '/' },

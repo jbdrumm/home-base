@@ -77,19 +77,37 @@ export function onForegroundMessage(callback) {
   return onMessage(messaging, callback);
 }
 
+// ── Notification category icons ───────────────────────────────
+// Hosted as inline SVG data URIs so they work without extra assets.
+// Android uses `badge` for the monochrome status bar icon (must be
+// white-on-transparent) and `icon` for the large notification icon.
+export const NOTIF_ICONS = {
+  grocery:  '/icons/notif-grocery.png',
+  todo:     '/icons/notif-todo.png',
+  bill:     '/icons/notif-bill.png',
+  calendar: '/icons/notif-calendar.png',
+  vehicle:  '/icons/notif-vehicle.png',
+  package:  '/icons/notif-package.png',
+  home:     '/icons/notif-home.png',
+  default:  '/icons/icon-192x192.png',
+};
+
 // ── Local notification helper ─────────────────────────────────
 export function showLocalNotification(title, body, options = {}) {
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
+  const category = options.category || 'default';
+  const icon = NOTIF_ICONS[category] || NOTIF_ICONS.default;
   navigator.serviceWorker.ready.then(reg => {
     reg.showNotification(title, {
       body,
-      icon:    '/icons/icon-192x192.png',
-      badge:   '/icons/icon-96x96.png',
+      icon,
+      badge:   '/icons/badge-mono.png',
       vibrate: [200, 100, 200],
       tag:     options.tag || 'homebase',
       data:    options.data || {},
       ...options,
+      // Ensure icon/badge aren't overwritten by spread if not in options
     });
   });
 }
@@ -98,31 +116,31 @@ export function showLocalNotification(title, body, options = {}) {
 export const notify = {
   billDue: (name, amount) =>
     showLocalNotification('💳 Bill Due Today', `${name} — $${amount}`,
-      { tag: 'bill-due', data: { view: 'financial' } }),
+      { tag: 'bill-due', category: 'bill', data: { view: 'financial' } }),
 
   newTask: (title, owner) =>
     showLocalNotification('✅ New Task', title,
-      { tag: `task-new-${owner}`, data: { view: 'todo' } }),
+      { tag: `task-new-${owner}`, category: 'todo', data: { view: 'todo' } }),
 
   completedTask: (title, owner) =>
     showLocalNotification('✅ Task Completed', title,
-      { tag: `task-done-${owner}`, data: { view: 'todo' } }),
+      { tag: `task-done-${owner}`, category: 'todo', data: { view: 'todo' } }),
 
   newGrocery: (name) =>
     showLocalNotification('🛒 Grocery Item Added', name,
-      { tag: 'grocery-new', data: { view: 'grocery' } }),
+      { tag: 'grocery-new', category: 'grocery', data: { view: 'grocery' } }),
 
   newCalendarEvent: (title) =>
     showLocalNotification('📅 New Family Event', title,
-      { tag: 'calendar-new', data: { view: 'calendar' } }),
+      { tag: 'calendar-new', category: 'calendar', data: { view: 'calendar' } }),
 
   packageArrived: (description) =>
     showLocalNotification('📦 Package Delivered', description || 'A package has arrived',
-      { tag: 'package', data: { view: 'packages' } }),
+      { tag: 'package', category: 'package', data: { view: 'packages' } }),
 
   vehicleService: (vehicle, service) =>
     showLocalNotification('🔧 Service Due', `${vehicle} — ${service}`,
-      { tag: 'vehicle', data: { view: 'vehicles' } }),
+      { tag: 'vehicle', category: 'vehicle', data: { view: 'vehicles' } }),
 };
 
 // ── Send push to other members via Netlify Function ───────────

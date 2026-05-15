@@ -53,7 +53,7 @@ export async function fetchCalendarList(token) {
 }
 
 // Fetch events from a specific calendar for a date range
-export async function fetchCalendarEvents(token, calendarId = 'primary', daysAhead = 30) {
+export async function fetchCalendarEvents(token, calendarId = 'primary', daysAhead = 270) {
   const now    = new Date();
   const future = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
   const params = new URLSearchParams({
@@ -61,7 +61,7 @@ export async function fetchCalendarEvents(token, calendarId = 'primary', daysAhe
     timeMax:      future.toISOString(),
     singleEvents: 'true',
     orderBy:      'startTime',
-    maxResults:   '100',
+    maxResults:   '500',
   });
   const data = await gFetch(`${CALENDAR_BASE}/calendars/${encodeURIComponent(calendarId)}/events?${params}`, token);
   return data.items || [];
