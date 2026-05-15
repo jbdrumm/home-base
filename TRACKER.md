@@ -1,6 +1,6 @@
 # 🏠 Home Base — Project Tracker
 
-> **For Claude:** Read this file at the start of every new conversation. It contains the full project state, decisions made, bugs logged, and sprint specs. Update it at the end of every conversation.
+> **For Claude:** Read this file fully at the start of every new conversation before suggesting or writing anything. It contains the full project state, all decisions made, active bugs, and sprint specs. Update it at the end of every conversation.
 
 ---
 
@@ -14,7 +14,8 @@
 | **Netlify URL** | https://home-base22.netlify.app |
 | **Netlify site ID** | 69cb2bbc-ed1d-453b-9b93-4c19fc36d0d1 |
 | **Dev environment** | GitHub Codespaces (port 3000, keep public for mobile testing) |
-| **Netlify deploys** | Manual only — auto-publish is OFF to conserve build credits |
+| **Netlify deploys** | Manual only — auto-publish is OFF to conserve build credits. Trigger from Netlify dashboard or `npm run build && npx netlify-cli deploy --prod --dir=build` |
+| **PWA URL** | https://home-base22.netlify.app — installed on Jacob's and Katelin's Android phones |
 
 ---
 
@@ -23,18 +24,22 @@
 | Person | Role | Google Account |
 |---|---|---|
 | Jacob | Owner/Admin | jacob.b.drumm@gmail.com |
-| Katelin | Co-owner | (her personal Gmail) |
-| Family | Shared household account | (family Gmail, not yet integrated) |
+| Katelin | Co-owner | drummkatelin@gmail.com |
+| Family | Shared household account | drummfam@gmail.com |
+
+All three must be added as OAuth Test Users in Google Cloud Console → APIs & Services → OAuth consent screen → Test users.
 
 ---
 
 ## 🏗 Tech Stack
 
-- **Frontend:** React 18, CRA, Outfit font, Arctic White theme
+- **Frontend:** React 18 (CRA), Outfit font, Arctic White theme
 - **Backend:** Supabase (Postgres + RLS)
-- **Auth/Calendar/Tasks:** Google OAuth via @react-oauth/google
+- **Auth/Calendar/Tasks:** Google OAuth via @react-oauth/google (auth-code flow with refresh tokens)
+- **Token persistence:** Supabase `household_tokens` table stores refresh tokens — accounts stay linked indefinitely
 - **Weather:** OpenWeather API
 - **AI:** Anthropic Claude API (Vision — fuel log photo parsing)
+- **Push notifications:** Firebase Cloud Messaging (FCM) — configured, keys in Netlify env vars
 - **Hosting:** Netlify (production), GitHub Codespaces (dev)
 - **Camera plan:** go2rtc on desktop PC relaying Lorex RTSP sub-streams
 - **Home automation:** Home Assistant on Pi 3, Mega-IO tophats for sensors
@@ -42,7 +47,9 @@
 
 ---
 
-## 📐 Dashboard Layout (Desktop — 4 cols × 4 rows)
+## 📐 Dashboard Layout
+
+### Desktop (4 cols × 4 rows)
 
 | | Col 1 | Col 2 | Col 3 | Col 4 |
 |---|---|---|---|---|
@@ -51,208 +58,19 @@
 | **Row 3** | (cont.) | | Vehicles ↕ (rows 3-4) | (cont.) |
 | **Row 4** | Cameras | Finances | (cont.) | (cont.) |
 
-- Header: Logo + date + **Jacob** and **Katelin** person tiles + sync status + clock
-- FAB: Add grocery / Add to-do / Log fillup
+### Mobile (single column, top to bottom)
+1. Weather
+2. Calendar
+3. To-do
+4. Grocery List
+5. Home Status
+6. Vehicles
+7. Bills
 
----
-
-## ✅ Completed Sprints
-
-| Sprint | What was built |
-|---|---|
-| 1–8 | Scaffold, auth, calendar, tasks, grocery, home status, finances, weather, PWA |
-| 9 | Vehicle tracker — 4 vehicles (Durango GT, Odyssey Elite, S2000, Ranger Splash), maintenance table, fuel log, Claude Vision fillup flow, extended-use plate logic |
-| Post-9 fixes | Calendar all-day event timezone fix, full calendar event display, weather drilldown, vehicle nav fix, badge overlap fix, photo support per vehicle, QuickAdd list routing fix, modal keyboard behavior fix, desktop modal centering |
-| 10 | Multi-account auth — household_tokens Supabase table, useHouseholdAuth hook, useMultiAccountData merging all 3 accounts, HouseholdSetup UI (⚙️ in header), QuickAdd "Who is this for?" selector (Jacob/Family/Katelin), Family Tasks list auto-created on Family Google account, account-aware task writes, TodoFullView account filter chips (Jacob\|Family\|Katelin), per-task toggleTask/removeTask/moveTask wired to Google Tasks API, "Move to..." dropdown on each task item |
-
----
-
-## 🔜 Sprint Roadmap
-
-### Sprint 10 — Multi-Account Auth ✅ COMPLETE
-**Goal:** Dashboard reads from all 3 Google accounts merged. Writes route to correct account.
-
-**Spec:**
-- Store Google tokens for Jacob, Katelin, and Family accounts in Supabase (`household_tokens` table)
-- One-time OAuth flow for each account — Jacob signs in first, then Katelin, then Family
-- Dashboard merges calendar events and tasks from all 3 accounts
-- **Quick Add "Who is this for?" selector:**
-  - Wall display / tablet (width > 1024px): shows **Jacob / Family / Katelin**, defaults to Family
-  - Jacob's phone: shows **Personal / Family**, defaults to Personal
-  - Katelin's phone: shows **Personal / Family**, defaults to Personal
-- **To-do full screen account toggle:** filter chips in order **Jacob | Family | Katelin** — tap to show/hide each account's tasks
-- **Move task between lists:** "Move to..." option on each task item in full screen view
-- Create "Family Tasks" list on Family Google account programmatically via API
-- Family tasks write to Family Google account → visible on all Google Hubs
-- Personal tasks stay on personal accounts — never cross-visible between Jacob and Katelin
-
-**Hardware context:**
-- Google Hubs set up under Jacob's personal account
-- Family account added as household *member* (not primary) in Google Home app
-- Katelin's Voice Match already configured on Hubs
-- "Hey Google, add X to Family Tasks" routes to Family Google Tasks list by name
-
----
-
-### Sprint 11 — Mobile Responsive Layout ⬅ NEXT
-**Goal:** App looks and works great on phones.
-
-**Known issues to fix:**
-- Dashboard grid collapses poorly on mobile
-- Header cramped/wrapping
-- Tiles need mobile-specific sizing
-- Font sizes need adjustment for small screens
-- Touch targets need to be large enough
-
-**Notes:**
-- Test via Codespace port 3000 set to Public, open on phone browser
-- Wall display is 22" Android 13 — needs tablet breakpoint (~1024px) as well as phone (~768px)
-
----
-
-### Sprint 12 — Cameras (Lorex RTSP)
-**Goal:** Live camera feeds on dashboard and full screen view.
-
-**Spec:**
-- Lorex NVR model: N862A63B (bundle 4KSDAI168-2), 6-8 cameras + doorbell, all 4K
-- Use **sub-streams** (not 4K main streams) for dashboard display — RTSP URL format:
-  `rtsp://admin:<password>@<NVR-IP>:554/cam/realmonitor?channel=1&subtype=1`
-- Run **go2rtc** on desktop PC (always-on, display-off power config) to relay sub-streams to HLS/WebRTC
-- Dashboard camera tile: featured front door feed + camera selector sidebar
-- Full screen: all cameras in grid, select to expand
-- Lorex already handles motion/person/vehicle detection — no reprocessing needed
-- Desktop PC power button set to "Display Off" (not shutdown)
-
----
-
-### Sprint 13 — Chores & Rewards
-**Goal:** Kids chore tracking with gamification.
-
-**Spec (from Cozyla research):**
-- Assign chores with schedules, repeats, and rotations
-- Point system — earn points for completing chores
-- Rewards — redeem points for custom rewards
-- Kid-friendly UI — large touch targets, fun visuals
-- Visible on wall display and family member phones
-
----
-
-### Sprint 14 — Meal Planning
-**Goal:** Weekly meal plan with recipe library.
-
-**Spec:**
-- Weekly meal plan grid (Mon–Sun, breakfast/lunch/dinner)
-- Recipe library — add by URL (Claude Vision parses) or manually
-- Auto-populate grocery list from selected recipes
-- Katelin's page integration
-
----
-
-### Sprint 15 — Countdowns Tile
-**Goal:** Family countdown display on dashboard.
-
-**Spec:**
-- **Two types:**
-  1. **Recurring annual** (e.g. Anniversary) — user enters original date, app auto-recalculates next occurrence each year
-  2. **One-time** (e.g. Vacation) — user enters specific upcoming target date
-- UI must let user choose type when creating
-- Show days remaining prominently
-
----
-
-### Sprint 16 — Packages
-- Auto-import tracking numbers via Make.com + Yahoo Mail
-- Show carrier, status, estimated delivery, progress bar
-
-### Sprint 12 — Financial Integration (Monarch Money)
-
-**Platform decision:** Monarch Money ($99/yr) — see `FINANCIAL_DECISIONS.md` for full evaluation log.
-
-**Pre-sprint action items (time sensitive):**
-- [ ] Subscribe to Monarch before 4-day trial expires
-- [ ] Set a Monarch password — API requires password auth, Google login won't work
-- [ ] Cancel Simplifi when ~2 month subscription expires
-
-**Architecture:**
-- Monarch unofficial API: `bradleyseanf/monarchmoneycommunity` Python library
-- Runs as a local service on the always-on desktop PC
-- No financial data stored in Supabase — live fetch only
-- PIN protection gates financial drill-down from kids/casual observers
-
-**Scope:**
-- Monarch API connection via Python service on desktop PC
-- 3x daily sync (morning/lunch/night) — account balances, transactions, net worth
-- Zillow home values pulled via Monarch (native integration)
-- VinAudit vehicle values pulled via Monarch (native integration)
-- Principal 401k via Monarch (MX/Finicity, not Plaid)
-- **Dashboard finances tile** — upcoming bills with due date + auto-draft vs manual flag (manual entry toggle, set once per bill)
-- **PIN-protected drill-down:**
-  - Account balances (all institutions)
-  - Net worth calculator (assets - liabilities + Zillow + vehicles)
-  - Cash flow projection — day-by-day balance visualization built natively in Home Base
-  - Transaction history
-- **Receipt photo capture:**
-  - Claude Vision parses merchant, amount, date from photo
-  - Stores dual dates: date of realization (when transaction occurred) + date posted (when bank posts it)
-  - Example: groceries bought Mar 30, posted Apr 1 → recorded in March
-  - Auto-links to matching posted transaction when it appears from Monarch
-- Auto-draft vs manual: manual toggle per bill (not auto-detected — bank data cannot distinguish)
-- Variable bills (utilities): manual amount entry, not auto-detected
-
-**Institutions confirmed working with Monarch:**
-USAA, Capital One, M&T Bank, Huntington Bank, Ally, Principal 401k
-
-**Annual cost: $99/yr (replacing Simplifi at $70/yr)**
-
-### Sprint 18 — Jacob's Page
-- F1 and IndyCar news/calendar
-- Personal weather detail
-- World headlines (Reuters, AP)
-
-### Sprint 19 — Katelin's Page
-- Homeschool daily planner
-- Meal plan view
-- Family-focused content
-
-### Sprint 20 — Screensaver / Sleep Mode
-- Family photo slideshow when idle
-- Auto sleep schedule (e.g. 10pm–6am screen off)
-- Wake on touch
-
-### Sprint 21 — Pi Kiosk & Hardening
-- Fully Kiosk Browser config on Android touchscreen
-- Offline mode — graceful degradation when internet is down
-- Push notifications
-- Auto-launch on boot
-
----
-
-## 🐛 Known Bugs / Backlog
-
-| # | Description | Priority |
-|---|---|---|
-| 1 | Katelin's Google account not yet integrated — she sees only her own data | Blocked by Sprint 10 setup |
-| 2 | Family Google account not yet connected | Blocked by Sprint 10 setup |
-| 3 | Camera tile is placeholder only | Blocked by Sprint 12 |
-| 4 | Vehicle photos stored as seed data URLs — need Supabase Storage upload for user-added photos | Sprint TBD |
-| 5 | Fuel log MPG calculation needs previous odometer reading for accuracy | Sprint TBD |
-| 6 | Bills in Finances are seed data only — not yet editable/persistent in Supabase | Sprint TBD |
-| 7 | Primary Google OAuth token expires after 1 hour — switch to Supabase-backed Google OAuth with refresh tokens for true persistent login (critical for always-on wall display) | Sprint TBD |
-
----
-
-## 🚗 Vehicle Data Notes
-
-- Photos: `photo_url`, `photo_position`, `photo_fit`, `photo_scale` stay in `vehicleData.js` as display config (not in Supabase) — this is intentional
-- Extended use plates: S2000 and Ranger Splash show garaged badge Dec–Feb
-- Odometer is estimated from last fuel log entry + avg miles/day
-
-| Vehicle | photo_fit | Notes |
-|---|---|---|
-| 2017 Dodge Durango GT | cover | photo_scale: 85%, position: center 40% |
-| 2018 Honda Odyssey Elite | cover | photo_scale: 110%, position: 20% 60% |
-| 2000 Honda S2000 | cover | Extended use plate |
-| 1994 Ford Ranger Splash | cover | Extended use plate |
+### Header
+- **Desktop:** Logo + date + Jacob/Katelin person tiles + sync↻ + avatar menu
+- **Mobile:** Logo + sync↻ + avatar (tapping opens: Settings / Refresh / Sign out)
+- Gear ⚙️ removed as standalone button — Settings now lives in avatar dropdown menu
 
 ---
 
@@ -265,21 +83,185 @@ USAA, Capital One, M&T Bank, Huntington Bank, Ally, Principal 401k
 | `REACT_APP_GOOGLE_CLIENT_ID` | Google Cloud Console → Credentials |
 | `REACT_APP_OPENWEATHER_KEY` | openweathermap.org |
 | `REACT_APP_ANTHROPIC_KEY` | console.anthropic.com |
+| `REACT_APP_URL` | https://home-base22.netlify.app |
+| `REACT_APP_FIREBASE_API_KEY` | Firebase Console → Project Settings → Web app |
+| `REACT_APP_FIREBASE_AUTH_DOMAIN` | Firebase |
+| `REACT_APP_FIREBASE_PROJECT_ID` | Firebase |
+| `REACT_APP_FIREBASE_MESSAGING_SENDER_ID` | Firebase |
+| `REACT_APP_FIREBASE_APP_ID` | Firebase |
+| `REACT_APP_FIREBASE_VAPID_KEY` | Firebase → Cloud Messaging → Web Push certificates |
+| `GOOGLE_CLIENT_ID` | Same as REACT_APP_GOOGLE_CLIENT_ID (server-side, for Netlify functions) |
+| `GOOGLE_CLIENT_SECRET` | Google Cloud Console → OAuth client (server-side only) |
+| `FIREBASE_SERVICE_ACCOUNT_KEY` | Firebase → Project Settings → Service accounts → Generate key (full JSON) |
 
 Stored in: Codespace secrets, Netlify environment variables, local `.env` (never committed)
 
+> ⚠️ `public/firebase-config.js` is generated at build time by `scripts/generate-firebase-config.js` — it is gitignored and must never be committed (contains API key).
+
 ---
 
-## 📝 Design Decisions & Notes
+## 🗄 Supabase Tables
 
-- **Google Tasks** stays as task backend (not Supabase) — needed for Google Hub voice commands
-- **Family Tasks** list on Family Google account — visible on all Hubs by name
-- **To-do account toggle order:** Jacob | Family | Katelin ("sandwich" — Jacob and Katelin are the ends)
-- **Supabase** used for: vehicles, maintenance, fuel log, bills, future: household tokens, chores, meals
-- **No ads** — Netlify free tier, self-hosted wall display
-- **Pi 3** → Home Assistant only (Mega-IO sensor tophats for pool level, garage, etc.)
-- **Desktop PC** → Always-on camera relay server. Power button = "Display Off". Sleep = Never.
-- **Pi 5** → Returned. Not needed.
-- **Wall display** → 22" Android 13 touchscreen (~$220, offset by Pi 5 return of $190)
-- **Netlify credits** → Manual deploys only. Use Codespace public port for testing.
-- Google OAuth authorized origins: localhost:3000, Codespace URL, https://home-base22.netlify.app
+| Table | Purpose | Notes |
+|---|---|---|
+| `household_tokens` | Google OAuth tokens per member | Stores refresh_token for persistent auth |
+| `groceries` | Grocery list items | Persisted, shared across all devices |
+| `bills` | Monthly bills | Persisted |
+| `notification_prefs` | Per-member notification toggles | One row per member |
+| `fcm_tokens` | FCM device tokens per member | Used for cross-device push |
+| `error_logs` | App error logging | Fillup parse failures, etc. |
+
+> ⚠️ **Supabase Grant Policy (May 2025):** After May 30 2025, new `public` schema tables require explicit grants. Add after every `CREATE TABLE`:
+> ```sql
+> GRANT SELECT, INSERT, UPDATE, DELETE ON public.your_table TO authenticated;
+> GRANT SELECT ON public.your_table TO anon;
+> GRANT ALL ON public.your_table TO service_role;
+> GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+> ```
+> See `supabase_migrations.sql` for the full idempotent migration file.
+
+---
+
+## ✅ Completed Sprints
+
+| Sprint | What was built |
+|---|---|
+| 1–8 | Scaffold, auth, calendar, tasks, grocery, home status, finances, weather, PWA shell |
+| 9 | Vehicle tracker — 4 vehicles, maintenance table, fuel log with Claude Vision photo parsing, extended-use plate logic |
+| Post-9 | Calendar timezone fixes, weather drilldown, vehicle nav fix, photo support, QuickAdd routing fix, modal keyboard fix |
+| 10 | Multi-account auth — `household_tokens` Supabase table, `useHouseholdAuth`, `useMultiAccountData`, HouseholdSetup UI, QuickAdd "Who is this for?", account-aware task writes, TodoFullView account filter chips, per-task toggle/delete/move |
+| Post-10 | Task color coding (Jacob=blue, Katelin=pink, Family=green), merged column view in TodoFullView, GroceryFullView built, dashboard tile toggle/delete wired |
+| 11 (partial) | Mobile responsive layout — single-column with correct tile order, header collapse, grocery filters work in-tile |
+| PWA | Icons (all sizes + maskable), manifest, install banner, Firebase push notification infrastructure, background push via dedicated SW, `scripts/generate-firebase-config.js` prebuild |
+| Auth hardening | Auth-code OAuth flow replaces implicit — refresh tokens stored in Supabase, silent 4-min refresh cycle, accounts never expire |
+| Supabase persistence | `useSupabaseList` hook — groceries and bills now persist to Supabase (replaced `useLocalState`) |
+| Notifications | `useNotificationTriggers` — per-member prefs checked before firing, all trigger types (tasks, grocery, calendar, bills, vehicles), cross-device push via Netlify `send-notification` function |
+
+---
+
+## 🔜 Sprint Roadmap
+
+### Sprint 11 — Mobile Responsive Layout (in progress)
+Mostly done. Remaining known issues tracked in bugs section.
+
+### Sprint 12 — Cameras (Lorex RTSP)
+- Lorex NVR: N862A63B, 6-8 cameras + doorbell, 4K
+- Use sub-streams for dashboard: `rtsp://admin:<pw>@<NVR-IP>:554/cam/realmonitor?channel=1&subtype=1`
+- go2rtc on always-on desktop PC → HLS/WebRTC relay
+- Dashboard: featured front door + camera selector sidebar
+- Full screen: grid of all cameras, tap to expand
+
+### Sprint 12 — Financial Integration (Monarch Money)
+See `FINANCIAL_DECISIONS.md` for full evaluation.
+- Monarch Money ($99/yr) — unofficial API (`bradleyseanf/monarchmoneycommunity`)
+- Python service on desktop PC, live fetch only, no financial data in Supabase
+- PIN-protected drill-down: balances, net worth, cash flow, transactions
+- Receipt capture via Claude Vision (dual dates: realized vs posted)
+- 3x daily sync, Zillow/VinAudit/Principal 401k via Monarch native integrations
+
+### Sprint 13 — Chores & Rewards
+- Assign chores with schedules, repeats, rotations
+- Point system + custom rewards
+- Kid-friendly UI for wall display
+
+### Sprint 14 — Meal Planning
+- Weekly grid (Mon–Sun)
+- Recipe library (URL import via Claude Vision or manual)
+- Auto-populate grocery list from recipes
+
+### Sprint 15 — Countdowns Tile
+- Recurring annual (e.g. Anniversary) — auto-recalculates each year
+- One-time (e.g. Vacation) — specific target date
+- User chooses type at creation
+
+### Sprint 16 — Packages
+- Auto-import via Make.com + Yahoo Mail
+- Carrier, status, ETA, progress bar
+
+### Sprint 18 — Jacob's Page
+- F1 and IndyCar news/calendar
+- Personal weather detail
+- World headlines
+
+### Sprint 19 — Katelin's Page
+- Homeschool daily planner
+- Meal plan view
+- Family-focused content
+
+### Sprint 20 — Screensaver / Sleep Mode
+- Family photo slideshow when idle
+- Auto sleep schedule
+- Wake on touch
+
+### Sprint 21 — Pi Kiosk & Hardening
+- Fully Kiosk Browser on Android touchscreen
+- Offline graceful degradation
+- Auto-launch on boot
+
+---
+
+## 🐛 Known Bugs / Backlog
+
+| # | Description | Priority | Status |
+|---|---|---|---|
+| 1 | Fillup modal — pump photo parse occasionally hangs (30s timeout now in place, errors log to `error_logs` table) | Medium | Monitoring |
+| 2 | Camera tile is placeholder only | Low | Blocked by Sprint 12 |
+| 3 | Vehicle photos stored as seed data URLs — need Supabase Storage for user-added photos | Low | Sprint TBD |
+| 4 | Fuel log MPG needs previous odometer for accuracy | Low | Sprint TBD |
+| 5 | Bills seed data still shows on first load — user must delete and re-enter real bills | Medium | Sprint TBD |
+| 6 | Background push notifications require app to be opened once per session to register FCM token | Medium | Monitoring post-Firebase setup |
+| 7 | Quick-add PWA shortcut (long-press home screen icon) requires user to already be signed in | Low | Known limitation |
+
+---
+
+## 📝 Design Decisions Log
+
+| Decision | Choice | Reason |
+|---|---|---|
+| Task backend | Google Tasks API (not Supabase) | Required for Google Hub voice commands |
+| Family account | drummfam@gmail.com — full account with all 4 lists | "Family Tasks" special list concept was wrong; family is just a third account |
+| Task colors | Jacob=blue, Katelin=pink, Family=green | Visual ownership at a glance |
+| Token storage | Supabase `household_tokens` with refresh_token | Persistent auth — wall display can't re-auth every hour |
+| OAuth flow | Auth-code flow (not implicit) | Implicit flow has no refresh token; expires in 1hr |
+| Token exchange | Netlify Function `google-auth` | Client secret must never be in browser |
+| Grocery/bills storage | Supabase via `useSupabaseList` | Replaced `useLocalState` — now persists across devices |
+| PWA install | `beforeinstallprompt` (Android) + manual instructions (iOS) | Standard PWA pattern |
+| Firebase config in SW | Generated at build time via `scripts/generate-firebase-config.js` | CRA doesn't allow env vars in public/ files; prebuild script solves this |
+| firebase-config.js | Gitignored — never committed | Contains API key; Netlify secret scanner blocks builds if committed |
+| Supabase grants | Explicit grants on every table | Required after May 30 2025 policy change |
+| Avatar menu | Settings + Refresh + Sign out in dropdown | Cleaner mobile UX; removes standalone gear button |
+| Grocery filter | stopPropagation on filter/toggle — opens fullscreen only via footer tap | Filters need to work in-tile without navigating away |
+| Financial platform | Monarch Money ($99/yr) | See FINANCIAL_DECISIONS.md |
+| Wall display | 22" Android 13 touchscreen | ~$220, offset by Pi 5 return |
+| Camera relay | go2rtc on always-on desktop PC | RTSP → HLS/WebRTC for browser playback |
+| Desktop PC | Power button = Display Off, Sleep = Never | Always-on camera/finance server |
+| Pi 3 | Home Assistant only | Mega-IO sensor tophats for pool/garage |
+| Pi 5 | Returned | Not needed |
+
+---
+
+## 🗒 Owner To-Do (Non-Code)
+
+| Item | Notes |
+|---|---|
+| Firebase push notifications | Keys are configured in Netlify. Run app, accept notification permission prompt. Check Supabase `fcm_tokens` table for registered devices. |
+| Supabase migrations | Run `supabase_migrations.sql` in Supabase SQL Editor any time new tables are added. Current version includes all tables + grants. |
+| Google OAuth test users | Add drummfam@gmail.com once family account is ready. All 3 emails must be in OAuth consent screen test users. |
+| Monarch Money | Subscribe before trial expires, set password (API needs password auth), cancel Simplifi after ~2 months |
+| Wall display setup | Android 13 touchscreen — install Chrome, navigate to https://home-base22.netlify.app, install PWA, set to Fully Kiosk Browser |
+| Bills seed data | After deploy, delete the seed bills in Finances and enter real monthly bills |
+
+---
+
+## 🚗 Vehicle Data Notes
+
+- Vehicle data lives in `src/lib/vehicleData.js` (not Supabase) — this is intentional
+- Photos: `photo_url`, `photo_position`, `photo_fit`, `photo_scale` stay in `vehicleData.js` as display config
+- Extended use plates: S2000 and Ranger Splash show garaged badge Dec–Feb
+
+| Vehicle | Notes |
+|---|---|
+| 2017 Dodge Durango GT | photo_scale: 85%, position: center 40% |
+| 2018 Honda Odyssey Elite | photo_scale: 110%, position: 20% 60% |
+| 2000 Honda S2000 | Extended use plate |
+| 1994 Ford Ranger Splash | Extended use plate |
