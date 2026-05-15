@@ -254,6 +254,17 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 
 ---
 
+## 💡 Feature Ideas (Not Yet Scheduled)
+
+Ideas captured for future consideration — not committed to a sprint yet.
+
+| Idea | Description | Notes |
+|---|---|---|
+| Grocery restocking agent | Agentic workflow that monitors grocery list completion history, learns restock cadence per item (e.g. milk every 6 days), and proactively re-adds items before they run out — no human trigger needed | Would use Agent SDK + Supabase grocery history. Katelin's request. |
+| Garden soil moisture monitoring | Soil moisture sensors in Katelin's garden feed readings to Home Base. An agent reviews latest readings on a schedule and sends Katelin a push notification identifying which plants/beds need watering. | Hardware: sensors wired to Pi 3 or a dedicated ESP32 via Home Assistant. Agent logic compares readings to per-plant thresholds. |
+
+---
+
 ## 🚗 Vehicle Data Notes
 
 - Vehicle data lives in `src/lib/vehicleData.js` (not Supabase) — this is intentional
