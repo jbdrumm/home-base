@@ -216,7 +216,138 @@ Monarch Money is currently the plan for Sprint 12 via an unofficial community AP
 
 ---
 
-## Open Questions (To Revisit If Pursuing)
+## Home Base Sensors — Standalone IoT Product Line
+
+A sensor system that operates entirely independently of Home Assistant, targeting non-technical users. Built on ESP32 microcontrollers reporting directly to the Home Base cloud backend (Netlify + Supabase). No hub required, no ecosystem knowledge needed — scan a QR code and it works.
+
+### Why Independent (Not HA-Dependent)
+Home Assistant requires technical setup that most consumers won't attempt. A closed-loop ESP32 → WiFi → Supabase pipeline bypasses that entirely. You control the hardware, the firmware, and the cloud layer — no third-party middleware, no ecosystem dependency, no support surface you don't own.
+
+### How It Works
+```
+Sensor → ESP32 → WiFi → Netlify function → Supabase → Home Base dashboard → Push notification
+```
+ESP32 wakes every 30 minutes, reads sensor(s), posts JSON to a Netlify endpoint, sleeps. Battery lasts weeks to months on this duty cycle. Solar charging makes runtime essentially indefinite.
+
+---
+
+### The Garden Hub — Flagship Entry Product
+
+**The product vision:** A single weatherproof hub with multiple labeled plug-and-play sensor ports. Customer starts with what they need and expands as their garden grows — no new hub required, just additional sensors ordered from Home Base.
+
+**Hub hardware:**
+- ESP32 microcontroller (brain)
+- Custom PCB with 6–8 labeled sensor port slots
+- Solar charging input + LiPo battery management
+- USB-C charging backup
+- Status LED + WiFi indicator
+- Weatherproof enclosure with port covers for unused slots
+- BOM target: ~$35–45 per hub
+
+**Sensor port layout (conceptual):**
+- 6x soil moisture slots
+- 1x temperature/humidity (shared I2C bus)
+- 1x light intensity
+- Unused slots covered, detected automatically on next boot
+
+**Setup experience:** Customer plugs sensors into slots, scans QR code, app asks for WiFi credentials + sensor names ("Tomatoes," "Herb bed," "Rose bush"). Done in under 5 minutes. No technical knowledge required.
+
+**Auto-detection:** On boot, hub scans all ports, detects connected sensors, registers new ones. Home Base app prompts: *"We found a new sensor on port 3 — what would you like to name it?"*
+
+---
+
+### The Sensor Accuracy Strategy — Two-Phase Go-to-Market
+
+#### Option B First — Premium Launch (Year 1)
+**I2C digital soil moisture sensors** (e.g. Adafruit Stemma Soil Sensor, ~$8/sensor)
+- On-sensor ADC conversion delivers clean, precise percentage readings
+- Per-plant moisture thresholds (e.g. tomatoes like 60–70%, succulents 20–30%)
+- AI agent cross-references Tomorrow.io forecast — skips watering alert if rain expected tomorrow
+- Up to 12+ sensors chainable on one hub via I2C bus
+- Sensor cost: ~$19–24 retail per probe
+
+**Rationale for launching here first:** Early adopters pay premium for novelty and precision. First reviews reflect accurate data and a differentiated product. Establishes brand credibility at the high end before moving mass market. Margin is maximized from the most motivated buyers.
+
+**Target audience:** Passionate gardeners, tech enthusiasts, smart home early adopters.
+**Positioning:** *"Professional-grade garden intelligence — precise moisture percentages, AI-driven watering recommendations, per-plant optimization."*
+
+---
+
+#### Option A Second — Mass Market Expansion (Year 2)
+**Analog capacitive soil moisture sensors** (~$2/sensor)
+- Simple wet/dry/optimal three-state reading
+- Binary threshold: "needs water" or "good"
+- Mirrors the exact methodology gardeners already use — the finger test (stick finger 1–2" into soil, judge wet or dry)
+- ADC pins on ESP32, ~6–8 sensors per hub
+- Sensor cost: ~$12–15 retail per probe
+
+**Rationale for launching second:** By Year 2 you have real reviews, validated product-market fit, and proof the system works. The mainstream audience that needs social proof before buying is now reachable. Early adopters funded R&D and market validation.
+
+**The finger test marketing angle:** *"Just like checking your garden by hand — but for every bed, every day, without leaving your kitchen."* This is not a downgrade from Option B. It's a different product for a different customer. Both legitimate, both valuable.
+
+**Target audience:** Mainstream homeowners, casual gardeners, Skylight-type buyers, anyone who waters by feel.
+**Positioning:** *"Simple garden sensing for everyone — know exactly which beds need water today, without stepping outside."*
+
+---
+
+### The Upgrade Path as Revenue Stream
+- Hub hardware is **identical** across both tiers — one SKU, simple inventory
+- Only the sensors differ — I2C probes vs analog probes, same ports
+- Option A customers who want more precision: **upgrade kit** — swap analog probes for I2C sensors, same hub, firmware auto-updates
+- Option B early adopters: loyalty discount on sensor expansions
+- Upgrade path is a natural upsell built into the product lifecycle
+
+---
+
+### Sensor Product Line (Beyond Garden)
+Once ESP32 firmware and cloud pipeline exist, adding sensor types is minimal incremental work — same chip, different sensor, same reporting infrastructure:
+
+| Sensor | Est. Retail | Use Case |
+|---|---|---|
+| Soil moisture (I2C) | $22–24 | Garden — Option B |
+| Soil moisture (analog) | $12–15 | Garden — Option A |
+| Pool water level | $29–34 | Auto-fill trigger |
+| Sump pump float | $19–24 | High-water alert |
+| Boiler pressure | $34–39 | Hydronic diagnostic |
+| Garage door tilt | $16–19 | Open/close detection |
+| Leak pad | $16–19 | Under appliances |
+| Door/window contact | $14–18 | Security/awareness |
+| Outdoor temp/humidity | $24–29 | Microclimate data |
+
+---
+
+### Business Model — Razor and Blades
+- **Garden Hub** (entry point): $79–99 — modest margin, drives ecosystem adoption
+- **Sensor add-ons**: $12–39 each — recurring revenue as garden/home expands
+- **Home Base subscription**: covers cloud, AI agent layer, push notifications
+- **Upgrade kits**: analog → I2C swap — upsell built into product lifecycle
+
+**Starter kit (launch SKU):**
+- Garden Hub + 2x soil sensors + 1x temp/humidity sensor
+- Pre-flashed, QR code setup, weatherproof
+- Target retail: $89–109
+
+**Lifetime value example:** Customer buys starter kit ($99), expands to 8 sensors over 2 seasons (+$120), subscribes for AI watering recommendations (+$X/yr). High LTV, deeply embedded in ecosystem.
+
+---
+
+### Connector Strategy
+**Recommended: Proprietary magnetic connector** (premium path)
+- Impossible to plug in wrong, waterproof by nature, premium feel
+- Creates a sensor accessory revenue stream — sensors only work with your hub
+- Higher tooling cost upfront, strong brand identity and margin payoff
+
+**Alternative: JST connectors** — secure, polarized, cheap, reliable. Less consumer-friendly but lower tooling cost for v1.
+
+---
+
+### Technical Notes
+- **I2C bus:** Up to 127 devices theoretically chainable on 2 pins — practical limit ~12–16 for this use case. Eliminates ADC pin count constraint entirely.
+- **ESP32 ADC quirk:** Nonlinear at voltage extremes — affects raw analog sensor accuracy. Acceptable for wet/dry detection (Option A), not ideal for precise percentages (Option B). I2C sensors bypass this entirely.
+- **Firmware:** Embedded C++ or MicroPython. Soil moisture + WiFi POST is one of the most documented ESP32 use cases — reference implementations widely available. One-time development investment becomes the platform for all sensor types.
+- **Solar + battery:** LiPo + TP4056 charging board (~$3) + small 5V solar panel (~$8). 30-minute read cycle gives weeks of battery life without sun; solar makes it indefinite.
+
+
 - Brand name — Home Base is generic, would need trademark search
 - Is financial integration core to the commercial identity or a premium add-on only?
 - Target market: tech-savvy homeowners? Families? Smart home enthusiasts?
