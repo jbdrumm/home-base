@@ -341,7 +341,39 @@ Once ESP32 firmware and cloud pipeline exist, adding sensor types is minimal inc
 
 ---
 
-### Technical Notes
+### Go-To-Market Sequencing — Garden Hub as a Wedge Product
+
+The Garden Hub and Home Base dashboard are independent businesses sharing a backend. The sensor product can — and should — launch before the commercial dashboard is ready.
+
+#### Phase 1 — Standalone Garden Hub App
+A focused, single-purpose mobile app. Does one thing well:
+- View moisture readings per sensor/bed
+- Set per-plant thresholds (wet/dry for Option A, precise % for Option B)
+- Receive watering push notifications
+- Cross-reference Tomorrow.io weather forecast — skip alert if rain expected
+- Name and manage sensors
+- Basic reading history and charts
+
+No dashboard, no calendar, no household features. Just garden intelligence.
+
+**Why focused is a strength:** A single-purpose app is easier to market, easier to review ("does it help me water my garden — yes/no"), easier to support, and more discoverable on the App Store and Google Play. Reviewers and gardening communities respond better to a tool that does one thing perfectly than a sprawling platform.
+
+#### Phase 2 — Home Base Direct Integration
+When the commercial dashboard launches, Garden Hub users receive a prompt: *"Home Base is now available — connect your garden sensors directly to your family dashboard."* Existing sensor data, history, and thresholds migrate automatically. The standalone app remains as a companion view for garden-focused users, but Home Base becomes the recommended path.
+
+The **"direct integration"** label positions Home Base as the premium tier without making standalone users feel abandoned or upsold aggressively. They're being invited into something bigger, not pushed.
+
+#### Why This Sequencing Wins
+
+- **Real revenue** while dashboard commercialization is still in development
+- **Real manufacturing and fulfillment experience** at low stakes before shipping full display units
+- **App Store presence and reviews** established before the bigger product launch needs them
+- **Installed user base** who already trust the brand when Home Base launches — Garden Hub users become the most motivated Home Base early adopters because they already have skin in the game
+- **Supply chain validation** — figure out ESP32 sourcing, enclosure manufacturing, and sensor fulfillment at $89/unit before you're managing $549 display unit logistics
+
+The Garden Hub is a focused, affordable hardware product that quietly builds the audience, infrastructure, and operational experience for the larger platform launch. A genuine wedge strategy.
+
+
 - **I2C bus:** Up to 127 devices theoretically chainable on 2 pins — practical limit ~12–16 for this use case. Eliminates ADC pin count constraint entirely.
 - **ESP32 ADC quirk:** Nonlinear at voltage extremes — affects raw analog sensor accuracy. Acceptable for wet/dry detection (Option A), not ideal for precise percentages (Option B). I2C sensors bypass this entirely.
 - **Firmware:** Embedded C++ or MicroPython. Soil moisture + WiFi POST is one of the most documented ESP32 use cases — reference implementations widely available. One-time development investment becomes the platform for all sensor types.
