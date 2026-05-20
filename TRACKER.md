@@ -17,6 +17,27 @@
 | **Netlify deploys** | Manual only — auto-publish is OFF to conserve build credits. Trigger from Netlify dashboard or `npm run build && npx netlify-cli deploy --prod --dir=build` |
 | **PWA URL** | https://home-base22.netlify.app — installed on Jacob's and Katelin's Android phones |
 
+### ⚠️ Codespaces Dev Workflow
+
+Always use this sequence when starting a Codespaces session or pulling updates:
+
+```bash
+git stash && git pull origin main && git stash pop && npm install
+```
+
+Then restart the dev server:
+```bash
+rm -rf node_modules/.cache && npm start
+```
+
+**What works in Codespaces:**
+- All UI changes, Supabase data, tile preferences, grocery/todo/bills
+
+**What requires a Netlify production deploy to test:**
+- Account linking / token exchange (Netlify Functions 404 in Codespaces)
+- Push notifications
+- Any Netlify function (`google-auth`, `google-refresh`, `send-notification`)
+
 ---
 
 ## 👨‍👩‍👧‍👦 Household
