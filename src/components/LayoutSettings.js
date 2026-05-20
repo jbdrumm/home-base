@@ -5,11 +5,17 @@
 //          reorder, up/down arrows as fallback
 //  Desktop: settings rendered but greyed out with Coming Soon
 // ─────────────────────────────────────────────────────────────
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { TILE_DEFINITIONS } from '../hooks/useTilePreferences';
 
 export default function LayoutSettings({ prefs, loading, toggleTile, reorderTile, moveTile }) {
-  const isMobile = window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    function onResize() { setIsMobile(window.innerWidth < 768); }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   if (loading) {
     return (

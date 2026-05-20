@@ -87,7 +87,7 @@ export default function SyncStatus({ lastSync, loading, onSync, profile, onSignO
       >↻</button>
 
       {profile && (
-        <div style={{ position: 'relative' }}>
+        <>
           {profile.picture ? (
             <img src={profile.picture} alt=""
               onClick={() => setShowMenu(v => !v)}
@@ -99,9 +99,9 @@ export default function SyncStatus({ lastSync, loading, onSync, profile, onSignO
               👤
             </button>
           )}
-          {menu}
-        </div>
+        </>
       )}
+      {menu}
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
     </div>
   );
