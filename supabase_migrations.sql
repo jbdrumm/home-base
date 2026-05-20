@@ -24,8 +24,11 @@ CREATE TABLE IF NOT EXISTS public.groceries (
   category    TEXT        NOT NULL DEFAULT 'Other',
   store       TEXT        NOT NULL DEFAULT 'Meijer',
   done        BOOLEAN     NOT NULL DEFAULT false,
+  created_by  TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+-- Add created_by if upgrading existing table
+ALTER TABLE public.groceries ADD COLUMN IF NOT EXISTS created_by TEXT;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.groceries TO authenticated;
 GRANT SELECT ON public.groceries TO anon;
 GRANT ALL ON public.groceries TO service_role;

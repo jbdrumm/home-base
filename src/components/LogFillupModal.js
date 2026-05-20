@@ -22,7 +22,7 @@ function PhotoUploadStep({ label, stepNum, done, parsed, onUpload }) {
         marginBottom: '12px',
       }}
     >
-      <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }}
+      <input ref={ref} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
         onChange={e => handleFile(e.target.files?.[0])} />
       {done ? (
         <>
@@ -142,7 +142,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
     setParseError(null);
     try {
       const result = await parsePhotoWithClaude(file,
-        'This is a photo of a vehicle odometer. Read the mileage shown and respond with ONLY valid JSON: {"odometer_mi": <integer>}. If you cannot read it clearly, respond with {"odometer_mi": null}.'
+        'This is a photo of a vehicle odometer or instrument cluster. Find the total odometer mileage (not trip mileage) and respond with ONLY valid JSON: {"odometer_mi": <integer>}. The number may appear anywhere on the display. Do not include commas. If multiple numbers are visible, use the largest one as it is likely the total odometer. Only respond with {"odometer_mi": null} if the image is completely unreadable.'
       );
       setOdometerParsed(result?.odometer_mi ? `${result.odometer_mi.toLocaleString()} miles` : 'Could not read — enter manually');
       setOdometerDone(true);

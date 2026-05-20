@@ -128,7 +128,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
     bills.updateItem(id, { paid_this_month: !bills.items.find(b => b.id === id).paid_this_month });
   }
   function handleQuickAdd(item) {
-    if (modal === 'grocery') groceries.addItem(item);
+    if (modal === 'grocery') groceries.addItem({ ...item, created_by: primaryMember });
     if (modal === 'todo')    multiData.addTask(item);
   }
   function handleSync() {
@@ -171,7 +171,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   if (view === 'grocery') return (
     <GroceryFullView
       items={groceries.items}
-      onAdd={item => groceries.addItem(item)}
+      onAdd={item => groceries.addItem({ ...item, created_by: primaryMember })}
       onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id)?.done })}
       onDelete={id => groceries.removeItem(id)}
       onClearDone={() => groceries.items.filter(i => i.done).forEach(i => groceries.removeItem(i.id))}

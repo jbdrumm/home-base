@@ -76,7 +76,8 @@ exports.handler = async (event) => {
     package:  '/icons/notif-package.png',
     home:     '/icons/notif-home.png',
   };
-  const notifIcon = categoryIcons[data?.category] || '/icons/icon-192x192.png';
+  const notifIcon  = categoryIcons[data?.category] || '/icons/icon-192x192.png';
+  const notifImage = categoryIcons[data?.category] || '/icons/icon-192x192.png';
 
   await Promise.all(tokens.map(async ({ token }) => {
     const resp = await fetch(
@@ -95,6 +96,7 @@ exports.handler = async (event) => {
               notification: {
                 title, body,
                 icon:    notifIcon,
+                image:   notifImage,
                 badge:   '/icons/badge-mono.png',
                 vibrate: [200, 100, 200],
               },

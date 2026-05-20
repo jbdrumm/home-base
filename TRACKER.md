@@ -257,7 +257,13 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 6 | Background push notifications require app to be opened once per session to register FCM token | Medium | Monitoring post-Firebase setup |
 | 7 | Quick-add PWA shortcut (long-press home screen icon) requires user to already be signed in | Low | Known limitation |
 | 8 | Add "Butcher" as a grocery store/filter option | Low | ✅ Fixed |
-| 9 | Mobile app may require re-login after 1-2 days of inactivity — root cause: legacy `useGoogleAuth` localStorage token (1hr expiry) used as primary auth gate instead of household refresh tokens | Medium | ✅ Fixed — App.js now uses `useHouseholdAuth` as primary auth gate; falls back to sign-in only if no valid household token exists |
+| 9 | Mobile app may require re-login after 1-2 days of inactivity | Medium | ✅ Fixed |
+| 10 | Layout settings — toggle, arrows, and drag not persisting | High | ✅ Fixed — `tile_preferences` table must be created via migration |
+| 11 | Fuel fillup opens gallery instead of camera | Medium | ✅ Fixed — added `capture="environment"` to file input |
+| 12 | Odometer photo not parsing despite clear image | Medium | ✅ Fixed — improved Claude Vision prompt, more permissive reading |
+| 13 | Self-notifications when adding grocery items — `created_by` never written on insert | Medium | ✅ Fixed — stamp `created_by: primaryMember` on add; also added `created_by` column to migration |
+| 14 | Status bar badge showing house icon instead of "HB" | Low | ✅ Fixed — regenerated badge-mono.png with white "HB" text |
+| 15 | Notification right-side image showing green placeholder instead of tile icon | Low | ✅ Fixed — added `image` field to webpush payload |
 
 ---
 
