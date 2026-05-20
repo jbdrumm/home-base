@@ -25,18 +25,32 @@ Always use this sequence when starting a Codespaces session or pulling updates:
 git stash && git pull origin main && git stash pop && npm install
 ```
 
-Then restart the dev server:
+Then start the dev server using Netlify CLI (runs app + Netlify Functions together):
 ```bash
-rm -rf node_modules/.cache && npm start
+rm -rf node_modules/.cache && netlify dev
 ```
 
-**What works in Codespaces:**
-- All UI changes, Supabase data, tile preferences, grocery/todo/bills
+**First time setup only** (once per Codespace):
+```bash
+npm install -g netlify-cli
+netlify login
+netlify link
+```
+Then add your Codespace URL (port 8888) to Google Cloud Console as an authorized redirect URI. It's stable — only changes if you rebuild the Codespace from scratch.
 
-**What requires a Netlify production deploy to test:**
-- Account linking / token exchange (Netlify Functions 404 in Codespaces)
-- Push notifications
-- Any Netlify function (`google-auth`, `google-refresh`, `send-notification`)
+**`netlify dev` vs `npm start`:**
+- `netlify dev` runs on port **8888** and includes Netlify Functions (account linking, push notifications, token refresh all work)
+- `npm start` runs on port **3000**, Netlify Functions 404
+
+**Device testing:**
+- Open Codespace port 8888 URL on your Android phone → install as PWA for mobile testing
+- Chrome DevTools → device toolbar (F12 → phone icon) for simulated device testing on desktop
+
+**What works in Codespaces with `netlify dev`:**
+- Everything — UI, Supabase, tile preferences, Netlify Functions, account linking, push notifications
+
+**What still requires a Netlify production deploy:**
+- Final validation before releasing to the wall display or Katelin's phone
 
 ---
 
