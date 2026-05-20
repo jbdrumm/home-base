@@ -143,3 +143,20 @@ GRANT SELECT, INSERT ON public.seen_calendar_events TO anon;
 GRANT ALL ON public.seen_calendar_events TO service_role;
 ALTER TABLE public.seen_calendar_events ENABLE ROW LEVEL SECURITY;
 CREATE POLICY IF NOT EXISTS "allow_all_seen_calendar_events" ON public.seen_calendar_events FOR ALL USING (true) WITH CHECK (true);
+
+-- ── Tile Preferences ──────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.tile_preferences (
+  id          BIGSERIAL PRIMARY KEY,
+  member      TEXT        NOT NULL,
+  tile_id     TEXT        NOT NULL,
+  enabled     BOOLEAN     NOT NULL DEFAULT true,
+  order_index INTEGER     NOT NULL DEFAULT 0,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE(member, tile_id)
+);
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.tile_preferences TO authenticated;
+GRANT SELECT ON public.tile_preferences TO anon;
+GRANT ALL ON public.tile_preferences TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+ALTER TABLE public.tile_preferences ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all_tile_preferences" ON public.tile_preferences FOR ALL USING (true) WITH CHECK (true);

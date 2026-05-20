@@ -30,6 +30,9 @@ import { useMultiAccountData } from '../hooks/useMultiAccountData';
 import { useWeather } from '../hooks/useWeather';
 import { seedGroceries, seedBills } from '../lib/seedData';
 import { seedVehicles } from '../lib/vehicleData';
+import { useTilePreferences } from '../hooks/useTilePreferences';
+import LayoutSettings from '../components/LayoutSettings';
+import NotificationSettings from '../components/NotificationSettings';
 
 function Tile({ onClick, children, style }) {
   const [hovered, setHovered] = useState(false);
@@ -77,6 +80,15 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   const weather   = useWeather();
 
   const isMobile = window.innerWidth < 768;
+
+  // Tile preferences — per member, mobile layout + visibility
+  const { prefs: tilePrefs, loading: tilePrefsLoading, toggleTile, reorderTile, moveTile } =
+    useTilePreferences(primaryMember);
+
+  // Build ordered, filtered list of enabled tile IDs for mobile
+  const enabledMobileTiles = tilePrefs
+    .filter(p => p.enabled)
+    .map(p => p.tile_id);
 
   // Notification prefs for this device's primary member
   const { prefs: notifPrefs } = useNotificationPrefs(primaryMember);
@@ -136,6 +148,11 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
       linkingMember={linkingMember}
       authError={authError}
       onClose={() => setView(null)}
+      tilePrefs={tilePrefs}
+      tilePrefsLoading={tilePrefsLoading}
+      toggleTile={toggleTile}
+      reorderTile={reorderTile}
+      moveTile={moveTile}
     />
   );
 
@@ -200,29 +217,63 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
 
       {isMobile ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* 1. Weather */}
-          <Tile onClick={() => setView('weather')}><WeatherWidget /></Tile>
-          {/* 2. Calendar */}
-          <Tile onClick={() => setView('calendar')}><CalendarWidget events={multiData.events} /></Tile>
-          {/* 3. To-do */}
-          <Tile onClick={() => setView('todo')}>
-            <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} onToggle={handleTaskToggle} onDelete={handleTaskDelete} />
-          </Tile>
-          {/* 4. Grocery — no outer click wrapper; GroceryWidget handles its own taps */}
-          <div style={{ minHeight: '380px' }}>
-            <GroceryWidget items={groceries.items}
-              onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
-              onClearDone={() => groceries.clearWhere(i => i.done)}
-              onOpenFullscreen={() => setView('grocery')} />
-          </div>
-          {/* 5. Home Status */}
-          <Tile onClick={() => setView('home')}><HomeStatusWidget /></Tile>
-          {/* 6. Vehicles */}
-          <div>
-            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
-          </div>
-          {/* 7. Bills */}
-          <Tile onClick={() => setView('financial')}><FinancialWidget bills={bills.items} /></Tile>
+          {enabledMobileTiles.map(tileId => {
+            switch (tileId) {
+              case 'weather':
+                return (
+                  <Tile key="weather" onClick={() => setView('weather')}>
+                    <WeatherWidget />
+                  </Tile>
+                );
+              case 'calendar':
+                return (
+                  <Tile key="calendar" onClick={() => setView('calendar')}>
+                    <CalendarWidget events={multiData.events} />
+                  </Tile>
+                );
+              case 'todo':
+                return (
+                  <Tile key="todo" onClick={() => setView('todo')}>
+                    <TodoWidget todosByList={multiData.todosByList} primaryMember={primaryMember} onToggle={handleTaskToggle} onDelete={handleTaskDelete} />
+                  </Tile>
+                );
+              case 'grocery':
+                return (
+                  <div key="grocery" style={{ minHeight: '380px' }}>
+                    <GroceryWidget items={groceries.items}
+                      onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id).done })}
+                      onClearDone={() => groceries.clearWhere(i => i.done)}
+                      onOpenFullscreen={() => setView('grocery')} />
+                  </div>
+                );
+              case 'homestatus':
+                return (
+                  <Tile key="homestatus" onClick={() => setView('home')}>
+                    <HomeStatusWidget />
+                  </Tile>
+                );
+              case 'vehicles':
+                return (
+                  <div key="vehicles">
+                    <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
+                  </div>
+                );
+              case 'finances':
+                return (
+                  <Tile key="finances" onClick={() => setView('financial')}>
+                    <FinancialWidget bills={bills.items} />
+                  </Tile>
+                );
+              case 'cameras':
+                return (
+                  <div key="cameras">
+                    <CameraWidget onClick={() => {}} />
+                  </div>
+                );
+              default:
+                return null;
+            }
+          })}
         </div>
       ) : (
         <div style={{
@@ -301,13 +352,14 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   );
 }
 
-// ── Tabbed household settings (Accounts + Notifications) ─────
-function HouseholdSettingsView({ householdTokens, linkMember, unlinkMember, linkingMember, authError, onClose }) {
+// ── Tabbed household settings (Accounts + Notifications + Layout) ─────
+function HouseholdSettingsView({ householdTokens, linkMember, unlinkMember, linkingMember, authError, onClose, tilePrefs, tilePrefsLoading, toggleTile, reorderTile, moveTile }) {
   const [tab, setTab] = React.useState('accounts');
 
   const tabs = [
     { id: 'accounts',      label: '👤 Accounts'      },
     { id: 'notifications', label: '🔔 Notifications'  },
+    { id: 'layout',        label: '⚙️ Layout'          },
   ];
 
   return (
@@ -352,6 +404,15 @@ function HouseholdSettingsView({ householdTokens, linkMember, unlinkMember, link
           )}
           {tab === 'notifications' && (
             <NotificationSettings householdTokens={householdTokens} />
+          )}
+          {tab === 'layout' && (
+            <LayoutSettings
+              prefs={tilePrefs}
+              loading={tilePrefsLoading}
+              toggleTile={toggleTile}
+              reorderTile={reorderTile}
+              moveTile={moveTile}
+            />
           )}
         </div>
       </div>

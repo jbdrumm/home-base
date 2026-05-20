@@ -109,7 +109,7 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 | `bills` | Monthly bills | Persisted |
 | `notification_prefs` | Per-member notification toggles | One row per member |
 | `fcm_tokens` | FCM device tokens per member | Used for cross-device push |
-| `error_logs` | App error logging | Fillup parse failures, etc. |
+| `tile_preferences` | Per-member tile visibility + order | Mobile only for now; desktop Coming Soon |
 
 > ⚠️ **Supabase Grant Policy (May 2025):** After May 30 2025, new `public` schema tables require explicit grants. Add after every `CREATE TABLE`:
 > ```sql
@@ -167,11 +167,15 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Task backend already uses Google Tasks API — prerequisite met
 - Fully remote work — no physical hardware required
 
-### Sprint 16 — Tile Customization
-- Account-owner configurable store/filter options (grocery stores, etc.)
-- Build with public/multi-tenant mindset — no hardcoded store names
-- Settings screen for managing tile preferences per household
-- Foundation for future public release where regional stores (Meijer, Jewel, etc.) vary by user
+### Sprint 16 — Tile Customization ✅ Built
+- `tile_preferences` Supabase table — `member`, `tile_id`, `enabled`, `order_index`
+- `useTilePreferences` hook — loads/saves from Supabase, merges new tiles at end on first load
+- `LayoutSettings` component — drag-to-reorder + up/down arrow fallback, toggle per tile
+- Mobile: fully functional — preferences respected on dashboard render
+- Desktop: settings page rendered but greyed out with "Coming Soon" overlay
+- Settings → Layout tab added alongside Accounts and Notifications
+- Account-owner configurable store/filter options noted for future iteration
+- Desktop dynamic grid reflow deferred to future sprint
 
 ### Sprint 17 — Jacob's Page
 - F1 and IndyCar news/calendar
