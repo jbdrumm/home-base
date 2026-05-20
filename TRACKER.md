@@ -72,7 +72,7 @@ All three accounts (jacob.b.drumm@gmail.com, drummkatelin@gmail.com, drummfam@gm
 - **Backend:** Supabase (Postgres + RLS)
 - **Auth/Calendar/Tasks:** Google OAuth via @react-oauth/google (auth-code flow with refresh tokens)
 - **Token persistence:** Supabase `household_tokens` table stores refresh tokens — accounts stay linked indefinitely
-- **Weather:** OpenWeather API → **switching to Tomorrow.io** (free tier, 500 calls/day, more accurate hyperlocal precipitation) — planned for Sprint 11 or standalone task
+- **Weather:** ✅ Switched to Tomorrow.io (free tier, 500 calls/day, more accurate hyperlocal precipitation, 14-day forecast, UV index, dew point, wind gust, cloud cover, precip probability)
 - **AI:** Anthropic Claude API (Vision — fuel log photo parsing)
 - **Push notifications:** Firebase Cloud Messaging (FCM) — configured, keys in Netlify env vars
 - **Hosting:** Netlify (production), GitHub Codespaces (dev)
@@ -116,7 +116,7 @@ All three accounts (jacob.b.drumm@gmail.com, drummkatelin@gmail.com, drummfam@gm
 | `REACT_APP_SUPABASE_URL` | Supabase project URL |
 | `REACT_APP_SUPABASE_ANON_KEY` | Supabase anon key |
 | `REACT_APP_GOOGLE_CLIENT_ID` | Google Cloud Console → Credentials |
-| `REACT_APP_OPENWEATHER_KEY` | openweathermap.org |
+| `REACT_APP_TOMORROW_API_KEY` | tomorrow.io (replaces OpenWeather — add to Codespace .env and Netlify) |
 | `REACT_APP_ANTHROPIC_KEY` | console.anthropic.com |
 | `REACT_APP_URL` | https://home-base22.netlify.app |
 | `REACT_APP_FIREBASE_API_KEY` | Firebase Console → Project Settings → Web app |

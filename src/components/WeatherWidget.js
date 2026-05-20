@@ -47,10 +47,13 @@ export default function WeatherWidget() {
             <span style={{ color: 'var(--color-info)' }}>L {weather.low}°</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-            💧 {weather.humidity}% humidity
+            💧 {weather.humidity}%
+            {weather.precipitationProbability > 0 && (
+              <span style={{ marginLeft: '8px' }}>🌂 {weather.precipitationProbability}%</span>
+            )}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-            💨 {weather.windSpeed} mph
+            💨 {weather.windSpeed} mph{weather.windGust > weather.windSpeed ? ` (gusts ${weather.windGust})` : ''}
           </div>
         </div>
       </div>

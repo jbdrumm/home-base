@@ -3,34 +3,55 @@ import { useState, useEffect, useCallback } from 'react';
 // Gurnee, IL coordinates
 const LAT = 42.3706;
 const LON = -87.9284;
-const API_KEY = process.env.REACT_APP_OPENWEATHER_KEY;
+const API_KEY = process.env.REACT_APP_TOMORROW_API_KEY;
 
-const CONDITION_ICONS = {
-  'Clear':        { day: '☀️',  night: '🌙' },
-  'Clouds':       { day: '⛅',  night: '☁️'  },
-  'Rain':         { day: '🌧️', night: '🌧️' },
-  'Drizzle':      { day: '🌦️', night: '🌦️' },
-  'Thunderstorm': { day: '⛈️', night: '⛈️' },
-  'Snow':         { day: '❄️', night: '❄️'  },
-  'Mist':         { day: '🌫️', night: '🌫️' },
-  'Fog':          { day: '🌫️', night: '🌫️' },
-  'Haze':         { day: '🌫️', night: '🌫️' },
+// Tomorrow.io weather code → emoji + condition label
+// https://docs.tomorrow.io/reference/weather-data-layers
+const WEATHER_CODES = {
+  1000: { label: 'Clear',           day: '☀️',  night: '🌙' },
+  1001: { label: 'Cloudy',          day: '☁️',  night: '☁️' },
+  1100: { label: 'Mostly Clear',    day: '🌤',  night: '🌤' },
+  1101: { label: 'Partly Cloudy',   day: '⛅',  night: '⛅' },
+  1102: { label: 'Mostly Cloudy',   day: '🌥',  night: '🌥' },
+  2000: { label: 'Fog',             day: '🌫️', night: '🌫️' },
+  2100: { label: 'Light Fog',       day: '🌫️', night: '🌫️' },
+  4000: { label: 'Drizzle',         day: '🌦️', night: '🌦️' },
+  4001: { label: 'Rain',            day: '🌧️', night: '🌧️' },
+  4200: { label: 'Light Rain',      day: '🌦️', night: '🌦️' },
+  4201: { label: 'Heavy Rain',      day: '🌧️', night: '🌧️' },
+  5000: { label: 'Snow',            day: '❄️',  night: '❄️' },
+  5001: { label: 'Flurries',        day: '🌨️', night: '🌨️' },
+  5100: { label: 'Light Snow',      day: '🌨️', night: '🌨️' },
+  5101: { label: 'Heavy Snow',      day: '❄️',  night: '❄️' },
+  6000: { label: 'Freezing Drizzle',day: '🌧️', night: '🌧️' },
+  6001: { label: 'Freezing Rain',   day: '🌧️', night: '🌧️' },
+  6200: { label: 'Light Freezing Rain', day: '🌧️', night: '🌧️' },
+  6201: { label: 'Heavy Freezing Rain', day: '🌧️', night: '🌧️' },
+  7000: { label: 'Ice Pellets',     day: '🌨️', night: '🌨️' },
+  7101: { label: 'Heavy Ice Pellets', day: '🌨️', night: '🌨️' },
+  7102: { label: 'Light Ice Pellets', day: '🌨️', night: '🌨️' },
+  8000: { label: 'Thunderstorm',    day: '⛈️',  night: '⛈️' },
 };
 
-function getIcon(main, isDay) {
-  const entry = CONDITION_ICONS[main];
+export function codeToIcon(code, isDay = true) {
+  const entry = WEATHER_CODES[code];
   if (!entry) return '🌡';
   return isDay ? entry.day : entry.night;
 }
 
+export function codeToLabel(code) {
+  return WEATHER_CODES[code]?.label || 'Unknown';
+}
+
 const seedWeather = {
   temp: 68, feelsLike: 65,
-  condition: 'Partly Cloudy', main: 'Clouds',
+  condition: 'Partly Cloudy',
   high: 74, low: 55,
-  humidity: 52, windSpeed: 8,
-  icon: '⛅',
-  location: 'Gurnee, IL',
-  isLive: false,
+  humidity: 52, windSpeed: 8, windGust: 10, windDirection: 180,
+  precipitationProbability: 10,
+  dewPoint: 55, uvIndex: 3, visibility: 10,
+  cloudCover: 40, pressure: 1013,
+  icon: '⛅', location: 'Gurnee, IL', isLive: false,
 };
 
 export function useWeather() {
@@ -41,45 +62,54 @@ export function useWeather() {
 
   const fetchWeather = useCallback(async () => {
     if (!API_KEY) {
-      setError('No API key — showing placeholder data');
+      setError('No Tomorrow.io API key — showing placeholder data');
       return;
     }
     setLoading(true);
     setError(null);
     try {
-      // Current weather + daily forecast in one call (One Call API 3.0)
-      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&appid=${API_KEY}&units=imperial`;
+      const fields = [
+        'temperature', 'temperatureApparent', 'temperatureMax', 'temperatureMin',
+        'humidity', 'dewPoint', 'windSpeed', 'windDirection', 'windGust',
+        'precipitationProbability', 'rainIntensity', 'snowIntensity',
+        'cloudCover', 'visibility', 'pressureSurfaceLevel',
+        'uvIndex', 'uvHealthConcern', 'weatherCode',
+      ].join(',');
+
+      const url = `https://api.tomorrow.io/v4/weather/forecast?location=${LAT},${LON}&fields=${fields}&units=imperial&timesteps=1h,1d&apikey=${API_KEY}`;
       const res  = await fetch(url);
-      if (!res.ok) throw new Error(`Weather API error ${res.status}`);
+      if (!res.ok) throw new Error(`Tomorrow.io API error ${res.status}`);
       const data = await res.json();
 
-      // Get daily high/low from forecast endpoint
-      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&appid=${API_KEY}&units=imperial&cnt=8`;
-      const fRes  = await fetch(forecastUrl);
-      const fData = await fRes.json();
+      const hourly = data.timelines?.hourly || [];
+      const daily  = data.timelines?.daily  || [];
 
-      const temps = fData.list?.map(i => i.main.temp) || [data.main.temp];
-      const high  = Math.round(Math.max(...temps));
-      const low   = Math.round(Math.min(data.main.temp_min, ...temps));
+      if (!hourly.length) throw new Error('No hourly data returned');
 
+      const now    = hourly[0].values;
       const hour   = new Date().getHours();
       const isDay  = hour >= 6 && hour < 20;
-      const main   = data.weather?.[0]?.main || 'Clear';
 
       setWeather({
-        temp:       Math.round(data.main.temp),
-        feelsLike:  Math.round(data.main.feels_like),
-        condition:  data.weather?.[0]?.description
-                      ? data.weather[0].description.charAt(0).toUpperCase() +
-                        data.weather[0].description.slice(1)
-                      : main,
-        main,
-        high, low,
-        humidity:   data.main.humidity,
-        windSpeed:  Math.round(data.wind?.speed || 0),
-        icon:       getIcon(main, isDay),
-        location:   'Gurnee, IL',
-        isLive:     true,
+        temp:                    Math.round(now.temperature),
+        feelsLike:               Math.round(now.temperatureApparent),
+        condition:               codeToLabel(now.weatherCode),
+        icon:                    codeToIcon(now.weatherCode, isDay),
+        high:                    daily[0] ? Math.round(daily[0].values.temperatureMax) : null,
+        low:                     daily[0] ? Math.round(daily[0].values.temperatureMin) : null,
+        humidity:                Math.round(now.humidity),
+        dewPoint:                Math.round(now.dewPoint),
+        windSpeed:               Math.round(now.windSpeed),
+        windGust:                Math.round(now.windGust),
+        windDirection:           Math.round(now.windDirection),
+        precipitationProbability:Math.round(now.precipitationProbability),
+        cloudCover:              Math.round(now.cloudCover),
+        visibility:              now.visibility ? Math.round(now.visibility) : null,
+        pressure:                now.pressureSurfaceLevel ? Math.round(now.pressureSurfaceLevel) : null,
+        uvIndex:                 now.uvIndex ?? null,
+        uvHealthConcern:         now.uvHealthConcern ?? null,
+        location:                'Gurnee, IL',
+        isLive:                  true,
       });
       setLastSync(new Date());
     } catch (e) {
@@ -90,7 +120,6 @@ export function useWeather() {
     }
   }, []);
 
-  // Fetch on mount, then every 30 minutes
   useEffect(() => {
     fetchWeather();
     const interval = setInterval(fetchWeather, 30 * 60 * 1000);
@@ -99,3 +128,4 @@ export function useWeather() {
 
   return { weather, loading, error, lastSync, refresh: fetchWeather };
 }
+
