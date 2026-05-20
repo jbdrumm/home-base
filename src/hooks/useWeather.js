@@ -54,14 +54,9 @@ export function useWeather() {
       const { current, hourly: h, daily: d } = data.data;
 
       // Recalculate icon based on current time of day
-      const hour  = new Date().getHours();
-      const isDay = hour >= 6 && hour < 20;
-
       setWeather({
         ...current,
         isLive: true,
-        // Refresh icon for current time of day since cache may be stale
-        icon: current.icon,
       });
       setHourly(h || []);
       setDaily(d || []);
