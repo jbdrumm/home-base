@@ -78,7 +78,12 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   function handleTaskMove(params)   { multiData.moveTask   && multiData.moveTask(params); }
   const weather   = useWeather();
 
-  const isMobile = window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    function onResize() { setIsMobile(window.innerWidth < 768); }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // Tile preferences — per member, mobile layout + visibility
   const { prefs: tilePrefs, loading: tilePrefsLoading, toggleTile, reorderTile, moveTile } =
