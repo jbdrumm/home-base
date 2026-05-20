@@ -55,10 +55,6 @@ export default function WeatherFullView({ onBack }) {
         const hourlyRaw = data.timelines?.hourly || [];
         const dailyRaw  = data.timelines?.daily  || [];
 
-        // Debug — remove after confirming field names
-        if (dailyRaw[0]) console.log('[Weather] Daily item keys:', Object.keys(dailyRaw[0]), 'Sample:', dailyRaw[0]);
-        if (hourlyRaw[0]) console.log('[Weather] Hourly item keys:', Object.keys(hourlyRaw[0]));
-
         if (!hourlyRaw.length) throw new Error('No data');
 
         const now   = hourlyRaw[0].values;
@@ -86,11 +82,11 @@ export default function WeatherFullView({ onBack }) {
 
         // Next 24 hours
         setHourly(hourlyRaw.slice(0, 24).map(item => {
-          const d    = new Date(item.startTime || item.time);
+          const d    = new Date(item.time);
           const h    = d.getHours();
           const iDay = h >= 6 && h < 20;
           return {
-            time: isNaN(d) ? '—' : d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+            time: d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
             temp: Math.round(item.values.temperature),
             icon: codeToIcon(item.values.weatherCode, iDay),
             pop:  Math.round(item.values.precipitationProbability),
@@ -99,9 +95,9 @@ export default function WeatherFullView({ onBack }) {
 
         // Up to 14 days
         setDaily(dailyRaw.slice(0, 14).map((item, i) => {
-          const d = new Date(item.startTime || item.time);
+          const d = new Date(item.time);
           return {
-            label: i === 0 ? 'Today' : (isNaN(d) ? `Day ${i + 1}` : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })),
+            label: i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
             high:  Math.round(item.values.temperatureMax),
             low:   Math.round(item.values.temperatureMin),
             icon:  codeToIcon(item.values.weatherCode, true),
