@@ -32,7 +32,6 @@ import { seedGroceries, seedBills } from '../lib/seedData';
 import { seedVehicles } from '../lib/vehicleData';
 import { useTilePreferences } from '../hooks/useTilePreferences';
 import LayoutSettings from '../components/LayoutSettings';
-import NotificationSettings from '../components/NotificationSettings';
 
 function Tile({ onClick, children, style }) {
   const [hovered, setHovered] = useState(false);
