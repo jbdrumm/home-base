@@ -78,6 +78,21 @@ export function useWeather() {
 
       const url = `https://api.tomorrow.io/v4/weather/forecast?location=${LAT},${LON}&fields=${fields}&units=imperial&timesteps=1h,1d&apikey=${API_KEY}`;
       const res  = await fetch(url);
+
+      // Rate limited — serve cached data silently if available
+      if (res.status === 429) {
+        const cached = localStorage.getItem('hb_weather_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setWeather({ ...parsed, isLive: false });
+          setError(null);
+          console.warn('[Weather] Rate limited — serving cached data');
+        } else {
+          setError('Weather temporarily unavailable');
+        }
+        return;
+      }
+
       if (!res.ok) throw new Error(`Tomorrow.io API error ${res.status}`);
       const data = await res.json();
 
@@ -90,7 +105,7 @@ export function useWeather() {
       const hour   = new Date().getHours();
       const isDay  = hour >= 6 && hour < 20;
 
-      setWeather({
+      const freshWeather = {
         temp:                    Math.round(now.temperature),
         feelsLike:               Math.round(now.temperatureApparent),
         condition:               codeToLabel(now.weatherCode),
@@ -110,10 +125,20 @@ export function useWeather() {
         uvHealthConcern:         now.uvHealthConcern ?? null,
         location:                'Gurnee, IL',
         isLive:                  true,
-      });
+      };
+
+      // Cache successful response
+      try { localStorage.setItem('hb_weather_cache', JSON.stringify(freshWeather)); } catch {}
+
+      setWeather(freshWeather);
       setLastSync(new Date());
     } catch (e) {
       console.error('Weather fetch error', e);
+      // Try cache on any error
+      const cached = localStorage.getItem('hb_weather_cache');
+      if (cached) {
+        try { setWeather({ ...JSON.parse(cached), isLive: false }); } catch {}
+      }
       setError('Could not load weather');
     } finally {
       setLoading(false);
