@@ -6,6 +6,7 @@ const storeChipClass = {
   'Walmart':     'chip chip-store-walmart',
   "Sam's Club":  'chip chip-store-sams',
   'Jewel-Osco':  'chip chip-store-jewel',
+  'Butcher':     'chip chip-store-butcher',
 };
 
 export default function GroceryWidget({ items, onToggle, onClearDone, onOpenFullscreen }) {

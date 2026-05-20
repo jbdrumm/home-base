@@ -35,7 +35,7 @@ export const seedMessages = [
 ];
 
 export const CATEGORIES = ['Produce', 'Dairy', 'Meat', 'Frozen', 'Pantry', 'Beverages', 'Household', 'Personal Care', 'Other'];
-export const STORES = ['Meijer', 'Walmart', "Sam's Club", 'Jewel-Osco'];
+export const STORES = ['Meijer', 'Walmart', "Sam's Club", 'Jewel-Osco', 'Butcher'];
 export const CATEGORY_ORDER = ['Produce', 'Meat', 'Dairy', 'Frozen', 'Pantry', 'Beverages', 'Household', 'Personal Care', 'Other'];
 
 // ── Sprint 2 seed data ──────────────────────────────

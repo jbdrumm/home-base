@@ -87,10 +87,12 @@ html, body {
 .chip-store-walmart { background: #e8f3fd; color: var(--store-walmart); }
 .chip-store-sams    { background: #e5f6fd; color: var(--store-sams); }
 .chip-store-jewel   { background: #fdecea; color: var(--store-jewel); }
+.chip-store-butcher { background: #f5e8dc; color: var(--store-butcher); }
 [data-theme="dark"] .chip-store-meijer  { background: #3a0a12; color: #ff7a8e; }
 [data-theme="dark"] .chip-store-walmart { background: #0a1f3a; color: #60a5fa; }
 [data-theme="dark"] .chip-store-sams    { background: #061f2e; color: #67d2f0; }
 [data-theme="dark"] .chip-store-jewel   { background: #2a0e0c; color: #f87171; }
+[data-theme="dark"] .chip-store-butcher { background: #2a1500; color: #d4864a; }
 
 /* Inputs */
 .input {

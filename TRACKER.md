@@ -231,8 +231,8 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 5 | Bills seed data still shows on first load — user must delete and re-enter real bills | Medium | Sprint 13 |
 | 6 | Background push notifications require app to be opened once per session to register FCM token | Medium | Monitoring post-Firebase setup |
 | 7 | Quick-add PWA shortcut (long-press home screen icon) requires user to already be signed in | Low | Known limitation |
-| 8 | Add "Butcher" as a grocery store/filter option | Low | Backlog |
-| 9 | Mobile app may require re-login after 1-2 days of inactivity — unconfirmed on Katelin's device, may already be resolved by pending Netlify updates | Medium | Revisit after next Netlify publish |
+| 8 | Add "Butcher" as a grocery store/filter option | Low | ✅ Fixed |
+| 9 | Mobile app may require re-login after 1-2 days of inactivity — root cause: legacy `useGoogleAuth` localStorage token (1hr expiry) used as primary auth gate instead of household refresh tokens | Medium | ✅ Fixed — App.js now uses `useHouseholdAuth` as primary auth gate; falls back to sign-in only if no valid household token exists |
 
 ---
 

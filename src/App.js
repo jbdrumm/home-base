@@ -34,16 +34,42 @@ function AppInner() {
     const q = params.get('quick');
     if (q) {
       window.history.replaceState({}, '', window.location.pathname);
-      // Store only if already signed in; otherwise discard
       const token = (() => { try { return localStorage.getItem('hb_token'); } catch { return null; } })();
       if (token) sessionStorage.setItem('hb_quick', q);
     }
     return sessionStorage.getItem('hb_quick') || null;
   })();
 
-  if (!isSignedIn) {
+  // ── Auth gate ─────────────────────────────────────────────
+  // While household tokens are loading from Supabase, show nothing
+  // to avoid a flash of the sign-in prompt when tokens just need refreshing.
+  if (householdAuth.loading) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', background: 'var(--bg-base)',
+      }}>
+        <div style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>Loading…</div>
+      </div>
+    );
+  }
+
+  // If any household member has a valid token, we're signed in.
+  // This uses the household auth (refresh-token backed, Supabase-stored) as
+  // the primary auth gate instead of the legacy localStorage token, which
+  // expired after 1 hour and caused the re-login bug after 1-2 days of inactivity.
+  const hasHouseholdToken = Object.values(householdAuth.householdTokens || {})
+    .some(t => t?.isValid);
+
+  if (!isSignedIn && !hasHouseholdToken) {
     return <SignInPrompt onSignIn={login} error={error} />;
   }
+
+  // Derive a usable token — prefer fresh localStorage token, fall back to
+  // any valid household token so the dashboard never renders tokenless.
+  const effectiveToken = token
+    || Object.values(householdAuth.householdTokens || {}).find(t => t?.isValid)?.token
+    || null;
 
   return (
     <>
@@ -51,7 +77,7 @@ function AppInner() {
       <div className="app-root">
         <Dashboard
           initialQuickAdd={initialQuickAdd}
-          token={token}
+          token={effectiveToken}
           profile={profile}
           onSignOut={logout}
           householdAuth={householdAuth}
