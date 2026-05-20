@@ -72,7 +72,7 @@ All three accounts (jacob.b.drumm@gmail.com, drummkatelin@gmail.com, drummfam@gm
 - **Backend:** Supabase (Postgres + RLS)
 - **Auth/Calendar/Tasks:** Google OAuth via @react-oauth/google (auth-code flow with refresh tokens)
 - **Token persistence:** Supabase `household_tokens` table stores refresh tokens — accounts stay linked indefinitely
-- **Weather:** ✅ Switched to Tomorrow.io (free tier, 500 calls/day, more accurate hyperlocal precipitation, 14-day forecast, UV index, dew point, wind gust, cloud cover, precip probability)
+- **Weather:** ✅ Switched to Tomorrow.io via server-side Netlify scheduled function (`fetch-weather`) — runs every 30 min, writes to Supabase `weather_cache`. All devices read from Supabase — only 1 API call per 30 min regardless of device count. Free tier: 25 calls/hour, 500/day.
 - **AI:** Anthropic Claude API (Vision — fuel log photo parsing)
 - **Push notifications:** Firebase Cloud Messaging (FCM) — configured, keys in Netlify env vars
 - **Hosting:** Netlify (production), GitHub Codespaces (dev)

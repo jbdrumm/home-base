@@ -10,6 +10,12 @@
   publish = "public"
   autoLaunch = false
 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions."fetch-weather"]
+  schedule = "*/30 * * * *"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

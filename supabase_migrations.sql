@@ -163,3 +163,15 @@ GRANT ALL ON public.tile_preferences TO service_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 ALTER TABLE public.tile_preferences ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "allow_all_tile_preferences" ON public.tile_preferences FOR ALL USING (true) WITH CHECK (true);
+
+-- ── Weather Cache (server-side fetch, single row) ─────────────
+CREATE TABLE IF NOT EXISTS public.weather_cache (
+  id         INTEGER     PRIMARY KEY DEFAULT 1,
+  data       JSONB       NOT NULL,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+GRANT SELECT, INSERT, UPDATE ON public.weather_cache TO authenticated;
+GRANT SELECT ON public.weather_cache TO anon;
+GRANT ALL ON public.weather_cache TO service_role;
+ALTER TABLE public.weather_cache ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "allow_all_weather_cache" ON public.weather_cache FOR ALL USING (true) WITH CHECK (true);

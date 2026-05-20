@@ -1,57 +1,33 @@
+// ─────────────────────────────────────────────────────────────
+//  useWeather — reads from Supabase weather_cache table
+//
+//  Weather is fetched server-side by the fetch-weather Netlify
+//  scheduled function (every 30 min). This hook just reads the
+//  cached result — zero direct Tomorrow.io calls from browsers.
+// ─────────────────────────────────────────────────────────────
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 
-// Gurnee, IL coordinates
-const LAT = 42.3706;
-const LON = -87.9284;
-const API_KEY = process.env.REACT_APP_TOMORROW_API_KEY;
-
-// Tomorrow.io weather code → emoji + condition label
-// https://docs.tomorrow.io/reference/weather-data-layers
-const WEATHER_CODES = {
-  1000: { label: 'Clear',           day: '☀️',  night: '🌙' },
-  1001: { label: 'Cloudy',          day: '☁️',  night: '☁️' },
-  1100: { label: 'Mostly Clear',    day: '🌤',  night: '🌤' },
-  1101: { label: 'Partly Cloudy',   day: '⛅',  night: '⛅' },
-  1102: { label: 'Mostly Cloudy',   day: '🌥',  night: '🌥' },
-  2000: { label: 'Fog',             day: '🌫️', night: '🌫️' },
-  2100: { label: 'Light Fog',       day: '🌫️', night: '🌫️' },
-  4000: { label: 'Drizzle',         day: '🌦️', night: '🌦️' },
-  4001: { label: 'Rain',            day: '🌧️', night: '🌧️' },
-  4200: { label: 'Light Rain',      day: '🌦️', night: '🌦️' },
-  4201: { label: 'Heavy Rain',      day: '🌧️', night: '🌧️' },
-  5000: { label: 'Snow',            day: '❄️',  night: '❄️' },
-  5001: { label: 'Flurries',        day: '🌨️', night: '🌨️' },
-  5100: { label: 'Light Snow',      day: '🌨️', night: '🌨️' },
-  5101: { label: 'Heavy Snow',      day: '❄️',  night: '❄️' },
-  6000: { label: 'Freezing Drizzle',day: '🌧️', night: '🌧️' },
-  6001: { label: 'Freezing Rain',   day: '🌧️', night: '🌧️' },
-  6200: { label: 'Light Freezing Rain', day: '🌧️', night: '🌧️' },
-  6201: { label: 'Heavy Freezing Rain', day: '🌧️', night: '🌧️' },
-  7000: { label: 'Ice Pellets',     day: '🌨️', night: '🌨️' },
-  7101: { label: 'Heavy Ice Pellets', day: '🌨️', night: '🌨️' },
-  7102: { label: 'Light Ice Pellets', day: '🌨️', night: '🌨️' },
-  8000: { label: 'Thunderstorm',    day: '⛈️',  night: '⛈️' },
-};
+// Weather code → icon mapping (used by WeatherFullView too)
+const CODE_ICONS_DAY   = { 1000:'☀️',1001:'☁️',1100:'🌤',1101:'⛅',1102:'🌥',2000:'🌫️',2100:'🌫️',4000:'🌦️',4001:'🌧️',4200:'🌦️',4201:'🌧️',5000:'❄️',5001:'🌨️',5100:'🌨️',5101:'❄️',6000:'🌧️',6001:'🌧️',6200:'🌧️',6201:'🌧️',7000:'🌨️',7101:'🌨️',7102:'🌨️',8000:'⛈️' };
+const CODE_ICONS_NIGHT = { ...CODE_ICONS_DAY, 1000:'🌙' };
 
 export function codeToIcon(code, isDay = true) {
-  const entry = WEATHER_CODES[code];
-  if (!entry) return '🌡';
-  return isDay ? entry.day : entry.night;
+  return (isDay ? CODE_ICONS_DAY : CODE_ICONS_NIGHT)[code] || '🌡';
 }
 
 export function codeToLabel(code) {
-  return WEATHER_CODES[code]?.label || 'Unknown';
+  const labels = { 1000:'Clear',1001:'Cloudy',1100:'Mostly Clear',1101:'Partly Cloudy',1102:'Mostly Cloudy',2000:'Fog',2100:'Light Fog',4000:'Drizzle',4001:'Rain',4200:'Light Rain',4201:'Heavy Rain',5000:'Snow',5001:'Flurries',5100:'Light Snow',5101:'Heavy Snow',6000:'Freezing Drizzle',6001:'Freezing Rain',6200:'Light Freezing Rain',6201:'Heavy Freezing Rain',7000:'Ice Pellets',7101:'Heavy Ice Pellets',7102:'Light Ice Pellets',8000:'Thunderstorm' };
+  return labels[code] || 'Unknown';
 }
 
 const seedWeather = {
-  temp: 68, feelsLike: 65,
-  condition: 'Partly Cloudy',
-  high: 74, low: 55,
-  humidity: 52, windSpeed: 8, windGust: 10, windDirection: 180,
-  precipitationProbability: 10,
-  dewPoint: 55, uvIndex: 3, visibility: 10,
-  cloudCover: 40, pressure: 1013,
-  icon: '⛅', location: 'Gurnee, IL', isLive: false,
+  temp: 68, feelsLike: 65, condition: 'Partly Cloudy', icon: '⛅',
+  high: 74, low: 55, humidity: 52, dewPoint: 55,
+  windSpeed: 8, windGust: 10, windDirection: 180,
+  precipitationProbability: 10, cloudCover: 40,
+  visibility: 10, pressure: 1013, uvIndex: 3,
+  location: 'Gurnee, IL', isLive: false,
 };
 
 export function useWeather() {
@@ -63,115 +39,53 @@ export function useWeather() {
   const [lastSync, setLastSync] = useState(null);
 
   const fetchWeather = useCallback(async () => {
-    if (!API_KEY) {
-      setError('No Tomorrow.io API key — showing placeholder data');
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
-      const fields = [
-        'temperature', 'temperatureApparent', 'temperatureMax', 'temperatureMin',
-        'humidity', 'dewPoint', 'windSpeed', 'windDirection', 'windGust',
-        'precipitationProbability', 'rainIntensity', 'snowIntensity',
-        'cloudCover', 'visibility', 'pressureSurfaceLevel',
-        'uvIndex', 'uvHealthConcern', 'weatherCode',
-      ].join(',');
+      const { data, error: sbError } = await supabase
+        .from('weather_cache')
+        .select('data, fetched_at')
+        .eq('id', 1)
+        .single();
 
-      const url = `https://api.tomorrow.io/v4/weather/forecast?location=${LAT},${LON}&fields=${fields}&units=imperial&timesteps=1h,1d&apikey=${API_KEY}`;
-      const res  = await fetch(url);
+      if (sbError) throw sbError;
+      if (!data?.data) throw new Error('No weather cache found');
 
-      // Rate limited — serve cached data silently if available
-      if (res.status === 429) {
+      const { current, hourly: h, daily: d } = data.data;
+
+      // Recalculate icon based on current time of day
+      const hour  = new Date().getHours();
+      const isDay = hour >= 6 && hour < 20;
+
+      setWeather({
+        ...current,
+        isLive: true,
+        // Refresh icon for current time of day since cache may be stale
+        icon: current.icon,
+      });
+      setHourly(h || []);
+      setDaily(d || []);
+      setLastSync(new Date(data.fetched_at));
+
+    } catch (e) {
+      console.warn('[useWeather] Supabase read failed:', e.message);
+      // Fall back to localStorage cache if Supabase fails
+      try {
         const cached = localStorage.getItem('hb_weather_cache');
         if (cached) {
           const parsed = JSON.parse(cached);
-          setWeather({ ...parsed, isLive: false });
-          setError(null);
-          console.warn('[Weather] Rate limited — serving cached data');
-        } else {
-          setError('Weather temporarily unavailable');
+          setWeather({ ...parsed.current, isLive: false });
+          setHourly(parsed.hourly || []);
+          setDaily(parsed.daily || []);
         }
-        return;
-      }
-
-      if (!res.ok) throw new Error(`Tomorrow.io API error ${res.status}`);
-      const data = await res.json();
-
-      const hourlyData = data.timelines?.hourly || [];
-      const dailyData  = data.timelines?.daily  || [];
-
-      if (!hourlyData.length) throw new Error('No hourly data returned');
-
-      const now    = hourlyData[0].values;
-      const hour   = new Date().getHours();
-      const isDay  = hour >= 6 && hour < 20;
-
-      const freshWeather = {
-        temp:                    Math.round(now.temperature),
-        feelsLike:               Math.round(now.temperatureApparent),
-        condition:               codeToLabel(now.weatherCode),
-        icon:                    codeToIcon(now.weatherCode, isDay),
-        high:                    dailyData[0] ? Math.round(dailyData[0].values.temperatureMax) : null,
-        low:                     dailyData[0] ? Math.round(dailyData[0].values.temperatureMin) : null,
-        humidity:                Math.round(now.humidity),
-        dewPoint:                Math.round(now.dewPoint),
-        windSpeed:               Math.round(now.windSpeed),
-        windGust:                Math.round(now.windGust),
-        windDirection:           Math.round(now.windDirection),
-        precipitationProbability:Math.round(now.precipitationProbability),
-        cloudCover:              Math.round(now.cloudCover),
-        visibility:              now.visibility ? Math.round(now.visibility) : null,
-        pressure:                now.pressureSurfaceLevel ? Math.round(now.pressureSurfaceLevel) : null,
-        uvIndex:                 now.uvIndex ?? null,
-        uvHealthConcern:         now.uvHealthConcern ?? null,
-        location:                'Gurnee, IL',
-        isLive:                  true,
-      };
-
-      // Cache successful response
-      try { localStorage.setItem('hb_weather_cache', JSON.stringify(freshWeather)); } catch {}
-
-      // Build hourly (next 24h)
-      setHourly(hourlyData.slice(0, 24).map(item => {
-        const d    = new Date(item.time);
-        const h    = d.getHours();
-        const iDay = h >= 6 && h < 20;
-        return {
-          time: d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
-          temp: Math.round(item.values.temperature),
-          icon: codeToIcon(item.values.weatherCode, iDay),
-          pop:  Math.round(item.values.precipitationProbability),
-        };
-      }));
-
-      // Build daily (up to 14 days)
-      setDaily(dailyData.slice(0, 14).map((item, i) => {
-        const d = new Date(item.time);
-        return {
-          label: i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-          high:  Math.round(item.values.temperatureMax),
-          low:   Math.round(item.values.temperatureMin),
-          icon:  codeToIcon(item.values.weatherCode, true),
-          pop:   Math.round(item.values.precipitationProbability),
-        };
-      }));
-
-      setWeather(freshWeather);
-      setLastSync(new Date());
-    } catch (e) {
-      console.error('Weather fetch error', e);
-      // Try cache on any error
-      const cached = localStorage.getItem('hb_weather_cache');
-      if (cached) {
-        try { setWeather({ ...JSON.parse(cached), isLive: false }); } catch {}
-      }
+      } catch {}
       setError('Could not load weather');
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // Read on mount, then every 30 min (in sync with server fetch)
   useEffect(() => {
     fetchWeather();
     const interval = setInterval(fetchWeather, 30 * 60 * 1000);
@@ -180,4 +94,3 @@ export function useWeather() {
 
   return { weather, hourly, daily, loading, error, lastSync, refresh: fetchWeather };
 }
-
