@@ -56,6 +56,8 @@ const seedWeather = {
 
 export function useWeather() {
   const [weather,  setWeather]  = useState(seedWeather);
+  const [hourly,   setHourly]   = useState([]);
+  const [daily,    setDaily]    = useState([]);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState(null);
   const [lastSync, setLastSync] = useState(null);
@@ -96,12 +98,12 @@ export function useWeather() {
       if (!res.ok) throw new Error(`Tomorrow.io API error ${res.status}`);
       const data = await res.json();
 
-      const hourly = data.timelines?.hourly || [];
-      const daily  = data.timelines?.daily  || [];
+      const hourlyData = data.timelines?.hourly || [];
+      const dailyData  = data.timelines?.daily  || [];
 
-      if (!hourly.length) throw new Error('No hourly data returned');
+      if (!hourlyData.length) throw new Error('No hourly data returned');
 
-      const now    = hourly[0].values;
+      const now    = hourlyData[0].values;
       const hour   = new Date().getHours();
       const isDay  = hour >= 6 && hour < 20;
 
@@ -110,8 +112,8 @@ export function useWeather() {
         feelsLike:               Math.round(now.temperatureApparent),
         condition:               codeToLabel(now.weatherCode),
         icon:                    codeToIcon(now.weatherCode, isDay),
-        high:                    daily[0] ? Math.round(daily[0].values.temperatureMax) : null,
-        low:                     daily[0] ? Math.round(daily[0].values.temperatureMin) : null,
+        high:                    dailyData[0] ? Math.round(dailyData[0].values.temperatureMax) : null,
+        low:                     dailyData[0] ? Math.round(dailyData[0].values.temperatureMin) : null,
         humidity:                Math.round(now.humidity),
         dewPoint:                Math.round(now.dewPoint),
         windSpeed:               Math.round(now.windSpeed),
@@ -129,6 +131,31 @@ export function useWeather() {
 
       // Cache successful response
       try { localStorage.setItem('hb_weather_cache', JSON.stringify(freshWeather)); } catch {}
+
+      // Build hourly (next 24h)
+      setHourly(hourlyData.slice(0, 24).map(item => {
+        const d    = new Date(item.time);
+        const h    = d.getHours();
+        const iDay = h >= 6 && h < 20;
+        return {
+          time: d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+          temp: Math.round(item.values.temperature),
+          icon: codeToIcon(item.values.weatherCode, iDay),
+          pop:  Math.round(item.values.precipitationProbability),
+        };
+      }));
+
+      // Build daily (up to 14 days)
+      setDaily(dailyData.slice(0, 14).map((item, i) => {
+        const d = new Date(item.time);
+        return {
+          label: i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+          high:  Math.round(item.values.temperatureMax),
+          low:   Math.round(item.values.temperatureMin),
+          icon:  codeToIcon(item.values.weatherCode, true),
+          pop:   Math.round(item.values.precipitationProbability),
+        };
+      }));
 
       setWeather(freshWeather);
       setLastSync(new Date());
@@ -151,6 +178,6 @@ export function useWeather() {
     return () => clearInterval(interval);
   }, [fetchWeather]);
 
-  return { weather, loading, error, lastSync, refresh: fetchWeather };
+  return { weather, hourly, daily, loading, error, lastSync, refresh: fetchWeather };
 }
 

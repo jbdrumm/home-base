@@ -76,7 +76,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   function handleTaskToggle(params) { multiData.toggleTask && multiData.toggleTask(params); }
   function handleTaskDelete(params) { multiData.removeTask && multiData.removeTask(params); }
   function handleTaskMove(params)   { multiData.moveTask   && multiData.moveTask(params); }
-  const weather   = useWeather();
+  const { weather, hourly: weatherHourly, daily: weatherDaily, loading: weatherLoading, lastSync: weatherSync, refresh: refreshWeather } = useWeather();
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   useEffect(() => {
@@ -138,11 +138,11 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   }
   function handleSync() {
     multiData.sync();
-    weather.refresh();
+    refreshWeather();
   }
 
-  const syncLoading = multiData.loading || weather.loading;
-  const lastSync    = multiData.lastSync || weather.lastSync;
+  const syncLoading = multiData.loading || weatherLoading;
+  const lastSync    = multiData.lastSync || weatherSync;
 
   if (view === 'household') return (
     <HouseholdSettingsView
@@ -167,7 +167,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
     <PersonView name="Katelin" onBack={() => setView(null)} />
   );
   if (view === 'weather') return (
-    <WeatherFullView onBack={() => setView(null)} />
+    <WeatherFullView onBack={() => setView(null)} weather={weather} hourly={weatherHourly} daily={weatherDaily} />
   );
 
   if (view === 'calendar') return (
