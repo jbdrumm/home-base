@@ -47,7 +47,11 @@ export default function WeatherFullView({ onBack }) {
           'uvIndex','uvHealthConcern','weatherCode',
         ].join(',');
 
-        const url = `https://api.tomorrow.io/v4/weather/forecast?location=${LAT},${LON}&fields=${fields}&units=imperial&timesteps=1h,1d&apikey=${API_KEY}`;
+        const endTime = new Date();
+        endTime.setDate(endTime.getDate() + 14);
+        const endTimeStr = endTime.toISOString();
+
+        const url = `https://api.tomorrow.io/v4/weather/forecast?location=${LAT},${LON}&fields=${fields}&units=imperial&timesteps=1h,1d&endTime=${endTimeStr}&apikey=${API_KEY}`;
         const res  = await fetch(url);
         if (!res.ok) throw new Error(`API error ${res.status}`);
         const data = await res.json();
