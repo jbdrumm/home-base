@@ -152,7 +152,7 @@ function TileList({ prefs, toggleTile, reorderTile, moveTile }) {
             {/* Up / Down arrows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flexShrink: 0 }}>
               <button
-                onClick={() => moveTile(pref.tile_id, 'up')}
+                onClick={e => { e.stopPropagation(); moveTile(pref.tile_id, 'up'); }}
                 disabled={index === 0}
                 style={{
                   background: 'none', border: '1px solid var(--border)',
@@ -169,7 +169,7 @@ function TileList({ prefs, toggleTile, reorderTile, moveTile }) {
                 </svg>
               </button>
               <button
-                onClick={() => moveTile(pref.tile_id, 'down')}
+                onClick={e => { e.stopPropagation(); moveTile(pref.tile_id, 'down'); }}
                 disabled={index === prefs.length - 1}
                 style={{
                   background: 'none', border: '1px solid var(--border)',
@@ -189,7 +189,7 @@ function TileList({ prefs, toggleTile, reorderTile, moveTile }) {
 
             {/* Toggle */}
             <div
-              onClick={() => toggleTile(pref.tile_id)}
+              onClick={e => { e.stopPropagation(); toggleTile(pref.tile_id); }}
               style={{
                 width: '44px', height: '26px', borderRadius: '13px',
                 background: pref.enabled ? 'var(--accent)' : 'var(--border-strong)',
