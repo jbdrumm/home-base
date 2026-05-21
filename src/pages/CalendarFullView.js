@@ -111,7 +111,7 @@ export default function CalendarFullView({ events = [], onBack }) {
               <div key={day.toString()}
                 onClick={() => handleDayClick(day)}
                 style={{
-                  height: '78px',
+                  height: '92px',
                   borderRadius: '8px',
                   padding: '4px 3px 3px',
                   background: isExp ? 'var(--accent-soft)' : 'var(--bg-card)',
@@ -153,7 +153,7 @@ export default function CalendarFullView({ events = [], onBack }) {
                       background: ownerColors[event.owner] || 'var(--accent)',
                       color: 'white',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      textOverflow: 'clip',
                       whiteSpace: 'nowrap',
                       cursor: 'pointer',
                       flexShrink: 0,
@@ -162,7 +162,7 @@ export default function CalendarFullView({ events = [], onBack }) {
                     }}
                     title={`${event.title} · ${event.time}`}
                   >
-                    {event.title}
+                    {event.title.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{1F300}-\u{1F9FF}\u200d\ufe0f ]+/gu, '').trim() || event.title}
                   </div>
                 ))}
                 {overflow > 0 && (
