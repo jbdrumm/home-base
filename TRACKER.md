@@ -310,6 +310,13 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 1 | Fillup modal — pump photo parse occasionally hangs (30s timeout now in place, errors log to `error_logs` table) | Medium | Monitoring |
 | 16 | Calendar full view — missing "katelin" owner color mapping (showed wrong color), missing empty state when no events loaded, no location display on event detail | Low | ✅ Fixed |
 | 17 | Log Fillup modal — no backdrop dismiss (tap outside didn't close), no close X button, z-index too low (300) causing stacking issues on some devices, desktop centering broken (always showed as bottom sheet) | Medium | ✅ Fixed |
+| 18 | Calendar fetch hardcoded to 45 days ahead in useMultiAccountData, overriding 270-day default in google.js. No past events fetched. | High | ✅ Fixed — 270 days ahead, 60 days back, maxResults 2500 |
+| 19 | Calendar pill colors wrong — all events gray because calendarName not passed through normalizeCalendarEvent. Katelin's primary calendar is drummkatelin@gmail.com not "My Calendar". | High | ✅ Fixed — calendarName added to normalized event, getPillColor uses calendar name: Family=blue, Holiday=orange, jacob primary=green, katelin primary=purple, public=gray |
+| 20 | Calendar pills showing CSS ellipsis (...) truncation, emojis from public calendar event titles cluttering pills, all day cells different heights, max 4 pills per day causing uneven row heights | Medium | ✅ Fixed — textOverflow clip, emoji stripped in pill render only (detail view keeps emoji), max 3 pills, fixed 92px cell height |
+| 21 | Log Fillup camera button opened gallery instead of camera, no gallery option | Medium | ✅ Fixed — split into Take Photo (camera, 2x size) and Gallery buttons |
+| 22 | Calendar tile on dashboard showing no Past indicator for elapsed today events | Low | ✅ Fixed — "Past" badge + muted text/bar for timed events past current time, all-day events excluded |
+| 23 | Layout settings page not working | High | Queued for tomorrow |
+| 24 | User-created events still triggering notifications on the creating device | Medium | Queued for tomorrow |
 | 2 | Camera tile is placeholder only | Low | Blocked by Sprint 23 |
 | 3 | Vehicle photos stored as seed data URLs — need Supabase Storage for user-added photos | Low | Sprint TBD |
 | 4 | Fuel log MPG needs previous odometer for accuracy | Low | Sprint TBD |
