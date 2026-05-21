@@ -317,6 +317,7 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 22 | Calendar tile on dashboard showing no Past indicator for elapsed today events | Low | ✅ Fixed — "Past" badge + muted text/bar for timed events past current time, all-day events excluded |
 | 23 | Layout settings page not working | High | Queued for tomorrow |
 | 24 | User-created events still triggering notifications on the creating device | Medium | Queued for tomorrow |
+| 25 | Odometer photo parse failing silently — need to: (1) save the uploaded photo to Supabase Storage on parse failure so it can be manually read, (2) surface a manual entry fallback field when parse fails, (3) ensure error details (model response, image metadata) are logged to error_logs table | Medium | Queued |
 | 2 | Camera tile is placeholder only | Low | Blocked by Sprint 23 |
 | 3 | Vehicle photos stored as seed data URLs — need Supabase Storage for user-added photos | Low | Sprint TBD |
 | 4 | Fuel log MPG needs previous odometer for accuracy | Low | Sprint TBD |
