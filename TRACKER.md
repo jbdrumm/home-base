@@ -22,12 +22,7 @@
 Always use this sequence when starting a Codespaces session or pulling updates:
 
 ```bash
-git stash && git pull origin main && git stash pop && npm install
-```
-
-Then start the dev server using Netlify CLI (runs app + Netlify Functions together):
-```bash
-rm -rf node_modules/.cache && netlify dev
+git stash && git pull origin main && git stash pop && npm install && rm -rf node_modules/.cache && netlify dev
 ```
 
 **First time setup only** (once per Codespace):
@@ -39,18 +34,67 @@ netlify link
 Then add your Codespace URL (port 8888) to Google Cloud Console as an authorized redirect URI. It's stable — only changes if you rebuild the Codespace from scratch.
 
 **`netlify dev` vs `npm start`:**
-- `netlify dev` runs on port **8888** and includes Netlify Functions (account linking, push notifications, token refresh all work)
-- `npm start` runs on port **3000**, Netlify Functions 404
+- `netlify dev` runs on port **8888** and includes Netlify Functions (account linking, push notifications, token refresh, weather fetch all work)
+- `npm start` runs on port **3000** — Netlify Functions 404
+
+**Testing functions locally (second terminal while dev server runs in first):**
+```bash
+curl -X POST http://localhost:8888/.netlify/functions/fetch-weather
+```
 
 **Device testing:**
 - Open Codespace port 8888 URL on your Android phone → install as PWA for mobile testing
 - Chrome DevTools → device toolbar (F12 → phone icon) for simulated device testing on desktop
+- isMobile is reactive — resizing window or switching DevTools device updates layout live
+
+**Deploying to production (manual only — auto-publishing is locked):**
+```bash
+netlify deploy --prod
+```
+Never unlock auto-publishing — it burns credits on every push.
+
+**After deploying, seed the weather cache:**
+```bash
+curl -X POST https://home-base22.netlify.app/.netlify/functions/fetch-weather
+```
 
 **What works in Codespaces with `netlify dev`:**
-- Everything — UI, Supabase, tile preferences, Netlify Functions, account linking, push notifications
+- Everything — UI, Supabase, tile preferences, Netlify Functions, account linking, weather fetch
 
-**What still requires a Netlify production deploy:**
-- Final validation before releasing to the wall display or Katelin's phone
+**What still requires a production deploy to validate:**
+- Scheduled function cron (runs every 30 min on production only)
+- Final release validation before pushing to wall display or Katelin's phone
+
+### ⚠️ Known Netlify Gotchas
+
+**SPA catch-all redirect breaks function routing:**
+`/* /index.html 200` in `netlify.toml` rewrites ALL paths including `/.netlify/functions/*`. This is a known Netlify issue. Workaround: `public/_redirects` with `/api/*` proxy path before the catch-all. Direct `/.netlify/functions/*` calls from the browser still get caught — always use `/api/*` proxy for any new client-side function calls.
+
+**Scheduled functions reject manual HTTP calls:**
+When `[functions."fetch-weather"] schedule = ...` is set in `netlify.toml`, Netlify wraps the handler and rejects manual POSTs with "Bad request, missing form". Solution: keep plain handler in `fetch-weather.js` (manual POST) and put `schedule()` wrapper in separate `fetch-weather-scheduled.js`.
+
+**Never add `@netlify/plugin-nextjs`:**
+This is a React app. Adding that plugin causes build failures.
+
+**Auto-publishing is locked — keep it that way.**
+
+### ⚠️ Weather Architecture
+
+```
+Netlify cron (every 30 min)
+  → fetch-weather-scheduled.js (schedule wrapper)
+  → fetch-weather.js (plain handler)
+  → Tomorrow.io API (1 call per 30 min total, all devices)
+  → Supabase weather_cache table (id=1, single-row upsert)
+  → useWeather hook reads from Supabase on mount + every 30 min
+  → All devices get instant data, zero browser API calls
+```
+
+**Rate limits:** Tomorrow.io free tier = 25 calls/hour, 500/day. Server-side fetching uses 2/hour max.
+
+**Forecast days:** 7 days on free tier (API advertises 14 but caps at 7 in practice).
+
+**Fields available (free tier):** temperature, feelsLike, high/low, humidity, dewPoint, windSpeed, windGust, windDirection, precipitationProbability, cloudCover, visibility, pressure, uvIndex, uvHealthConcern, weatherCode → condition + emoji.
 
 ---
 
