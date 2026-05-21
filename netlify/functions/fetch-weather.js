@@ -76,6 +76,7 @@ const handler = async function(event) {
     const current = {
       temp:                     Math.round(now.temperature),
       feelsLike:                Math.round(now.temperatureApparent),
+      weatherCode:              now.weatherCode,
       condition:                WEATHER_CODES[now.weatherCode] || 'Unknown',
       icon:                     getIcon(now.weatherCode, isDay),
       high:                     dailyRaw[0] ? Math.round(dailyRaw[0].values.temperatureMax) : null,
