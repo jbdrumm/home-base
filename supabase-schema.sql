@@ -19,7 +19,19 @@ create table if not exists todos (
   updated_at   timestamptz not null default now()
 );
 
--- ── GROCERY ITEMS ──────────────────────────
+
+-- ── GROCERIES ────────────────────────────────
+create table if not exists groceries (
+  id           bigint primary key generated always as identity,
+  name         text not null,
+  category     text not null default 'Other',
+  store        text not null default 'Meijer',
+  done         boolean not null default false,
+  created_at   timestamptz not null default now(),
+  created_by   text
+);
+
+-- ── GROCERY ITEMS (deprecated — use groceries) ──
 create table if not exists grocery_items (
   id           uuid primary key default uuid_generate_v4(),
   name         text not null,
@@ -37,7 +49,8 @@ create table if not exists countdowns (
   title        text not null,
   target_date  date not null,
   emoji        text default '🗓',
-  created_at   timestamptz not null default now()
+  created_at   timestamptz not null default now(),
+  created_by   text
 );
 
 -- ── MESSAGES (family board) ─────────────────
@@ -112,7 +125,8 @@ create table if not exists bills (
   category          text not null default 'Other',
   paid_this_month   boolean not null default false,
   created_at        timestamptz not null default now(),
-  updated_at        timestamptz not null default now()
+  updated_at        timestamptz not null default now(),
+  created_by        text
 );
 
 create trigger bills_updated_at before update on bills
@@ -165,6 +179,7 @@ create table if not exists maintenance_schedule (
   last_done_mi  integer,
   last_done_at  date,
   created_at    timestamptz not null default now(),
+  created_by    text,
   updated_at    timestamptz not null default now()
 );
 
@@ -180,7 +195,8 @@ create table if not exists fuel_log (
   mpg           numeric(5,1),
   station       text,
   notes         text,
-  created_at    timestamptz not null default now()
+  created_at    timestamptz not null default now(),
+  created_by    text
 );
 
 -- ── MAINTENANCE LOG ─────────────────────────
@@ -194,7 +210,8 @@ create table if not exists maintenance_log (
   cost          numeric(8,2),
   shop          text,
   notes         text,
-  created_at    timestamptz not null default now()
+  created_at    timestamptz not null default now(),
+  created_by    text
 );
 
 -- ── updated_at triggers ────────────────────
