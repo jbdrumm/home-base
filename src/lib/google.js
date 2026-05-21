@@ -93,7 +93,7 @@ export function normalizeCalendarEvent(event, owner = 'family') {
 
   return {
     id:       event.id,
-    title:    (event.summary || '(No title)').replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\ufe0f\s]+/u, '').trim() || event.summary || '(No title)',
+    title:    event.summary || '(No title)',
     time:     startDT
                 ? new Date(startDT).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
                 : 'All day',
