@@ -9,9 +9,14 @@ function getPillColor(event) {
   const owner = event.owner || '';
   if (cal.includes('family'))  return '#2563EB';  // blue
   if (cal.includes('holiday')) return '#F97316';  // orange
-  if (cal === 'my calendar' && owner === 'jacob')   return '#059669'; // green
-  if (cal === 'my calendar' && owner === 'katelin') return '#9333EA'; // purple
-  if (cal === 'my calendar' && owner === 'wife')    return '#9333EA'; // purple
+  // Jacob's primary calendar
+  if (cal === 'my calendar' || cal === 'jacob.b.drumm@gmail.com') {
+    if (owner === 'jacob') return '#059669'; // green
+  }
+  // Katelin's primary calendar
+  if (cal === 'drummkatelin@gmail.com' || cal === 'my calendar') {
+    if (owner === 'katelin' || owner === 'wife') return '#9333EA'; // purple
+  }
   // Subscribed / public calendars
   return '#6B7280'; // gray
 }
