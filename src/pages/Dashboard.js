@@ -358,12 +358,35 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
           onSave={async (data) => {
             try {
               const { vehicleId, odometer_mi, gallons, price_per_gal, total_cost, station } = data;
+
+              // Calculate MPG only if we have a prior odometer reading
+              // and the delta is within a realistic range (20–800 miles)
+              let mpg = null;
+              if (odometer_mi && gallons) {
+                const { data: prior } = await supabase
+                  .from('fuel_log')
+                  .select('odometer_mi')
+                  .eq('vehicle_id', vehicleId)
+                  .not('odometer_mi', 'is', null)
+                  .order('logged_at', { ascending: false })
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .single();
+                if (prior?.odometer_mi) {
+                  const delta = odometer_mi - prior.odometer_mi;
+                  if (delta >= 20 && delta <= 800) {
+                    mpg = Math.round((delta / gallons) * 10) / 10;
+                  }
+                }
+              }
+
               const { error } = await supabase.from('fuel_log').insert({
                 vehicle_id:    vehicleId,
                 odometer_mi:   odometer_mi   || null,
                 gallons:       gallons        || null,
                 price_per_gal: price_per_gal  || null,
                 total_cost:    total_cost      || null,
+                mpg,
                 station:       station         || null,
                 created_by:    resolvedMember,
               });
