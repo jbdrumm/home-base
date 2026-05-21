@@ -132,8 +132,13 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   function toggleBillPaid(id) {
     bills.updateItem(id, { paid_this_month: !bills.items.find(b => b.id === id).paid_this_month });
   }
+  // Fall back to first valid linked member if primaryMember hasn't resolved yet
+  const resolvedMember = primaryMember
+    || Object.keys(householdTokens || {}).find(m => householdTokens[m]?.isValid)
+    || 'jacob';
+
   function handleQuickAdd(item) {
-    if (modal === 'grocery') groceries.addItem({ ...item, created_by: primaryMember });
+    if (modal === 'grocery') groceries.addItem({ ...item, created_by: resolvedMember });
     if (modal === 'todo')    multiData.addTask(item);
   }
   function handleSync() {
@@ -176,7 +181,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   if (view === 'grocery') return (
     <GroceryFullView
       items={groceries.items}
-      onAdd={item => groceries.addItem({ ...item, created_by: primaryMember })}
+      onAdd={item => groceries.addItem({ ...item, created_by: resolvedMember })}
       onToggle={id => groceries.updateItem(id, { done: !groceries.items.find(g => g.id === id)?.done })}
       onDelete={id => groceries.removeItem(id)}
       onClearDone={() => groceries.items.filter(i => i.done).forEach(i => groceries.removeItem(i.id))}
