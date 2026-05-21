@@ -206,21 +206,16 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 | Sprint | What was built |
 |---|---|
 | 1–8 | Scaffold, auth, calendar, tasks, grocery, home status, finances, weather, PWA shell |
-| 9 | Vehicle tracker — 4 vehicles, maintenance table, fuel log with Claude Vision photo parsing, extended-use plate logic |
-| Post-9 | Calendar timezone fixes, weather drilldown, vehicle nav fix, photo support, QuickAdd routing fix, modal keyboard fix |
+| 9 | Vehicle tracker UI — 4 vehicles, maintenance table, fuel log with Claude Vision photo parsing, extended-use plate logic |
 | 10 | Multi-account auth — `household_tokens` Supabase table, `useHouseholdAuth`, `useMultiAccountData`, HouseholdSetup UI, QuickAdd "Who is this for?", account-aware task writes, TodoFullView account filter chips, per-task toggle/delete/move |
-| Post-10 | Task color coding (Jacob=blue, Katelin=pink, Family=green), merged column view in TodoFullView, GroceryFullView built, dashboard tile toggle/delete wired |
-| 11 | Mobile responsive layout — single-column with correct tile order, header collapse, grocery filters work in-tile |
-| PWA | Icons (all sizes + maskable), manifest, install banner, Firebase push notification infrastructure, background push via dedicated SW, `scripts/generate-firebase-config.js` prebuild |
-| Auth hardening | Auth-code OAuth flow replaces implicit — refresh tokens stored in Supabase, silent 4-min refresh cycle, accounts never expire |
-| Supabase persistence | `useSupabaseList` hook — groceries and bills now persist to Supabase (replaced `useLocalState`) |
-| Notifications | `useNotificationTriggers` — per-member prefs checked before firing, all trigger types (tasks, grocery, calendar, bills, vehicles), cross-device push via Netlify `send-notification` function |
+| 10b | Auth hardening — auth-code OAuth flow replaces implicit, refresh tokens in Supabase, silent 4-min refresh cycle, accounts never expire |
+| 11 | PWA — icons (all sizes + maskable), manifest, install banner, Firebase push infrastructure, background push via dedicated SW, `scripts/generate-firebase-config.js` prebuild |
 
 ---
 
 ## 🔜 Sprint Roadmap
 
-### Sprint 12 — Vehicle Live Data (Current)
+### Sprint 12 — Vehicle Data Feeds (Current)
 - Remove all seed data from VehicleWidget and VehicleFullView
 - Load vehicles from Supabase `vehicles` table
 - Load `maintenance_schedule` from Supabase per vehicle (empty state handled gracefully)
@@ -230,8 +225,8 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 - Fuel log stats (avg MPG, PPG, cost/mile, monthly spend) calculated from real rows
 - Empty states throughout for tables/logs with no data yet
 
-## Sprint 13 — Packages
-- Auto-import via Make.com + Yahoo Mail (Make.com also used in Sprint 13 for bill notifications — shared integration)
+### Sprint 13 — Packages
+- Auto-import via Make.com + Yahoo Mail
 - Carrier, status, ETA, progress bar
 - No Packages source files exist yet — clean build from scratch
 
@@ -249,12 +244,14 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Weekly grid (Mon–Sun)
 - Recipe library (URL import via Claude Vision or manual)
 - Auto-populate grocery list from recipes
-- **"Paste a shopping list" feature:** textarea input → Claude Vision parses items, quantities, categories → confirm screen → bulk-inserts into Supabase grocery list. Works for any text source (ChatGPT meal plan output, recipe sites, text messages, etc.). Primary use case: Katelin pastes her ChatGPT-generated ingredient list directly into Home Base.
+- **"Paste a shopping list" feature:** textarea input → Claude Vision parses items, quantities, categories → confirm screen → bulk-inserts into Supabase grocery list
 
-### Sprint 16 — Google Hub Voice Commands
-- Google Home routines trigger webhooks or Supabase writes
-- Task backend already uses Google Tasks API — prerequisite met
-- Fully remote work — no physical hardware required
+### Sprint 16 — Multi-Account Auth (Google Hub)
+- Store Google tokens for Jacob, Katelin, and Family accounts in Supabase
+- Dashboard reads calendars and tasks from all 3 merged
+- Writes route to correct account via "Who is this for?" selector
+- Family tasks write to Family Google account so they appear on all Google Hubs
+- Personal phone views only show own account data
 
 ### Sprint 17 — Tile Customization ✅ Built
 - `tile_preferences` Supabase table — `member`, `tile_id`, `enabled`, `order_index`
@@ -262,9 +259,6 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - `LayoutSettings` component — drag-to-reorder + up/down arrow fallback, toggle per tile
 - Mobile: fully functional — preferences respected on dashboard render
 - Desktop: settings page rendered but greyed out with "Coming Soon" overlay
-- Settings → Layout tab added alongside Accounts and Notifications
-- Account-owner configurable store/filter options noted for future iteration
-- Desktop dynamic grid reflow deferred to future sprint
 
 ### Sprint 18 — Jacob's Page
 - F1 and IndyCar news/calendar
@@ -280,33 +274,31 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Connect HA API to Home Base Home Status tile
 - Read sensor states and trigger actions from dashboard
 - **Prerequisite:** HA must be accessible outside home network before this sprint
-  - Options: Nabu Casa ($7/mo), Cloudflare Tunnel (free), or VPN
-  - Pi 3 is already running HA with Mega-IO sensor tophats — local config is complete
-  - Any future hardware-side changes require being on local network
 
-### Sprint 21 — Screensaver / Sleep Mode
-- Family photo slideshow when idle
-- Auto sleep schedule
-- Wake on touch
+### Sprint 21 — OBD Live Data
+- WiFi/cellular OBD dongle (e.g. Bouncie) for Odyssey & Durango
+- DTC push alert with Claude plain-English interpretation
+- Battery voltage trending, coolant temp anomaly
+- Trip data auto-feeds fuel log
+- S2000 and Ranger intentionally excluded
 
-### Sprint 21 — Countdowns Tile
+### Sprint 22 — Countdowns Tile
 - Recurring annual (e.g. Anniversary) — auto-recalculates each year
 - One-time (e.g. Vacation) — specific target date
 - User chooses type at creation
 
-### Sprint 22 — Pi Kiosk & Hardening
+### Sprint 23 — Pi Kiosk & Hardening
 - Fully Kiosk Browser on Android touchscreen
 - Offline graceful degradation
 - Auto-launch on boot
 
-### Sprint 23 — Cameras (Lorex RTSP)
+### Sprint 24 — Cameras (Lorex RTSP)
 - Lorex NVR: N862A63B, 6-8 cameras + doorbell, 4K
-- Use sub-streams for dashboard: `rtsp://admin:<pw>@<NVR-IP>:554/cam/realmonitor?channel=1&subtype=1`
 - go2rtc on always-on desktop PC → HLS/WebRTC relay
 - Dashboard: featured front door + camera selector sidebar
 - Full screen: grid of all cameras, tap to expand
 
-### Sprint 24 — Chores & Rewards
+### Sprint 25 — Chores & Rewards
 - Assign chores with schedules, repeats, rotations
 - Point system + custom rewards
 - Kid-friendly UI for wall display
