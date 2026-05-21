@@ -111,7 +111,7 @@ export default function CalendarFullView({ events = [], onBack }) {
               <div key={day.toString()}
                 onClick={() => handleDayClick(day)}
                 style={{
-                  minHeight: '62px',
+                  height: '78px',
                   borderRadius: '8px',
                   padding: '4px 3px 3px',
                   background: isExp ? 'var(--accent-soft)' : 'var(--bg-card)',
