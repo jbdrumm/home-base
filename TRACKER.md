@@ -220,12 +220,22 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 
 ## 🔜 Sprint Roadmap
 
-### Sprint 12 — Packages
+### Sprint 12 — Vehicle Live Data (Current)
+- Remove all seed data from VehicleWidget and VehicleFullView
+- Load vehicles from Supabase `vehicles` table
+- Load `maintenance_schedule` from Supabase per vehicle (empty state handled gracefully)
+- Load `fuel_log` from Supabase per vehicle — real rows from fillup logging
+- Wire `getVehicleStatus` and `estimateOdometer` to live data
+- Wire inline fillup modal in VehicleFullView to save to Supabase (same as Dashboard)
+- Fuel log stats (avg MPG, PPG, cost/mile, monthly spend) calculated from real rows
+- Empty states throughout for tables/logs with no data yet
+
+## Sprint 13 — Packages
 - Auto-import via Make.com + Yahoo Mail (Make.com also used in Sprint 13 for bill notifications — shared integration)
 - Carrier, status, ETA, progress bar
 - No Packages source files exist yet — clean build from scratch
 
-### Sprint 13 — Financial Integration (Monarch Money)
+### Sprint 14 — Financial Integration (Monarch Money)
 See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Monarch Money ($99/yr) — unofficial API (`bradleyseanf/monarchmoneycommunity`)
 - **Owner to-do:** Set Monarch Money password before this sprint (API requires password auth)
@@ -235,18 +245,18 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - 3x daily sync, Zillow/VinAudit/Principal 401k via Monarch native integrations
 - **Setup step:** Delete bills seed data and enter real monthly bills during this sprint
 
-### Sprint 14 — Meal Planning
+### Sprint 15 — Meal Planning
 - Weekly grid (Mon–Sun)
 - Recipe library (URL import via Claude Vision or manual)
 - Auto-populate grocery list from recipes
 - **"Paste a shopping list" feature:** textarea input → Claude Vision parses items, quantities, categories → confirm screen → bulk-inserts into Supabase grocery list. Works for any text source (ChatGPT meal plan output, recipe sites, text messages, etc.). Primary use case: Katelin pastes her ChatGPT-generated ingredient list directly into Home Base.
 
-### Sprint 15 — Google Hub Voice Commands
+### Sprint 16 — Google Hub Voice Commands
 - Google Home routines trigger webhooks or Supabase writes
 - Task backend already uses Google Tasks API — prerequisite met
 - Fully remote work — no physical hardware required
 
-### Sprint 16 — Tile Customization ✅ Built
+### Sprint 17 — Tile Customization ✅ Built
 - `tile_preferences` Supabase table — `member`, `tile_id`, `enabled`, `order_index`
 - `useTilePreferences` hook — loads/saves from Supabase, merges new tiles at end on first load
 - `LayoutSettings` component — drag-to-reorder + up/down arrow fallback, toggle per tile
@@ -256,17 +266,17 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Account-owner configurable store/filter options noted for future iteration
 - Desktop dynamic grid reflow deferred to future sprint
 
-### Sprint 17 — Jacob's Page
+### Sprint 18 — Jacob's Page
 - F1 and IndyCar news/calendar
 - Personal weather detail
 - World headlines
 
-### Sprint 18 — Katelin's Page
+### Sprint 19 — Katelin's Page
 - Homeschool daily planner
 - Meal plan view
 - Family-focused content
 
-### Sprint 19 — Home Assistant Integration
+### Sprint 20 — Home Assistant Integration
 - Connect HA API to Home Base Home Status tile
 - Read sensor states and trigger actions from dashboard
 - **Prerequisite:** HA must be accessible outside home network before this sprint
@@ -274,7 +284,7 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
   - Pi 3 is already running HA with Mega-IO sensor tophats — local config is complete
   - Any future hardware-side changes require being on local network
 
-### Sprint 20 — Screensaver / Sleep Mode
+### Sprint 21 — Screensaver / Sleep Mode
 - Family photo slideshow when idle
 - Auto sleep schedule
 - Wake on touch
