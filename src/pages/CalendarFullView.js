@@ -111,7 +111,7 @@ export default function CalendarFullView({ events = [], onBack }) {
               <div key={day.toString()}
                 onClick={() => handleDayClick(day)}
                 style={{
-                  minHeight: '72px',
+                  minHeight: '62px',
                   borderRadius: '8px',
                   padding: '4px 3px 3px',
                   background: isExp ? 'var(--accent-soft)' : 'var(--bg-card)',
@@ -147,8 +147,8 @@ export default function CalendarFullView({ events = [], onBack }) {
                     style={{
                       fontSize: '9px',
                       fontWeight: '500',
-                      lineHeight: '14px',
-                      padding: '0 4px',
+                      lineHeight: '13px',
+                      padding: '0 3px',
                       borderRadius: '3px',
                       background: ownerColors[event.owner] || 'var(--accent)',
                       color: 'white',
