@@ -1,5 +1,5 @@
-# Netlify functions must not be caught by the SPA catch-all
-/.netlify/functions/*  /.netlify/functions/:splat  200!
+# Proxy /api/* to Netlify functions BEFORE the SPA catch-all
+/api/*  /.netlify/functions/:splat  200
 
-# SPA catch-all — serve index.html for all other routes
+# SPA catch-all
 /*  /index.html  200
