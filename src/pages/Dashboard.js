@@ -359,8 +359,9 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
             try {
               const { vehicleId, odometer_mi, gallons, price_per_gal, total_cost, station } = data;
 
-              // Calculate MPG only if we have a prior odometer reading
-              // and the delta is within a realistic range (20–800 miles)
+              // Calculate MPG from odometer delta / gallons
+              // Validate result against realistic MPG range (5–40)
+              // If outside range, save as null — likely a missed fillup log
               let mpg = null;
               if (odometer_mi && gallons) {
                 const { data: prior } = await supabase
@@ -373,9 +374,10 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
                   .limit(1)
                   .single();
                 if (prior?.odometer_mi) {
-                  const delta = odometer_mi - prior.odometer_mi;
-                  if (delta >= 20 && delta <= 800) {
-                    mpg = Math.round((delta / gallons) * 10) / 10;
+                  const delta   = odometer_mi - prior.odometer_mi;
+                  const rawMpg  = delta / gallons;
+                  if (rawMpg >= 5 && rawMpg <= 40) {
+                    mpg = Math.round(rawMpg * 10) / 10;
                   }
                 }
               }
