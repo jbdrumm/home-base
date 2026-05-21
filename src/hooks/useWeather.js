@@ -17,8 +17,8 @@ const CODE_ICONS_NIGHT = { ...CODE_ICONS_DAY, 1000:'🌙' };
 // but our cached weather_cache only stores current conditions.
 // Using local time is accurate enough for icon selection.
 export function getIsDay() {
-      const isDay = new Date().getHours() >= 6 && new Date().getHours() < 20;
-  return h >= 6 && h < 20;  // 6am–8pm = daytime
+  return new Date().getHours() >= 6 && new Date().getHours() < 20;  // 6am–8pm = daytime
+
 }
 
 export function codeToIcon(code, isDay = true) {
