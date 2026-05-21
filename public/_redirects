@@ -1,0 +1,5 @@
+# Netlify functions must not be caught by the SPA catch-all
+/.netlify/functions/*  /.netlify/functions/:splat  200!
+
+# SPA catch-all — serve index.html for all other routes
+/*  /index.html  200
