@@ -62,9 +62,13 @@ export function useWeather() {
 
       const { current, hourly: h, daily: d } = data.data;
 
-      // Recalculate icon based on current time of day
+      // Recalculate icon using local time — cache was built at server fetch time
+      // which may have been a different time of day
+      const h = new Date().getHours();
+      const isDay = h >= 6 && h < 20;
       setWeather({
         ...current,
+        icon: current.weatherCode ? codeToIcon(current.weatherCode, isDay) : current.icon,
         isLive: true,
       });
       setHourly(h || []);
