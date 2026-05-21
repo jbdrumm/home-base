@@ -103,7 +103,7 @@ export default function CalendarFullView({ events = [], onBack }) {
             const dayEvents = getEventsForDay(events, day);
             const isExp     = expanded && isSameDay(day, expanded);
             // Show up to 4 pills; "+N more" if overflow
-            const maxPills  = 4;
+            const maxPills  = 3;
             const visible   = dayEvents.slice(0, maxPills);
             const overflow  = dayEvents.length - maxPills;
 
