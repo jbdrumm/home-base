@@ -217,10 +217,12 @@ export function useNotificationTriggers({
         markNotified(key);
       }
 
-      // Push to other members who didn't add it
-      for (const m of householdMembers) {
-        if (m !== primaryMember && m !== item.created_by) {
-          sendPushToMember(m, '🛒 Grocery Item Added', item.name, { view: 'grocery', prefKey: 'new_grocery' });
+      // Push to other members who didn't add it — only if pref is on
+      if (prefs.new_grocery) {
+        for (const m of householdMembers) {
+          if (m !== primaryMember && m !== item.created_by) {
+            sendPushToMember(m, '🛒 Grocery Item Added', item.name, { view: 'grocery', prefKey: 'new_grocery' });
+          }
         }
       }
       markNotified(key);
