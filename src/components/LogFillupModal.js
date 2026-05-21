@@ -1,91 +1,58 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
-// Two-button photo step: big "Take Photo" + smaller "Gallery"
-function PhotoUploadStep({ label, stepNum, done, parsed, onUpload }) {
-  const cameraRef  = useRef();
-  const galleryRef = useRef();
+// ─────────────────────────────────────────────────────────────
+//  LogFillupModal
+//
+//  Two independent sections: Odometer + Pump Screen
+//  Each section can be done in any order, independently.
+//  Each section has two modes:
+//    - Photo: Take Photo + Gallery buttons
+//    - Manual: text input fields
+//  Parse failure auto-switches to manual mode with error msg.
+//  Photo saved to Supabase Storage on parse failure for review.
+//  Confirm auto-closes after 4 seconds.
+// ─────────────────────────────────────────────────────────────
 
-  function handleFile(file) {
-    if (!file) return;
-    onUpload(file);
+async function uploadFailurePhoto(file, section, vehicleId) {
+  try {
+    const ext      = file.name?.split('.').pop() || 'jpg';
+    const ts       = new Date().toISOString().replace(/[:.]/g, '-');
+    const path     = `${vehicleId || 'unknown'}/${section}_${ts}.${ext}`;
+    const { error } = await supabase.storage
+      .from('fillup-debug')
+      .upload(path, file, { contentType: file.type || 'image/jpeg', upsert: false });
+    if (error) console.warn('[Fillup] Storage upload failed:', error.message);
+  } catch (e) {
+    console.warn('[Fillup] Storage upload error:', e.message);
   }
+}
 
-  if (done) {
-    return (
-      <div style={{
-        border: '2px solid var(--color-success)',
-        borderRadius: '12px', padding: '16px',
-        textAlign: 'center',
-        background: 'var(--color-success-bg)',
-        marginBottom: '12px',
-      }}>
-        <div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div>
-        <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-success)' }}>{label}</div>
-        {parsed && <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px' }}>{parsed}</div>}
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ marginBottom: '12px' }}>
-      <div style={{
-        fontSize: '12px', color: 'var(--text-tertiary)',
-        marginBottom: '8px', fontWeight: '500',
-      }}>Step {stepNum} — {label}</div>
-
-      {/* Hidden file inputs */}
-      <input ref={cameraRef}  type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
-        onChange={e => handleFile(e.target.files?.[0])} />
-      <input ref={galleryRef} type="file" accept="image/*" style={{ display: 'none' }}
-        onChange={e => handleFile(e.target.files?.[0])} />
-
-      {/* Button row: Camera (2x) | Gallery (1x) */}
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <button
-          onClick={() => cameraRef.current?.click()}
-          style={{
-            flex: 2,
-            padding: '16px 12px',
-            borderRadius: '12px',
-            border: '2px dashed var(--border-strong)',
-            background: 'var(--bg-base)',
-            cursor: 'pointer',
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: '6px',
-            fontFamily: 'var(--font-body)',
-            transition: 'all 0.15s',
-          }}
-        >
-          <span style={{ fontSize: '26px' }}>📷</span>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Take Photo</span>
-          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Camera</span>
-        </button>
-
-        <button
-          onClick={() => galleryRef.current?.click()}
-          style={{
-            flex: 1,
-            padding: '16px 8px',
-            borderRadius: '12px',
-            border: '1px solid var(--border)',
-            background: 'var(--bg-base)',
-            cursor: 'pointer',
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: '6px',
-            fontFamily: 'var(--font-body)',
-            transition: 'all 0.15s',
-          }}
-        >
-          <span style={{ fontSize: '22px' }}>🖼</span>
-          <span style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-secondary)' }}>Gallery</span>
-        </button>
-      </div>
-    </div>
-  );
+async function logParseError(section, vehicleId, details) {
+  try {
+    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) return;
+    await fetch(`${supabaseUrl}/rest/v1/error_logs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        context: `fillup_parse_${section}`,
+        message: 'Claude Vision parse failed',
+        details: JSON.stringify({ vehicleId, ...details }),
+        user_agent: navigator.userAgent.slice(0, 200),
+      }),
+    });
+  } catch { /* never crash the app */ }
 }
 
 async function parsePhotoWithClaude(file, promptText) {
-  const base64 = await new Promise((res, rej) => {
+  const base64data = await new Promise((res, rej) => {
     const r = new FileReader();
     r.onload = () => res(r.result.split(',')[1]);
     r.onerror = rej;
@@ -93,11 +60,11 @@ async function parsePhotoWithClaude(file, promptText) {
   });
 
   const mediaType = file.type || 'image/jpeg';
-  const apiKey = process.env.REACT_APP_ANTHROPIC_KEY;
-  if (!apiKey) throw new Error('REACT_APP_ANTHROPIC_KEY is not set');
+  const apiKey    = process.env.REACT_APP_ANTHROPIC_KEY;
+  if (!apiKey) throw new Error('REACT_APP_ANTHROPIC_KEY not set');
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 30000);
+  const timeout    = setTimeout(() => controller.abort(), 30000);
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -112,121 +79,276 @@ async function parsePhotoWithClaude(file, promptText) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 256,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-            { type: 'text', text: promptText },
-          ],
-        }],
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64data } },
+          { type: 'text',  text: promptText },
+        ]}],
       }),
     });
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
-      await logError('fillup_parse', `API error ${response.status}`, err);
-      throw new Error(`API error: ${response.status}`);
+      throw new Error(`API ${response.status}: ${err.error?.message || 'unknown'}`);
     }
 
-    const data = await response.json();
-    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const data  = await response.json();
+    const text  = data.content?.find(b => b.type === 'text')?.text || '';
     const clean = text.replace(/```json|```/g, '').trim();
-    try { return JSON.parse(clean); } catch {
-      await logError('fillup_parse', 'JSON parse failed', { raw: text });
-      return null;
-    }
+    return JSON.parse(clean);
   } catch (e) {
-    if (e.name === 'AbortError') {
-      await logError('fillup_parse', 'Request timed out after 30s', {});
-      throw new Error('Request timed out. Please try again.');
-    }
+    if (e.name === 'AbortError') throw new Error('Request timed out. Please try again.');
     throw e;
   } finally {
     clearTimeout(timeout);
   }
 }
 
-async function logError(context, message, details = {}) {
-  try {
-    const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-    const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) return;
-    await fetch(`${supabaseUrl}/rest/v1/error_logs`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Prefer': 'return=minimal',
-      },
-      body: JSON.stringify({
-        context, message,
-        details: JSON.stringify(details),
-        user_agent: navigator.userAgent.slice(0, 200),
-      }),
-    });
-  } catch { /* never let error logging crash the app */ }
+// ── Single section component ──────────────────────────────────
+function FillupSection({ section, vehicleId, onData }) {
+  const [mode,        setMode]        = useState('photo'); // 'photo' | 'manual'
+  const [parsing,     setParsing]     = useState(false);
+  const [error,       setError]       = useState(null);
+  const [done,        setDone]        = useState(false);
+  const [result,      setResult]      = useState(null);
+  const cameraRef  = useRef();
+  const galleryRef = useRef();
+
+  const isOdometer = section === 'odometer';
+
+  // Manual entry state
+  const [manualOdo,   setManualOdo]   = useState('');
+  const [manualGal,   setManualGal]   = useState('');
+  const [manualPpg,   setManualPpg]   = useState('');
+  const [manualTotal, setManualTotal] = useState('');
+
+  async function handleFile(file) {
+    if (!file) return;
+    setParsing(true);
+    setError(null);
+
+    const prompt = isOdometer
+      ? 'This is a vehicle odometer. Find the TOTAL odometer mileage (not trip). Respond ONLY with valid JSON: {"odometer_mi": <integer>}. If unreadable: {"odometer_mi": null}.'
+      : 'This is a gas pump screen after fill-up. Extract gallons, price per gallon, total cost. Respond ONLY with valid JSON: {"gallons": <number>, "price_per_gal": <number>, "total_cost": <number>}. Unreadable fields = null.';
+
+    try {
+      const parsed = await parsePhotoWithClaude(file, prompt);
+      const valid  = isOdometer ? parsed?.odometer_mi != null : parsed?.gallons != null;
+
+      if (!valid) throw new Error('Could not read values from photo.');
+
+      setResult(parsed);
+      setDone(true);
+      onData(parsed);
+    } catch (e) {
+      // Upload photo for debugging
+      uploadFailurePhoto(file, section, vehicleId);
+      logParseError(section, vehicleId, { error: e.message, fileName: file.name, fileSize: file.size });
+      setError('Could not read photo. Feedback sent to development for review.');
+      setMode('manual');
+    } finally {
+      setParsing(false);
+    }
+  }
+
+  function handleManualSubmit() {
+    let data;
+    if (isOdometer) {
+      const val = parseInt(manualOdo.replace(/,/g, ''), 10);
+      if (!val) return;
+      data = { odometer_mi: val, source: 'manual' };
+    } else {
+      data = {
+        gallons:       parseFloat(manualGal)   || null,
+        price_per_gal: parseFloat(manualPpg)   || null,
+        total_cost:    parseFloat(manualTotal)  || null,
+        source:        'manual',
+      };
+      if (!data.gallons && !data.total_cost) return;
+    }
+    setResult(data);
+    setDone(true);
+    onData(data);
+  }
+
+  // ── Done state ───────────────────────────────────────────────
+  if (done && result) {
+    const label = result.source === 'manual' ? 'Manual' : 'Vision';
+    const color = result.source === 'manual' ? 'var(--color-warn)' : 'var(--color-success)';
+    return (
+      <div style={{
+        background: 'var(--bg-base)', borderRadius: '10px',
+        padding: '12px 14px', border: '1px solid var(--border)',
+        display: 'flex', alignItems: 'center', gap: '10px',
+      }}>
+        <div style={{ fontSize: '20px' }}>{isOdometer ? '🛣' : '⛽'}</div>
+        <div style={{ flex: 1 }}>
+          {isOdometer ? (
+            <div style={{ fontSize: '14px', fontWeight: '600' }}>
+              {result.odometer_mi?.toLocaleString()} mi
+            </div>
+          ) : (
+            <div style={{ fontSize: '13px', lineHeight: 1.6 }}>
+              {result.gallons && <div><strong>{result.gallons}</strong> gal</div>}
+              {result.price_per_gal && <div><strong>${result.price_per_gal?.toFixed(3)}</strong>/gal</div>}
+              {result.total_cost && <div><strong>${result.total_cost?.toFixed(2)}</strong> total</div>}
+            </div>
+          )}
+        </div>
+        <span style={{
+          fontSize: '10px', fontWeight: '700', padding: '2px 8px',
+          borderRadius: '20px', background: color + '22', color,
+        }}>{label}</span>
+        <button onClick={() => { setDone(false); setResult(null); setMode('photo'); setError(null); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '12px' }}>
+          Redo
+        </button>
+      </div>
+    );
+  }
+
+  // ── Parsing spinner ──────────────────────────────────────────
+  if (parsing) {
+    return (
+      <div style={{ textAlign: 'center', padding: '24px 0' }}>
+        <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔍</div>
+        <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)' }}>
+          Reading {isOdometer ? 'odometer' : 'pump screen'}…
+        </div>
+        <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '3px' }}>
+          Claude Vision is parsing your photo
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Hidden file inputs */}
+      <input ref={cameraRef}  type="file" accept="image/*" capture="environment"
+        style={{ display: 'none' }} onChange={e => handleFile(e.target.files?.[0])} />
+      <input ref={galleryRef} type="file" accept="image/*"
+        style={{ display: 'none' }} onChange={e => handleFile(e.target.files?.[0])} />
+
+      {/* Error message */}
+      {error && (
+        <div style={{
+          background: 'var(--color-danger-bg)', border: '1px solid var(--color-danger)',
+          borderRadius: '8px', padding: '8px 12px', fontSize: '12px',
+          color: 'var(--color-danger)', marginBottom: '10px',
+        }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* Photo mode */}
+      {mode === 'photo' && (
+        <>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+            <button onClick={() => cameraRef.current?.click()} style={{
+              flex: 2, padding: '16px 12px', borderRadius: '12px',
+              border: '2px dashed var(--border-strong)', background: 'var(--bg-base)',
+              cursor: 'pointer', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '6px', fontFamily: 'var(--font-body)',
+            }}>
+              <span style={{ fontSize: '26px' }}>📷</span>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Take Photo</span>
+              <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Camera</span>
+            </button>
+            <button onClick={() => galleryRef.current?.click()} style={{
+              flex: 1, padding: '16px 8px', borderRadius: '12px',
+              border: '1px solid var(--border)', background: 'var(--bg-base)',
+              cursor: 'pointer', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: '6px', fontFamily: 'var(--font-body)',
+            }}>
+              <span style={{ fontSize: '22px' }}>🖼</span>
+              <span style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-secondary)' }}>Gallery</span>
+            </button>
+          </div>
+          <button onClick={() => setMode('manual')} style={{
+            width: '100%', padding: '8px', background: 'none',
+            border: 'none', cursor: 'pointer', fontSize: '12px',
+            color: 'var(--text-tertiary)', textDecoration: 'underline',
+            fontFamily: 'var(--font-body)',
+          }}>
+            Enter manually instead
+          </button>
+        </>
+      )}
+
+      {/* Manual mode */}
+      {mode === 'manual' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {isOdometer ? (
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>
+                Odometer reading (miles)
+              </label>
+              <input
+                className="input" type="number" placeholder="e.g. 47050"
+                value={manualOdo} onChange={e => setManualOdo(e.target.value)}
+                autoFocus
+              />
+            </div>
+          ) : (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>Gallons</label>
+                  <input className="input" type="number" step="0.001" placeholder="e.g. 14.2"
+                    value={manualGal} onChange={e => setManualGal(e.target.value)} autoFocus />
+                </div>
+                <div>
+                  <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>Price/gal</label>
+                  <input className="input" type="number" step="0.001" placeholder="e.g. 3.499"
+                    value={manualPpg} onChange={e => setManualPpg(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>Total cost</label>
+                <input className="input" type="number" step="0.01" placeholder="e.g. 49.56"
+                  value={manualTotal} onChange={e => setManualTotal(e.target.value)} />
+              </div>
+            </>
+          )}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {!error && (
+              <button onClick={() => setMode('photo')} className="btn btn-ghost" style={{ flex: 1 }}>
+                ← Back to photo
+              </button>
+            )}
+            <button onClick={handleManualSubmit} className="btn btn-primary" style={{ flex: 2 }}>
+              Confirm
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
+// ── Main modal ────────────────────────────────────────────────
 export default function LogFillupModal({ vehicles, onClose, onSave }) {
-  const [step,            setStep]            = useState(0);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [odometerDone,    setOdometerDone]    = useState(false);
-  const [pumpDone,        setPumpDone]        = useState(false);
-  const [parsing,         setParsing]         = useState(false);
-  const [parseError,      setParseError]      = useState(null);
-  const [parsed,          setParsed]          = useState(null);
-  const [odometerParsed,  setOdometerParsed]  = useState(null);
+  const [activeSection,   setActiveSection]   = useState('odometer');
+  const [odometerData,    setOdometerData]    = useState(null);
+  const [pumpData,        setPumpData]        = useState(null);
+  const [confirmed,       setConfirmed]       = useState(false);
+  const closeTimer = useRef(null);
 
   const isMobile = window.innerWidth < 768;
 
-  async function handleOdometerPhoto(file) {
-    setParsing(true);
-    setParseError(null);
-    try {
-      const result = await parsePhotoWithClaude(file,
-        'This is a photo of a vehicle odometer or instrument cluster. Find the total odometer mileage (not trip mileage) and respond with ONLY valid JSON: {"odometer_mi": <integer>}. The number may appear anywhere on the display. Do not include commas. If multiple numbers are visible, use the largest one as it is likely the total odometer. Only respond with {"odometer_mi": null} if the image is completely unreadable.'
-      );
-      setOdometerParsed(result?.odometer_mi ? `${result.odometer_mi.toLocaleString()} miles` : 'Could not read — enter manually');
-      setOdometerDone(true);
-      setParsed(prev => ({ ...prev, odometer_mi: result?.odometer_mi }));
-      setStep(2);
-    } catch (e) {
-      setParseError('Could not parse odometer photo. Please try again.');
-    } finally {
-      setParsing(false);
+  // Auto-close 4s after confirm
+  useEffect(() => {
+    if (confirmed) {
+      closeTimer.current = setTimeout(() => {
+        if (onSave) onSave({ vehicleId: selectedVehicle, ...odometerData, ...pumpData });
+        onClose();
+      }, 4000);
     }
-  }
+    return () => clearTimeout(closeTimer.current);
+  }, [confirmed]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handlePumpPhoto(file) {
-    setParsing(true);
-    setParseError(null);
-    try {
-      const result = await parsePhotoWithClaude(file,
-        'This is a photo of a gas pump screen after a fill-up. Extract the gallons pumped, price per gallon, and total cost. Respond with ONLY valid JSON: {"gallons": <number>, "price_per_gal": <number>, "total_cost": <number>}. If any value is unreadable, set it to null.'
-      );
-      setPumpDone(true);
-      setParsed(prev => ({
-        ...prev,
-        gallons:       result?.gallons,
-        price_per_gal: result?.price_per_gal,
-        total_cost:    result?.total_cost,
-      }));
-      setStep(3);
-    } catch (e) {
-      setParseError('Could not parse pump photo. Please try again.');
-    } finally {
-      setParsing(false);
-    }
-  }
-
-  function handleSave() {
-    if (onSave) onSave({ vehicleId: selectedVehicle, ...parsed });
-    onClose();
-  }
-
-  const currentVehicle = vehicles?.find(v => v.id === selectedVehicle);
-  const steps = ['Vehicle', 'Odometer', 'Pump', 'Confirm'];
+  const hasAnyData = odometerData || pumpData;
 
   return (
     <div
@@ -238,7 +360,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
         alignItems: isMobile ? 'flex-end' : 'center',
         justifyContent: 'center',
         zIndex: 400,
-        padding: isMobile ? '0' : '24px',
+        padding: isMobile ? 0 : '24px',
       }}
     >
       <div
@@ -246,18 +368,17 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
         style={{
           background: 'var(--bg-card)',
           borderRadius: isMobile ? '20px 20px 0 0' : '16px',
-          width: '100%',
-          maxWidth: '480px',
+          width: '100%', maxWidth: '480px',
           padding: '24px 24px 40px',
           boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
-          animation: 'fillupSlideIn 0.25s ease',
+          animation: 'fillupIn 0.25s ease',
           maxHeight: isMobile ? '90vh' : '85vh',
           overflowY: 'auto',
         }}
       >
-        <style>{`@keyframes fillupSlideIn{from{transform:translateY(${isMobile?'60px':'10px'});opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+        <style>{`@keyframes fillupIn{from{transform:translateY(${isMobile?'60px':'10px'});opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
 
-        {/* Handle (mobile) */}
+        {/* Handle */}
         {isMobile && (
           <div style={{ width: '36px', height: '4px', background: 'var(--border-strong)', borderRadius: '4px', margin: '0 auto 20px' }} />
         )}
@@ -267,152 +388,114 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
           <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: '600', color: 'var(--text-primary)' }}>
             ⛽ Log Fillup
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {step > 0 && (
-              <div style={{ display: 'flex', gap: '4px' }}>
-                {steps.map((s, i) => (
-                  <div key={s} style={{
-                    width: '7px', height: '7px', borderRadius: '50%',
-                    background: i <= step ? 'var(--accent)' : 'var(--border-strong)',
-                    transition: 'background 0.2s',
-                  }} title={s} />
-                ))}
-              </div>
-            )}
-            <button onClick={onClose} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--text-tertiary)', padding: '4px', borderRadius: '6px',
-              display: 'flex', alignItems: 'center',
-            }}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
+          <button onClick={onClose} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--text-tertiary)', padding: '4px', display: 'flex', alignItems: 'center',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
         </div>
 
-        {/* Step 0: vehicle selector */}
-        {step === 0 && (
-          <div>
-            <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '14px' }}>Which vehicle did you fill up?</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-              {vehicles?.map(v => (
-                <button key={v.id}
-                  onClick={() => { setSelectedVehicle(v.id); setStep(1); }}
-                  style={{
-                    padding: '12px', borderRadius: '10px',
-                    border: selectedVehicle === v.id ? '2px solid var(--accent)' : '1px solid var(--border)',
-                    background: selectedVehicle === v.id ? 'var(--accent-soft)' : 'var(--bg-base)',
-                    cursor: 'pointer', textAlign: 'left',
-                    transition: 'all 0.15s', fontFamily: 'var(--font-body)',
+        {/* Confirmed state */}
+        {confirmed ? (
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>✅</div>
+            <div style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '600', color: 'var(--text-primary)', marginBottom: '8px' }}>
+              Fillup saved!
+            </div>
+            {odometerData?.odometer_mi && (
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+                🛣 {odometerData.odometer_mi.toLocaleString()} mi
+                {odometerData.source === 'manual' && <span style={{ color: 'var(--color-warn)', marginLeft: '6px', fontSize: '11px' }}>Manual</span>}
+              </div>
+            )}
+            {pumpData?.gallons && (
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                ⛽ {pumpData.gallons} gal · ${pumpData.price_per_gal?.toFixed(3)}/gal · ${pumpData.total_cost?.toFixed(2)}
+                {pumpData.source === 'manual' && <span style={{ color: 'var(--color-warn)', marginLeft: '6px', fontSize: '11px' }}>Manual</span>}
+              </div>
+            )}
+            <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '16px' }}>
+              Closing in 4 seconds…
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Step 1: Vehicle selector */}
+            {!selectedVehicle ? (
+              <div>
+                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '14px' }}>
+                  Which vehicle did you fill up?
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {vehicles?.map(v => (
+                    <button key={v.id} onClick={() => setSelectedVehicle(v.id)} style={{
+                      padding: '12px', borderRadius: '10px',
+                      border: '1px solid var(--border)', background: 'var(--bg-base)',
+                      cursor: 'pointer', textAlign: 'left', fontFamily: 'var(--font-body)',
+                      transition: 'all 0.15s',
+                    }}>
+                      <div style={{ fontSize: '22px', marginBottom: '4px' }}>{v.emoji}</div>
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{v.year} {v.make}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{v.model}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Section toggle */}
+                <div style={{
+                  display: 'flex', gap: '4px', marginBottom: '20px',
+                  background: 'var(--bg-base)', borderRadius: '10px',
+                  padding: '4px', border: '1px solid var(--border)',
+                }}>
+                  {[
+                    { id: 'odometer', label: '🛣 Odometer', done: !!odometerData },
+                    { id: 'pump',     label: '⛽ Pump Screen', done: !!pumpData },
+                  ].map(s => (
+                    <button key={s.id} onClick={() => setActiveSection(s.id)} style={{
+                      flex: 1, padding: '8px 12px', borderRadius: '7px',
+                      border: 'none', cursor: 'pointer',
+                      fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: '500',
+                      background: activeSection === s.id ? 'var(--bg-card)' : 'transparent',
+                      color: activeSection === s.id ? 'var(--text-primary)' : 'var(--text-tertiary)',
+                      boxShadow: activeSection === s.id ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                      transition: 'all 0.15s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    }}>
+                      {s.label}
+                      {s.done && <span style={{ fontSize: '10px', color: 'var(--color-success)' }}>✓</span>}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Active section */}
+                <FillupSection
+                  key={activeSection}
+                  section={activeSection}
+                  vehicleId={selectedVehicle}
+                  onData={data => {
+                    if (activeSection === 'odometer') setOdometerData(data);
+                    else setPumpData(data);
                   }}
-                >
-                  <div style={{ fontSize: '22px', marginBottom: '4px' }}>{v.emoji}</div>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-primary)' }}>{v.year} {v.make}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{v.model}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Step 1: odometer */}
-        {step === 1 && (
-          <div>
-            {parsing ? (
-              <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
-                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Reading odometer…</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>Claude Vision is parsing your photo</div>
-              </div>
-            ) : (
-              <>
-                <PhotoUploadStep
-                  label="Odometer reading"
-                  stepNum={1}
-                  done={odometerDone}
-                  parsed={odometerParsed}
-                  onUpload={handleOdometerPhoto}
                 />
-                {parseError && (
-                  <div style={{ color: 'var(--color-danger)', fontSize: '12px', marginBottom: '10px' }}>{parseError}</div>
+
+                {/* Confirm button — only shown when at least one section has data */}
+                {hasAnyData && (
+                  <button
+                    onClick={() => setConfirmed(true)}
+                    className="btn btn-primary"
+                    style={{ width: '100%', marginTop: '20px', padding: '12px' }}
+                  >
+                    Save Fillup
+                  </button>
                 )}
               </>
             )}
-            <button className="btn btn-ghost" style={{ width: '100%', marginTop: '4px' }} onClick={onClose}>Cancel</button>
-          </div>
-        )}
-
-        {/* Step 2: pump screen */}
-        {step === 2 && (
-          <div>
-            {parsing ? (
-              <div style={{ textAlign: 'center', padding: '32px 0' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
-                <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Reading pump screen…</div>
-                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '4px' }}>Extracting gallons, price & total</div>
-              </div>
-            ) : (
-              <>
-                <div style={{
-                  background: 'var(--color-success-bg)', border: '1px solid var(--color-success)',
-                  borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: 'var(--color-success)',
-                  marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px',
-                }}>
-                  ✅ Odometer: {odometerParsed}
-                </div>
-                <PhotoUploadStep
-                  label="Pump screen"
-                  stepNum={2}
-                  done={pumpDone}
-                  parsed={null}
-                  onUpload={handlePumpPhoto}
-                />
-                {parseError && (
-                  <div style={{ color: 'var(--color-danger)', fontSize: '12px', marginBottom: '10px' }}>{parseError}</div>
-                )}
-              </>
-            )}
-            <button className="btn btn-ghost" style={{ width: '100%', marginTop: '4px' }} onClick={onClose}>Cancel</button>
-          </div>
-        )}
-
-        {/* Step 3: confirm */}
-        {step === 3 && parsed && (
-          <div>
-            {currentVehicle?.extended_use_plate && (() => {
-              const m = new Date().getMonth();
-              return (m === 11 || m === 0 || m === 1) ? (
-                <div style={{
-                  background: 'var(--color-warn-bg)', border: '1px solid var(--color-warn)',
-                  borderRadius: '8px', padding: '10px 12px', fontSize: '12px',
-                  color: 'var(--color-warn)', marginBottom: '14px',
-                }}>
-                  ⚠️ This vehicle has an extended use (antique) plate. Logging a fillup in Dec–Feb may affect your registration status.
-                </div>
-              ) : null;
-            })()}
-
-            <div style={{
-              background: 'var(--color-success-bg)', border: '1px solid var(--color-success)',
-              borderRadius: '10px', padding: '16px', marginBottom: '16px',
-            }}>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-success)', marginBottom: '10px' }}>
-                ✅ Claude Vision parsed your photos
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px' }}>
-                <div><span style={{ color: 'var(--text-tertiary)' }}>Odometer:</span> <strong>{parsed.odometer_mi ? parsed.odometer_mi.toLocaleString() + ' mi' : '—'}</strong></div>
-                <div><span style={{ color: 'var(--text-tertiary)' }}>Gallons:</span> <strong>{parsed.gallons ?? '—'}</strong></div>
-                <div><span style={{ color: 'var(--text-tertiary)' }}>Price/gal:</span> <strong>${parsed.price_per_gal?.toFixed(3) ?? '—'}</strong></div>
-                <div><span style={{ color: 'var(--text-tertiary)' }}>Total:</span> <strong>${parsed.total_cost?.toFixed(2) ?? '—'}</strong></div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button className="btn btn-ghost" style={{ flex: 1 }} onClick={onClose}>Cancel</button>
-              <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleSave}>Save fillup</button>
-            </div>
-          </div>
+          </>
         )}
       </div>
     </div>
