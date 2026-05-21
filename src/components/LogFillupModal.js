@@ -1,42 +1,85 @@
 import React, { useState, useRef } from 'react';
 
+// Two-button photo step: big "Take Photo" + smaller "Gallery"
 function PhotoUploadStep({ label, stepNum, done, parsed, onUpload }) {
-  const ref = useRef();
+  const cameraRef  = useRef();
+  const galleryRef = useRef();
 
-  async function handleFile(file) {
+  function handleFile(file) {
     if (!file) return;
     onUpload(file);
   }
 
-  return (
-    <div
-      onClick={() => !done && ref.current?.click()}
-      style={{
-        border: done ? '2px solid var(--color-success)' : '2px dashed var(--border-strong)',
-        borderRadius: '12px',
-        padding: '20px',
+  if (done) {
+    return (
+      <div style={{
+        border: '2px solid var(--color-success)',
+        borderRadius: '12px', padding: '16px',
         textAlign: 'center',
-        cursor: done ? 'default' : 'pointer',
-        background: done ? 'var(--color-success-bg)' : 'transparent',
-        transition: 'all 0.2s',
+        background: 'var(--color-success-bg)',
         marginBottom: '12px',
-      }}
-    >
-      <input ref={ref} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+      }}>
+        <div style={{ fontSize: '20px', marginBottom: '4px' }}>✅</div>
+        <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-success)' }}>{label}</div>
+        {parsed && <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '3px' }}>{parsed}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginBottom: '12px' }}>
+      <div style={{
+        fontSize: '12px', color: 'var(--text-tertiary)',
+        marginBottom: '8px', fontWeight: '500',
+      }}>Step {stepNum} — {label}</div>
+
+      {/* Hidden file inputs */}
+      <input ref={cameraRef}  type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
         onChange={e => handleFile(e.target.files?.[0])} />
-      {done ? (
-        <>
-          <div style={{ fontSize: '22px', marginBottom: '4px' }}>✅</div>
-          <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--color-success)' }}>{label}</div>
-          {parsed && <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>{parsed}</div>}
-        </>
-      ) : (
-        <>
-          <div style={{ fontSize: '28px', marginBottom: '6px' }}>📷</div>
-          <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Step {stepNum} — {label}</div>
-          <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '3px' }}>Tap to take photo or choose from library</div>
-        </>
-      )}
+      <input ref={galleryRef} type="file" accept="image/*" style={{ display: 'none' }}
+        onChange={e => handleFile(e.target.files?.[0])} />
+
+      {/* Button row: Camera (2x) | Gallery (1x) */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => cameraRef.current?.click()}
+          style={{
+            flex: 2,
+            padding: '16px 12px',
+            borderRadius: '12px',
+            border: '2px dashed var(--border-strong)',
+            background: 'var(--bg-base)',
+            cursor: 'pointer',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: '6px',
+            fontFamily: 'var(--font-body)',
+            transition: 'all 0.15s',
+          }}
+        >
+          <span style={{ fontSize: '26px' }}>📷</span>
+          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Take Photo</span>
+          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)' }}>Camera</span>
+        </button>
+
+        <button
+          onClick={() => galleryRef.current?.click()}
+          style={{
+            flex: 1,
+            padding: '16px 8px',
+            borderRadius: '12px',
+            border: '1px solid var(--border)',
+            background: 'var(--bg-base)',
+            cursor: 'pointer',
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', gap: '6px',
+            fontFamily: 'var(--font-body)',
+            transition: 'all 0.15s',
+          }}
+        >
+          <span style={{ fontSize: '22px' }}>🖼</span>
+          <span style={{ fontSize: '11px', fontWeight: '500', color: 'var(--text-secondary)' }}>Gallery</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -117,8 +160,7 @@ async function logError(context, message, details = {}) {
         'Prefer': 'return=minimal',
       },
       body: JSON.stringify({
-        context,
-        message,
+        context, message,
         details: JSON.stringify(details),
         user_agent: navigator.userAgent.slice(0, 200),
       }),
@@ -127,14 +169,14 @@ async function logError(context, message, details = {}) {
 }
 
 export default function LogFillupModal({ vehicles, onClose, onSave }) {
-  const [step, setStep] = useState(0);
+  const [step,            setStep]            = useState(0);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [odometerDone, setOdometerDone] = useState(false);
-  const [pumpDone, setPumpDone] = useState(false);
-  const [parsing, setParsing] = useState(false);
-  const [parseError, setParseError] = useState(null);
-  const [parsed, setParsed] = useState(null);
-  const [odometerParsed, setOdometerParsed] = useState(null);
+  const [odometerDone,    setOdometerDone]    = useState(false);
+  const [pumpDone,        setPumpDone]        = useState(false);
+  const [parsing,         setParsing]         = useState(false);
+  const [parseError,      setParseError]      = useState(null);
+  const [parsed,          setParsed]          = useState(null);
+  const [odometerParsed,  setOdometerParsed]  = useState(null);
 
   const isMobile = window.innerWidth < 768;
 
@@ -166,9 +208,9 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
       setPumpDone(true);
       setParsed(prev => ({
         ...prev,
-        gallons: result?.gallons,
+        gallons:       result?.gallons,
         price_per_gal: result?.price_per_gal,
-        total_cost: result?.total_cost,
+        total_cost:    result?.total_cost,
       }));
       setStep(3);
     } catch (e) {
@@ -184,8 +226,6 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
   }
 
   const currentVehicle = vehicles?.find(v => v.id === selectedVehicle);
-
-  // Steps indicator
   const steps = ['Vehicle', 'Odometer', 'Pump', 'Confirm'];
 
   return (
@@ -217,7 +257,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
       >
         <style>{`@keyframes fillupSlideIn{from{transform:translateY(${isMobile?'60px':'10px'});opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
 
-        {/* Handle (mobile only) */}
+        {/* Handle (mobile) */}
         {isMobile && (
           <div style={{ width: '36px', height: '4px', background: 'var(--border-strong)', borderRadius: '4px', margin: '0 auto 20px' }} />
         )}
@@ -232,21 +272,18 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
               <div style={{ display: 'flex', gap: '4px' }}>
                 {steps.map((s, i) => (
                   <div key={s} style={{
-                    width: '8px', height: '8px', borderRadius: '50%',
+                    width: '7px', height: '7px', borderRadius: '50%',
                     background: i <= step ? 'var(--accent)' : 'var(--border-strong)',
                     transition: 'background 0.2s',
                   }} title={s} />
                 ))}
               </div>
             )}
-            <button
-              onClick={onClose}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--text-tertiary)', padding: '4px', borderRadius: '6px',
-                display: 'flex', alignItems: 'center',
-              }}
-            >
+            <button onClick={onClose} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-tertiary)', padding: '4px', borderRadius: '6px',
+              display: 'flex', alignItems: 'center',
+            }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
@@ -254,24 +291,20 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
           </div>
         </div>
 
-        {/* Step 0: Select vehicle */}
+        {/* Step 0: vehicle selector */}
         {step === 0 && (
           <div>
             <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '14px' }}>Which vehicle did you fill up?</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
               {vehicles?.map(v => (
-                <button
-                  key={v.id}
+                <button key={v.id}
                   onClick={() => { setSelectedVehicle(v.id); setStep(1); }}
                   style={{
-                    padding: '12px',
-                    borderRadius: '10px',
+                    padding: '12px', borderRadius: '10px',
                     border: selectedVehicle === v.id ? '2px solid var(--accent)' : '1px solid var(--border)',
                     background: selectedVehicle === v.id ? 'var(--accent-soft)' : 'var(--bg-base)',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    transition: 'all 0.15s',
-                    fontFamily: 'var(--font-body)',
+                    cursor: 'pointer', textAlign: 'left',
+                    transition: 'all 0.15s', fontFamily: 'var(--font-body)',
                   }}
                 >
                   <div style={{ fontSize: '22px', marginBottom: '4px' }}>{v.emoji}</div>
@@ -283,7 +316,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
           </div>
         )}
 
-        {/* Step 1: Odometer photo */}
+        {/* Step 1: odometer */}
         {step === 1 && (
           <div>
             {parsing ? (
@@ -295,7 +328,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
             ) : (
               <>
                 <PhotoUploadStep
-                  label="Odometer photo"
+                  label="Odometer reading"
                   stepNum={1}
                   done={odometerDone}
                   parsed={odometerParsed}
@@ -310,7 +343,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
           </div>
         )}
 
-        {/* Step 2: Pump screen photo */}
+        {/* Step 2: pump screen */}
         {step === 2 && (
           <div>
             {parsing ? (
@@ -329,7 +362,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
                   ✅ Odometer: {odometerParsed}
                 </div>
                 <PhotoUploadStep
-                  label="Pump screen photo"
+                  label="Pump screen"
                   stepNum={2}
                   done={pumpDone}
                   parsed={null}
@@ -344,17 +377,16 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
           </div>
         )}
 
-        {/* Step 3: Confirm */}
+        {/* Step 3: confirm */}
         {step === 3 && parsed && (
           <div>
             {currentVehicle?.extended_use_plate && (() => {
               const m = new Date().getMonth();
-              const isWinter = m === 11 || m === 0 || m === 1;
-              return isWinter ? (
+              return (m === 11 || m === 0 || m === 1) ? (
                 <div style={{
                   background: 'var(--color-warn-bg)', border: '1px solid var(--color-warn)',
-                  borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: 'var(--color-warn)',
-                  marginBottom: '14px',
+                  borderRadius: '8px', padding: '10px 12px', fontSize: '12px',
+                  color: 'var(--color-warn)', marginBottom: '14px',
                 }}>
                   ⚠️ This vehicle has an extended use (antique) plate. Logging a fillup in Dec–Feb may affect your registration status.
                 </div>
