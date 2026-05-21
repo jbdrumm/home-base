@@ -12,6 +12,15 @@ import { supabase } from '../lib/supabase';
 const CODE_ICONS_DAY   = { 1000:'☀️',1001:'☁️',1100:'🌤',1101:'⛅',1102:'🌥',2000:'🌫️',2100:'🌫️',4000:'🌦️',4001:'🌧️',4200:'🌦️',4201:'🌧️',5000:'❄️',5001:'🌨️',5100:'🌨️',5101:'❄️',6000:'🌧️',6001:'🌧️',6200:'🌧️',6201:'🌧️',7000:'🌨️',7101:'🌨️',7102:'🌨️',8000:'⛈️' };
 const CODE_ICONS_NIGHT = { ...CODE_ICONS_DAY, 1000:'🌙' };
 
+// Derive isDay from local clock — sunrise ~6am, sunset ~8:30pm
+// Tomorrow.io does provide sunriseTime/sunsetTime in the daily forecast
+// but our cached weather_cache only stores current conditions.
+// Using local time is accurate enough for icon selection.
+export function getIsDay() {
+  const h = new Date().getHours();
+  return h >= 6 && h < 20;  // 6am–8pm = daytime
+}
+
 export function codeToIcon(code, isDay = true) {
   return (isDay ? CODE_ICONS_DAY : CODE_ICONS_NIGHT)[code] || '🌡';
 }
