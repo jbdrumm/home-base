@@ -289,9 +289,9 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
           {/* Vehicle hero card */}
-          <div className="card" style={{ padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="card" style={{ padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
             <div style={{
-              width: '160px', height: '100px',
+              width: '140px', height: '90px', flexShrink: 0,
               background: vehicle.photo_url ? 'none' : 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
               borderRadius: '10px', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -309,8 +309,8 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
               )}
             </div>
 
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: '700', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{vehicle.name}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vehicle.name}</div>
               <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                 {[vehicle.trim, vehicle.engine, vehicle.color].filter(Boolean).join(' · ')}
               </div>
