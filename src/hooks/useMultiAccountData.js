@@ -37,7 +37,6 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
         try {
           const calendars = await fetchCalendarList(token);
           const selected  = calendars.filter(c => c.selected !== false);
-          console.log(`[CalendarNames] ${member}:`, selected.map(c => c.summary));
           const results   = await Promise.all(
             selected.map(async cal => {
               try {
