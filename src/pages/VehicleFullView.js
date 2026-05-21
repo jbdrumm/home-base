@@ -280,8 +280,8 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
 
           {/* Vehicle selector — single row, emoji + model only */}
           <div style={{
-            display: 'flex', gap: '8px', justifyContent: 'center',
-            marginBottom: '16px', flexWrap: 'nowrap', overflowX: 'auto',
+            display: 'flex', gap: '6px', justifyContent: 'center',
+            marginBottom: '16px', flexWrap: 'nowrap',
             padding: '2px 0',
           }}>
             {vehicles.map(v => (
@@ -289,7 +289,7 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
                 onClick={() => { setActiveVehicleId(v.id); setActiveTab('maintenance'); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '5px',
-                  padding: '7px 14px', borderRadius: '20px', flexShrink: 0,
+                  padding: '5px 10px', borderRadius: '20px', flexShrink: 0,
                   border: vehicle.id === v.id ? 'none' : '1px solid var(--border)',
                   background: vehicle.id === v.id ? 'var(--accent)' : 'var(--bg-card)',
                   color: vehicle.id === v.id ? 'white' : 'var(--text-secondary)',
