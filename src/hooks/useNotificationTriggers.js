@@ -115,10 +115,12 @@ export function useNotificationTriggers({
       if (!notifiedToday(key)) {
         notify.billDue(bill.name, bill.amount);
         markNotified(key);
-        // Push to all members who didn't create this bill entry
-        for (const m of householdMembers) {
-          if (m !== primaryMember) {
-            sendPushToMember(m, '💳 Bill Due Today', `${bill.name} — $${bill.amount}`, { view: 'financial', prefKey: 'bill_due' });
+        // Push to all members — only if pref is on
+        if (prefs.bill_due) {
+          for (const m of householdMembers) {
+            if (m !== primaryMember) {
+              sendPushToMember(m, '💳 Bill Due Today', `${bill.name} — $${bill.amount}`, { view: 'financial', prefKey: 'bill_due' });
+            }
           }
         }
       }
@@ -151,14 +153,14 @@ export function useNotificationTriggers({
           if (isFamilyTask && prefs.new_task_family) { notify.newTask(task.title, owner); markNotified(key); }
         }
 
-        // Push to other members who didn't create the task
-        if (isFamilyTask) {
+        // Push to other members who didn't create the task — gated behind prefs
+        if (isFamilyTask && prefs.new_task_family) {
           for (const m of householdMembers) {
             if (m !== primaryMember && m !== task.created_by) {
               sendPushToMember(m, '✅ New Family Task', task.title, { view: 'todo', prefKey: 'new_task_family' });
             }
           }
-        } else if (!isOwnTask && !addedByMe) {
+        } else if (!isOwnTask && !addedByMe && prefs.new_task_own) {
           sendPushToMember(owner, '✅ New Task', task.title, { view: 'todo', prefKey: 'new_task_own' });
         }
         markNotified(key);
@@ -183,7 +185,7 @@ export function useNotificationTriggers({
           if (isFamilyTask && prefs.completed_task_family) { notify.completedTask(task.title, owner); markNotified(key); }
         }
 
-        if (isFamilyTask) {
+        if (isFamilyTask && prefs.completed_task_family) {
           for (const m of householdMembers) {
             if (m !== primaryMember && m !== task.completed_by) {
               sendPushToMember(m, '✅ Family Task Done', task.title, { view: 'todo', prefKey: 'completed_task_family' });
@@ -252,10 +254,12 @@ export function useNotificationTriggers({
         notify.newCalendarEvent(event.title);
       }
 
-      // Push to other members who didn't create the event
-      for (const m of householdMembers) {
-        if (m !== primaryMember && m !== event.created_by) {
-          sendPushToMember(m, '📅 New Family Event', event.title, { view: 'calendar', prefKey: 'new_calendar_family' });
+      // Push to other members who didn't create the event — gated behind prefs
+      if (prefs.new_calendar_family) {
+        for (const m of householdMembers) {
+          if (m !== primaryMember && m !== event.created_by) {
+            sendPushToMember(m, '📅 New Family Event', event.title, { view: 'calendar', prefKey: 'new_calendar_family' });
+          }
         }
       }
     }
