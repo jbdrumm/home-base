@@ -30,7 +30,6 @@ import { registerFCMToken } from '../lib/firebase';
 import { useMultiAccountData } from '../hooks/useMultiAccountData';
 import { useWeather } from '../hooks/useWeather';
 import { seedGroceries, seedBills } from '../lib/seedData';
-import { seedVehicles } from '../lib/vehicleData';
 import { useTilePreferences } from '../hooks/useTilePreferences';
 import { useVehicleData } from '../hooks/useVehicleData';
 import LayoutSettings from '../components/LayoutSettings';
@@ -396,7 +395,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
       )}
       {showFillup && (
         <LogFillupModal
-          vehicles={seedVehicles}
+          vehicles={vehicles}
           onClose={() => setShowFillup(false)}
           onSave={async (data) => {
             try {
