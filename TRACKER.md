@@ -210,12 +210,20 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 | 10 | Multi-account auth — `household_tokens` Supabase table, `useHouseholdAuth`, `useMultiAccountData`, HouseholdSetup UI, QuickAdd "Who is this for?", account-aware task writes, TodoFullView account filter chips, per-task toggle/delete/move |
 | 10b | Auth hardening — auth-code OAuth flow replaces implicit, refresh tokens in Supabase, silent 4-min refresh cycle, accounts never expire |
 | 11 | PWA — icons (all sizes + maskable), manifest, install banner, Firebase push infrastructure, background push via dedicated SW, `scripts/generate-firebase-config.js` prebuild |
+| 12 | Tile Customization — `tile_preferences` table, `useTilePreferences` hook, `LayoutSettings` component, mobile layout fully functional, desktop Coming Soon overlay |
 
 ---
 
 ## 🔜 Sprint Roadmap
 
-### Sprint 12 — Vehicle Data Feeds (Current)
+### Sprint 12 — Tile Customization ✅ Built
+- `tile_preferences` Supabase table — `member`, `tile_id`, `enabled`, `order_index`
+- `useTilePreferences` hook — loads/saves from Supabase, merges new tiles at end on first load
+- `LayoutSettings` component — drag-to-reorder + up/down arrow fallback, toggle per tile
+- Mobile: fully functional — preferences respected on dashboard render
+- Desktop: settings page rendered but greyed out with "Coming Soon" overlay
+
+### Sprint 13 — Vehicle Data Feeds (Current)
 - Remove all seed data from VehicleWidget and VehicleFullView
 - Load vehicles from Supabase `vehicles` table
 - Load `maintenance_schedule` from Supabase per vehicle (empty state handled gracefully)
@@ -225,12 +233,12 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 - Fuel log stats (avg MPG, PPG, cost/mile, monthly spend) calculated from real rows
 - Empty states throughout for tables/logs with no data yet
 
-### Sprint 13 — Packages
+### Sprint 14 — Packages
 - Auto-import via Make.com + Yahoo Mail
 - Carrier, status, ETA, progress bar
 - No Packages source files exist yet — clean build from scratch
 
-### Sprint 14 — Financial Integration (Monarch Money)
+### Sprint 15 — Financial Integration (Monarch Money)
 See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Monarch Money ($99/yr) — unofficial API (`bradleyseanf/monarchmoneycommunity`)
 - **Owner to-do:** Set Monarch Money password before this sprint (API requires password auth)
@@ -240,25 +248,18 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - 3x daily sync, Zillow/VinAudit/Principal 401k via Monarch native integrations
 - **Setup step:** Delete bills seed data and enter real monthly bills during this sprint
 
-### Sprint 15 — Meal Planning
+### Sprint 16 — Meal Planning
 - Weekly grid (Mon–Sun)
 - Recipe library (URL import via Claude Vision or manual)
 - Auto-populate grocery list from recipes
 - **"Paste a shopping list" feature:** textarea input → Claude Vision parses items, quantities, categories → confirm screen → bulk-inserts into Supabase grocery list
 
-### Sprint 16 — Multi-Account Auth (Google Hub)
+### Sprint 17 — Multi-Account Auth (Google Hub)
 - Store Google tokens for Jacob, Katelin, and Family accounts in Supabase
 - Dashboard reads calendars and tasks from all 3 merged
 - Writes route to correct account via "Who is this for?" selector
 - Family tasks write to Family Google account so they appear on all Google Hubs
 - Personal phone views only show own account data
-
-### Sprint 17 — Tile Customization ✅ Built
-- `tile_preferences` Supabase table — `member`, `tile_id`, `enabled`, `order_index`
-- `useTilePreferences` hook — loads/saves from Supabase, merges new tiles at end on first load
-- `LayoutSettings` component — drag-to-reorder + up/down arrow fallback, toggle per tile
-- Mobile: fully functional — preferences respected on dashboard render
-- Desktop: settings page rendered but greyed out with "Coming Soon" overlay
 
 ### Sprint 18 — Jacob's Page
 - F1 and IndyCar news/calendar
