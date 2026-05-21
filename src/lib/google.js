@@ -69,7 +69,7 @@ export async function fetchCalendarEvents(token, calendarId = 'primary', daysAhe
 }
 
 // Normalize a Google Calendar event to Home Base format
-export function normalizeCalendarEvent(event, owner = 'family') {
+export function normalizeCalendarEvent(event, owner = 'family', calendarName = '') {
   const startDT   = event.start?.dateTime;
   const startDate = event.start?.date; // all-day: "YYYY-MM-DD"
   const start     = startDT || startDate;
@@ -92,7 +92,8 @@ export function normalizeCalendarEvent(event, owner = 'family') {
   if (date.toDateString() === tomorrow.toDateString()) dateLabel = 'tomorrow';
 
   return {
-    id:       event.id,
+    id:           event.id,
+    calendarName: calendarName,
     title:    event.summary || '(No title)',
     time:     startDT
                 ? new Date(startDT).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
