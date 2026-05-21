@@ -53,7 +53,6 @@ async function parsePhotoWithClaude(file, promptText) {
   const apiKey = process.env.REACT_APP_ANTHROPIC_KEY;
   if (!apiKey) throw new Error('REACT_APP_ANTHROPIC_KEY is not set');
 
-  // 30 second timeout — API can be slow on mobile
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30000);
 
@@ -128,7 +127,7 @@ async function logError(context, message, details = {}) {
 }
 
 export default function LogFillupModal({ vehicles, onClose, onSave }) {
-  const [step, setStep] = useState(0);           // 0=vehicle, 1=odo, 2=pump, 3=confirm
+  const [step, setStep] = useState(0);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [odometerDone, setOdometerDone] = useState(false);
   const [pumpDone, setPumpDone] = useState(false);
@@ -136,6 +135,8 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
   const [parseError, setParseError] = useState(null);
   const [parsed, setParsed] = useState(null);
   const [odometerParsed, setOdometerParsed] = useState(null);
+
+  const isMobile = window.innerWidth < 768;
 
   async function handleOdometerPhoto(file) {
     setParsing(true);
@@ -184,23 +185,73 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
 
   const currentVehicle = vehicles?.find(v => v.id === selectedVehicle);
 
+  // Steps indicator
+  const steps = ['Vehicle', 'Odometer', 'Pump', 'Confirm'];
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-sheet" style={{ maxWidth: '480px' }}>
-        <div className="modal-handle" />
+    <div
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(0,0,0,0.45)',
+        display: 'flex',
+        alignItems: isMobile ? 'flex-end' : 'center',
+        justifyContent: 'center',
+        zIndex: 400,
+        padding: isMobile ? '0' : '24px',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: 'var(--bg-card)',
+          borderRadius: isMobile ? '20px 20px 0 0' : '16px',
+          width: '100%',
+          maxWidth: '480px',
+          padding: '24px 24px 40px',
+          boxShadow: '0 8px 40px rgba(0,0,0,0.25)',
+          animation: 'fillupSlideIn 0.25s ease',
+          maxHeight: isMobile ? '90vh' : '85vh',
+          overflowY: 'auto',
+        }}
+      >
+        <style>{`@keyframes fillupSlideIn{from{transform:translateY(${isMobile?'60px':'10px'});opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+
+        {/* Handle (mobile only) */}
+        {isMobile && (
+          <div style={{ width: '36px', height: '4px', background: 'var(--border-strong)', borderRadius: '4px', margin: '0 auto 20px' }} />
+        )}
+
+        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <div className="modal-title" style={{ marginBottom: 0 }}>⛽ Log Fillup</div>
-          {step > 0 && (
-            <div style={{ display: 'flex', gap: '4px' }}>
-              {['Vehicle','Odometer','Pump','Confirm'].map((s, i) => (
-                <div key={s} style={{
-                  width: '8px', height: '8px', borderRadius: '50%',
-                  background: i <= step ? 'var(--accent)' : 'var(--border-strong)',
-                  transition: 'background 0.2s',
-                }} />
-              ))}
-            </div>
-          )}
+          <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: '600', color: 'var(--text-primary)' }}>
+            ⛽ Log Fillup
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {step > 0 && (
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {steps.map((s, i) => (
+                  <div key={s} style={{
+                    width: '8px', height: '8px', borderRadius: '50%',
+                    background: i <= step ? 'var(--accent)' : 'var(--border-strong)',
+                    transition: 'background 0.2s',
+                  }} title={s} />
+                ))}
+              </div>
+            )}
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-tertiary)', padding: '4px', borderRadius: '6px',
+                display: 'flex', alignItems: 'center',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Step 0: Select vehicle */}
@@ -220,6 +271,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'all 0.15s',
+                    fontFamily: 'var(--font-body)',
                   }}
                 >
                   <div style={{ fontSize: '22px', marginBottom: '4px' }}>{v.emoji}</div>
@@ -228,7 +280,6 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
                 </button>
               ))}
             </div>
-            <button className="btn btn-ghost" style={{ width: '100%' }} onClick={onClose}>Cancel</button>
           </div>
         )}
 
@@ -255,7 +306,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
                 )}
               </>
             )}
-            <button className="btn btn-ghost" style={{ width: '100%' }} onClick={onClose}>Cancel</button>
+            <button className="btn btn-ghost" style={{ width: '100%', marginTop: '4px' }} onClick={onClose}>Cancel</button>
           </div>
         )}
 
@@ -270,7 +321,6 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
               </div>
             ) : (
               <>
-                {/* Show odo success */}
                 <div style={{
                   background: 'var(--color-success-bg)', border: '1px solid var(--color-success)',
                   borderRadius: '8px', padding: '8px 12px', fontSize: '12px', color: 'var(--color-success)',
@@ -290,14 +340,13 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
                 )}
               </>
             )}
-            <button className="btn btn-ghost" style={{ width: '100%' }} onClick={onClose}>Cancel</button>
+            <button className="btn btn-ghost" style={{ width: '100%', marginTop: '4px' }} onClick={onClose}>Cancel</button>
           </div>
         )}
 
-        {/* Step 3: Confirm parsed data */}
+        {/* Step 3: Confirm */}
         {step === 3 && parsed && (
           <div>
-            {/* Extended use plate warning */}
             {currentVehicle?.extended_use_plate && (() => {
               const m = new Date().getMonth();
               const isWinter = m === 11 || m === 0 || m === 1;
@@ -307,7 +356,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
                   borderRadius: '8px', padding: '10px 12px', fontSize: '12px', color: 'var(--color-warn)',
                   marginBottom: '14px',
                 }}>
-                  ⚠️ This vehicle has an extended use (antique) plate. Logging a fillup in Dec–Feb may affect your registration status. Confirm this is intentional.
+                  ⚠️ This vehicle has an extended use (antique) plate. Logging a fillup in Dec–Feb may affect your registration status.
                 </div>
               ) : null;
             })()}
