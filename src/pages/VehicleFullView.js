@@ -289,13 +289,15 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
           {/* Vehicle hero card */}
-          <div className="card" style={{ padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="card" style={{ padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px', overflow: 'hidden' }}>
+
+            {/* Photo — fixed size, never shrinks */}
             <div style={{
-              width: '140px', height: '90px', flexShrink: 0,
+              width: '140px', height: '88px', flexShrink: 0,
               background: vehicle.photo_url ? 'none' : 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
               borderRadius: '10px', overflow: 'hidden',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '40px', flexShrink: 0, position: 'relative',
+              fontSize: '38px', position: 'relative',
             }}>
               {vehicle.photo_url ? (
                 vehicle.photo_scale
@@ -309,32 +311,40 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
               )}
             </div>
 
+            {/* Name + details — takes remaining space, clips overflow */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{vehicle.name}</div>
-              <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
+              <div style={{
+                fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700',
+                lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {vehicle.year} {vehicle.make} {vehicle.model}
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {[vehicle.trim, vehicle.engine, vehicle.color].filter(Boolean).join(' · ')}
               </div>
-              <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '20px', background: chip.bg, color: chip.color }}>{chip.label}</span>
+              <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '20px', background: chip.bg, color: chip.color, whiteSpace: 'nowrap' }}>{chip.label}</span>
                 {garaged
-                  ? <span className="chip" style={{ background: '#1e1b4b', color: '#a5b4fc' }}>🏠 Garaged — extended use plate</span>
-                  : <span className="chip chip-neutral" style={{ background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>In service</span>
+                  ? <span className="chip" style={{ background: '#1e1b4b', color: '#a5b4fc', whiteSpace: 'nowrap' }}>🏠 Garaged</span>
+                  : <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border)', whiteSpace: 'nowrap' }}>In service</span>
                 }
               </div>
             </div>
 
-            <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '130px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: '500', whiteSpace: 'nowrap' }}>
+            {/* Odometer — fixed width, right-aligned */}
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: '500', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
                 {estimatedOdo ? `~${estimatedOdo.toLocaleString()}` : '—'}
               </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>estimated miles</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>est. miles</div>
               {latestFuel && (
-                <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
-                  Last logged: {parseInt(latestFuel.odometer_mi).toLocaleString()} on{' '}
+                <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px', whiteSpace: 'nowrap' }}>
+                  Last: {parseInt(latestFuel.odometer_mi).toLocaleString()} on{' '}
                   {new Date(latestFuel.logged_at + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </div>
               )}
             </div>
+
           </div>
 
           {/* Tab bar */}
