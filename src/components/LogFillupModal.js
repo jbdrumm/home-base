@@ -128,7 +128,7 @@ function FillupSection({ section, vehicleId, onData }) {
 
     const prompt = isOdometer
       ? 'This is a vehicle odometer. Find the TOTAL odometer mileage (not trip). Respond ONLY with valid JSON: {"odometer_mi": <integer>}. If unreadable: {"odometer_mi": null}.'
-      : 'This is a gas pump screen after fill-up. Extract the total GALLONS pumped and the TOTAL COST paid. Ignore the price-per-gallon display — there may be multiple (one per octane level). Respond ONLY with valid JSON: {"gallons": <number>, "total_cost": <number>}. Unreadable fields = null. Do NOT include price_per_gal.';
+      : 'This is a gas pump screen after fill-up. Extract the total GALLONS pumped, the TOTAL COST paid, and the gas station brand/name if visible anywhere on the screen. Ignore the price-per-gallon display — there may be multiple (one per octane level). Respond ONLY with valid JSON: {"gallons": <number>, "total_cost": <number>, "station": <string or null>}. Unreadable fields = null. Do NOT include price_per_gal.';
 
     try {
       const parsed = await parsePhotoWithClaude(file, prompt);
@@ -419,6 +419,7 @@ export default function LogFillupModal({ vehicles, onClose, onSave }) {
             {pumpData?.gallons && (
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '4px' }}>
                 ⛽ {pumpData.gallons} gal · ${pumpData.price_per_gal?.toFixed(3)}/gal · ${pumpData.total_cost?.toFixed(2)}
+                {pumpData.station && <span style={{ marginLeft: '6px' }}>· {pumpData.station}</span>}
                 {pumpData.source === 'manual' && <span style={{ color: 'var(--color-warn)', marginLeft: '6px', fontSize: '11px' }}>Manual</span>}
               </div>
             )}
