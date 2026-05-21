@@ -13,6 +13,7 @@ import QuickAddModal from '../components/QuickAddModal';
 import LogFillupModal from '../components/LogFillupModal';
 import HouseholdSetup from '../components/HouseholdSetup';
 import NotificationSettings from '../components/NotificationSettings';
+import { supabase } from '../lib/supabase';
 
 import CalendarFullView from './CalendarFullView';
 import TodoFullView from './TodoFullView';
@@ -354,7 +355,25 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
         <LogFillupModal
           vehicles={seedVehicles}
           onClose={() => setShowFillup(false)}
-          onSave={(data) => { console.log('Fillup logged from FAB:', data); setShowFillup(false); }}
+          onSave={async (data) => {
+            try {
+              const { vehicleId, odometer_mi, gallons, price_per_gal, total_cost, station } = data;
+              const { error } = await supabase.from('fuel_log').insert({
+                vehicle_id:    vehicleId,
+                odometer_mi:   odometer_mi   || null,
+                gallons:       gallons        || null,
+                price_per_gal: price_per_gal  || null,
+                total_cost:    total_cost      || null,
+                station:       station         || null,
+                created_by:    resolvedMember,
+              });
+              if (error) throw error;
+            } catch (e) {
+              console.error('[Fillup] Save failed:', e.message);
+            } finally {
+              setShowFillup(false);
+            }
+          }}
         />
       )}
     </div>
