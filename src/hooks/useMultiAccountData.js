@@ -41,7 +41,7 @@ export function useMultiAccountData(getTokenFor, householdTokens) {
             selected.map(async cal => {
               try {
                 const raw = await fetchCalendarEvents(token, cal.id, 270, 60);  // 9 months ahead, 60 days back
-                return raw.map(e => normalizeCalendarEvent(e, MEMBER_OWNER_MAP[member]));
+                return raw.map(e => normalizeCalendarEvent(e, MEMBER_OWNER_MAP[member], cal.summary || ''));
               } catch { return []; }
             })
           );
