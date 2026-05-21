@@ -311,7 +311,7 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
             </div>
 
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: '700' }}>{vehicle.name}</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: '20px', fontWeight: '700', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{vehicle.name}</div>
               <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                 {[vehicle.trim, vehicle.engine, vehicle.color].filter(Boolean).join(' · ')}
               </div>
@@ -324,8 +324,8 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
               </div>
             </div>
 
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '32px', fontWeight: '500' }}>
+            <div style={{ textAlign: 'right', flexShrink: 0, minWidth: '130px' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '28px', fontWeight: '500', whiteSpace: 'nowrap' }}>
                 {estimatedOdo ? `~${estimatedOdo.toLocaleString()}` : '—'}
               </div>
               <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>estimated miles</div>
