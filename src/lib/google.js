@@ -53,15 +53,16 @@ export async function fetchCalendarList(token) {
 }
 
 // Fetch events from a specific calendar for a date range
-export async function fetchCalendarEvents(token, calendarId = 'primary', daysAhead = 270) {
+export async function fetchCalendarEvents(token, calendarId = 'primary', daysAhead = 270, daysBehind = 60) {
   const now    = new Date();
+  const past   = new Date(now.getTime() - daysBehind * 24 * 60 * 60 * 1000);
   const future = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
   const params = new URLSearchParams({
-    timeMin:      now.toISOString(),
+    timeMin:      past.toISOString(),
     timeMax:      future.toISOString(),
     singleEvents: 'true',
     orderBy:      'startTime',
-    maxResults:   '500',
+    maxResults:   '2500',
   });
   const data = await gFetch(`${CALENDAR_BASE}/calendars/${encodeURIComponent(calendarId)}/events?${params}`, token);
   return data.items || [];
@@ -92,7 +93,7 @@ export function normalizeCalendarEvent(event, owner = 'family') {
 
   return {
     id:       event.id,
-    title:    event.summary || '(No title)',
+    title:    (event.summary || '(No title)').replace(/^[\p{Emoji_Presentation}\p{Extended_Pictographic}\u200d\ufe0f\s]+/u, '').trim() || event.summary || '(No title)',
     time:     startDT
                 ? new Date(startDT).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
                 : 'All day',
