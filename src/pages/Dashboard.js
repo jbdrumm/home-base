@@ -87,7 +87,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
 
   // Tile preferences — per member, mobile layout + visibility
   const { prefs: tilePrefs, loading: tilePrefsLoading, toggleTile, reorderTile, moveTile } =
-    useTilePreferences(primaryMember);
+    useTilePreferences(resolvedMember);
 
   // Build ordered, filtered list of enabled tile IDs for mobile
   const enabledMobileTiles = tilePrefs
