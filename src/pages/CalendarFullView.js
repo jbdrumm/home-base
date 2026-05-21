@@ -5,10 +5,10 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval,
 import FullScreenView from '../components/FullScreenView';
 
 const ownerColors = {
-  family: '#2563EB',
-  jacob:  '#059669',
-  wife:   '#9333EA',
-  katelin:'#9333EA',
+  family:  '#2563EB',
+  jacob:   '#059669',
+  katelin: '#9333EA',
+  wife:    '#9333EA',
 };
 
 function getEventsForDay(events, day) {
@@ -37,6 +37,8 @@ export default function CalendarFullView({ events = [], onBack }) {
   const calEnd     = endOfWeek(monthEnd,     { weekStartsOn: 0 });
   const days       = eachDayOfInterval({ start: calStart, end: calEnd });
 
+  const isCurrentMonth = isSameMonth(new Date(), current);
+
   function jumpToToday() {
     setCurrent(new Date());
     setExpanded(null);
@@ -58,40 +60,24 @@ export default function CalendarFullView({ events = [], onBack }) {
 
   const expandedEvents = expanded ? getEventsForDay(events, expanded) : [];
 
-  const isCurrentMonth = isSameMonth(new Date(), current);
-
-  const topbarActions = (
-    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-      {!isCurrentMonth && (
-        <button onClick={jumpToToday} style={navBtn}>
-          Today
-        </button>
-      )}
-    </div>
-  );
+  const topbarActions = !isCurrentMonth ? (
+    <button onClick={jumpToToday} style={navBtn}>Today</button>
+  ) : null;
 
   return (
     <FullScreenView title="Calendar" onBack={onBack} actions={topbarActions}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
 
         {/* Month nav */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <button onClick={() => setCurrent(subMonths(current, 1))} style={navBtn}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: '600', color: 'var(--text-primary)' }}>
-              {format(current, 'MMMM yyyy')}
-            </span>
-            {isCurrentMonth && (
-              <span style={{
-                fontSize: '11px', padding: '3px 9px', borderRadius: '20px',
-                background: 'var(--accent)', color: 'white', fontWeight: '600',
-              }}>This month</span>
-            )}
-          </div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '22px', fontWeight: '600', color: 'var(--text-primary)' }}>
+            {format(current, 'MMMM yyyy')}
+          </span>
           <button onClick={() => setCurrent(addMonths(current, 1))} style={navBtn}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M7 4l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -100,67 +86,78 @@ export default function CalendarFullView({ events = [], onBack }) {
         </div>
 
         {/* Day of week headers */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '3px', marginBottom: '3px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', marginBottom: '2px' }}>
           {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
             <div key={d} style={{
-              textAlign: 'center', fontSize: '11px', fontWeight: '600',
-              color: 'var(--text-tertiary)', letterSpacing: '0.06em', padding: '6px 0',
+              textAlign: 'center', fontSize: '10px', fontWeight: '600',
+              color: 'var(--text-tertiary)', letterSpacing: '0.05em', padding: '4px 0',
             }}>{d}</div>
           ))}
         </div>
 
-        {/* Calendar grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '3px' }}>
+        {/* Calendar grid — tighter cells, more events visible */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
           {days.map(day => {
             const inMonth   = isSameMonth(day, current);
             const todayDay  = isToday(day);
             const dayEvents = getEventsForDay(events, day);
             const isExp     = expanded && isSameDay(day, expanded);
+            // Show up to 4 pills; "+N more" if overflow
+            const maxPills  = 4;
+            const visible   = dayEvents.slice(0, maxPills);
+            const overflow  = dayEvents.length - maxPills;
 
             return (
               <div key={day.toString()}
                 onClick={() => handleDayClick(day)}
                 style={{
-                  minHeight: '90px',
-                  borderRadius: '10px',
-                  padding: '7px 5px 5px',
+                  minHeight: '72px',
+                  borderRadius: '8px',
+                  padding: '4px 3px 3px',
                   background: isExp ? 'var(--accent-soft)' : 'var(--bg-card)',
                   border: todayDay ? '2px solid var(--accent)' : '1px solid var(--border)',
                   opacity: inMonth ? 1 : 0.3,
                   cursor: dayEvents.length > 0 ? 'pointer' : 'default',
-                  transition: 'all 0.15s',
-                  display: 'flex', flexDirection: 'column', gap: '2px',
+                  transition: 'background 0.15s',
+                  display: 'flex', flexDirection: 'column', gap: '1px',
                   overflow: 'hidden',
                 }}
               >
-                <div style={{ flexShrink: 0, marginBottom: '3px' }}>
+                {/* Day number */}
+                <div style={{ flexShrink: 0, marginBottom: '2px', paddingLeft: '1px' }}>
                   {todayDay ? (
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      width: '24px', height: '24px', borderRadius: '50%',
+                      width: '20px', height: '20px', borderRadius: '50%',
                       background: 'var(--accent)', color: 'white',
-                      fontSize: '13px', fontWeight: '700',
+                      fontSize: '11px', fontWeight: '700',
                     }}>{format(day, 'd')}</span>
                   ) : (
                     <span style={{
-                      fontSize: '13px', fontWeight: '400',
+                      fontSize: '11px', fontWeight: '400',
                       color: inMonth ? 'var(--text-primary)' : 'var(--text-tertiary)',
                     }}>{format(day, 'd')}</span>
                   )}
                 </div>
 
-                {dayEvents.slice(0, 3).map(event => (
+                {/* Event pills — compact, max 4 */}
+                {visible.map(event => (
                   <div key={event.id}
                     onClick={e => handleEventClick(e, event)}
                     style={{
-                      fontSize: '10px', fontWeight: '500',
-                      padding: '2px 5px', borderRadius: '4px',
+                      fontSize: '9px',
+                      fontWeight: '500',
+                      lineHeight: '14px',
+                      padding: '0 4px',
+                      borderRadius: '3px',
                       background: ownerColors[event.owner] || 'var(--accent)',
                       color: 'white',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                      cursor: 'pointer', flexShrink: 0,
-                      maxWidth: '100%',
-                      outline: selected?.id === event.id ? '2px solid rgba(0,0,0,0.3)' : 'none',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      outline: selected?.id === event.id ? '2px solid rgba(0,0,0,0.25)' : 'none',
                       outlineOffset: '1px',
                     }}
                     title={`${event.title} · ${event.time}`}
@@ -168,16 +165,14 @@ export default function CalendarFullView({ events = [], onBack }) {
                     {event.title}
                   </div>
                 ))}
-                {dayEvents.length > 3 && (
-                  <div
-                    onClick={e => { e.stopPropagation(); handleDayClick(day); }}
-                    style={{
-                      fontSize: '10px', color: 'var(--accent)',
-                      fontWeight: '600', paddingLeft: '2px',
-                      flexShrink: 0, cursor: 'pointer',
-                    }}
-                  >
-                    +{dayEvents.length - 3} more
+                {overflow > 0 && (
+                  <div style={{
+                    fontSize: '9px', color: 'var(--accent)',
+                    fontWeight: '600', paddingLeft: '2px',
+                    flexShrink: 0, cursor: 'pointer',
+                    lineHeight: '13px',
+                  }}>
+                    +{overflow} more
                   </div>
                 )}
               </div>
@@ -188,46 +183,46 @@ export default function CalendarFullView({ events = [], onBack }) {
         {/* Day detail panel */}
         {expandedEvents.length > 0 && expanded && (
           <div style={{
-            marginTop: '20px', padding: '20px 24px',
+            marginTop: '16px', padding: '16px 20px',
             background: 'var(--bg-card)', border: '1px solid var(--border)',
             borderRadius: '14px', animation: 'slideUp 0.2s ease',
           }}>
             <div style={{
-              fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '600',
-              color: 'var(--text-primary)', marginBottom: '14px',
+              fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: '600',
+              color: 'var(--text-primary)', marginBottom: '12px',
             }}>
               {isToday(expanded) ? 'Today' : format(expanded, 'EEEE, MMMM d')}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {expandedEvents.map(event => (
                 <div key={event.id} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: '14px',
-                  padding: '14px 16px', background: 'var(--bg-base)',
+                  display: 'flex', alignItems: 'flex-start', gap: '12px',
+                  padding: '12px 14px', background: 'var(--bg-base)',
                   borderRadius: '10px', border: '1px solid var(--border)',
                 }}>
                   <div style={{
-                    width: '4px', alignSelf: 'stretch', minHeight: '40px',
-                    borderRadius: '4px', flexShrink: 0,
+                    width: '3px', alignSelf: 'stretch', minHeight: '36px',
+                    borderRadius: '3px', flexShrink: 0,
                     background: ownerColors[event.owner] || 'var(--accent)',
                   }}/>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)' }}>{event.title}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{event.time}</div>
+                    <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{event.title}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{event.time}</div>
                     {event.location && (
-                      <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '3px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '2px' }}>
                         📍 {event.location}
                       </div>
                     )}
                     {event.details && (
                       <div style={{
-                        marginTop: '8px', padding: '10px 14px',
-                        background: 'var(--bg-card)', borderRadius: '8px',
-                        fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6,
+                        marginTop: '6px', padding: '8px 12px',
+                        background: 'var(--bg-card)', borderRadius: '7px',
+                        fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5,
                       }}>{event.details}</div>
                     )}
                   </div>
                   <span style={{
-                    fontSize: '11px', padding: '3px 10px', borderRadius: '20px',
+                    fontSize: '10px', padding: '2px 8px', borderRadius: '20px',
                     background: (ownerColors[event.owner] || 'var(--accent)') + '22',
                     color: ownerColors[event.owner] || 'var(--accent)', fontWeight: '600',
                     flexShrink: 0,
@@ -241,18 +236,16 @@ export default function CalendarFullView({ events = [], onBack }) {
         {/* Single event detail */}
         {selected && !expanded && (
           <div style={{
-            marginTop: '20px', padding: '20px 24px',
+            marginTop: '16px', padding: '16px 20px',
             background: 'var(--bg-card)', border: `2px solid ${ownerColors[selected.owner] || 'var(--accent)'}`,
             borderRadius: '14px', animation: 'slideUp 0.2s ease',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <div style={{ fontSize: '17px', fontWeight: '600', color: 'var(--text-primary)' }}>{selected.title}</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '3px' }}>{selected.time}</div>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>{selected.title}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{selected.time}</div>
                 {selected.location && (
-                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '3px' }}>
-                    📍 {selected.location}
-                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '2px' }}>📍 {selected.location}</div>
                 )}
               </div>
               <button onClick={() => setSelected(null)} style={{
@@ -266,12 +259,12 @@ export default function CalendarFullView({ events = [], onBack }) {
             </div>
             {selected.details ? (
               <div style={{
-                marginTop: '12px', padding: '12px 16px',
+                marginTop: '10px', padding: '10px 14px',
                 background: 'var(--bg-base)', borderRadius: '8px',
-                fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7,
+                fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6,
               }}>{selected.details}</div>
             ) : (
-              <div style={{ marginTop: '10px', fontSize: '13px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
+              <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
                 No additional details
               </div>
             )}
@@ -289,7 +282,7 @@ export default function CalendarFullView({ events = [], onBack }) {
         )}
 
       </div>
-      <style>{`@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+      <style>{`@keyframes slideUp{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
     </FullScreenView>
   );
 }
