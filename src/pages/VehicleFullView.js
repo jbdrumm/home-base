@@ -305,62 +305,67 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
           </div>
 
           {/* Vehicle hero card */}
-          <div className="card" style={{ padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '110px minmax(0,1fr) 100px', alignItems: 'center', gap: '12px' }}>
+          <div className="card" style={{ padding: '0', marginBottom: '20px', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'stretch' }}>
 
-            {/* Photo — fixed size, never shrinks */}
-            <div style={{
-              width: '140px', height: '88px', flexShrink: 0,
-              background: vehicle.photo_url ? 'none' : 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
-              borderRadius: '10px', overflow: 'hidden',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '38px', position: 'relative',
-            }}>
-              {vehicle.photo_url ? (
-                vehicle.photo_scale
-                  ? <div style={{ width: '100%', height: '100%', backgroundImage: `url(${vehicle.photo_url})`, backgroundSize: vehicle.photo_scale, backgroundPosition: vehicle.photo_position || 'center', backgroundRepeat: 'no-repeat' }} />
-                  : <img src={vehicle.photo_url} alt={vehicle.name} style={{ width: '100%', height: '100%', objectFit: vehicle.photo_fit || 'cover', objectPosition: vehicle.photo_position || 'center' }} />
-              ) : (vehicle.emoji || '🚗')}
-              {garaged && (
-                <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontSize: '10px', fontWeight: '700', color: 'white' }}>🏠 GARAGED</span>
-                </div>
-              )}
-            </div>
-
-            {/* Name + details — takes remaining space, clips overflow */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+              {/* Photo — flush left, fixed width */}
               <div style={{
-                fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '700',
-                lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                width: '120px', flexShrink: 0,
+                background: vehicle.photo_url ? 'none' : 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '36px', position: 'relative', minHeight: '110px',
               }}>
-                {vehicle.year} {vehicle.make} {vehicle.model}
+                {vehicle.photo_url ? (
+                  vehicle.photo_scale
+                    ? <div style={{ width: '100%', height: '100%', backgroundImage: `url(${vehicle.photo_url})`, backgroundSize: vehicle.photo_scale, backgroundPosition: vehicle.photo_position || 'center', backgroundRepeat: 'no-repeat' }} />
+                    : <img src={vehicle.photo_url} alt={vehicle.name} style={{ width: '100%', height: '100%', objectFit: vehicle.photo_fit || 'cover', objectPosition: vehicle.photo_position || 'center' }} />
+                ) : (vehicle.emoji || '🚗')}
+                {garaged && (
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontSize: '9px', fontWeight: '700', color: 'white', textAlign: 'center', padding: '0 4px' }}>🏠 GARAGED</span>
+                  </div>
+                )}
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {[vehicle.trim, vehicle.engine, vehicle.color].filter(Boolean).join(' · ')}
-              </div>
-              <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '20px', background: chip.bg, color: chip.color, whiteSpace: 'nowrap' }}>{chip.label}</span>
-                {garaged
-                  ? <span className="chip" style={{ background: '#1e1b4b', color: '#a5b4fc', whiteSpace: 'nowrap' }}>🏠 Garaged</span>
-                  : <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '20px', background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border)', whiteSpace: 'nowrap' }}>In service</span>
-                }
-              </div>
-            </div>
 
-            {/* Odometer — fixed width, right-aligned */}
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: '22px', fontWeight: '500', whiteSpace: 'nowrap', color: 'var(--text-primary)' }}>
-                {estimatedOdo ? `~${estimatedOdo.toLocaleString()}` : '—'}
-              </div>
-              <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>est. miles</div>
-              {latestFuel && (
-                <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '2px', whiteSpace: 'nowrap' }}>
-                  Last: {parseInt(latestFuel.odometer_mi).toLocaleString()} on{' '}
-                  {new Date(latestFuel.logged_at + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {/* Info — name, subtitle, mileage, status chips */}
+              <div style={{ flex: 1, minWidth: 0, padding: '14px 14px 12px' }}>
+
+                {/* Name */}
+                <div style={{ fontFamily: 'var(--font-display)', fontSize: '16px', fontWeight: '700', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {vehicle.year} {vehicle.make} {vehicle.model}
                 </div>
-              )}
-            </div>
 
+                {/* Subtitle */}
+                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {[vehicle.trim, vehicle.engine, vehicle.color].filter(Boolean).join(' · ')}
+                </div>
+
+                {/* Mileage */}
+                <div style={{ marginTop: '8px' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: '20px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                    {estimatedOdo ? `~${estimatedOdo.toLocaleString()}` : '—'}
+                  </span>
+                  <span style={{ fontSize: '11px', color: 'var(--text-tertiary)', marginLeft: '4px' }}>est. mi</span>
+                </div>
+                {latestFuel && (
+                  <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginTop: '1px' }}>
+                    Last: {parseInt(latestFuel.odometer_mi).toLocaleString()} on {new Date(latestFuel.logged_at + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </div>
+                )}
+
+                {/* Status chips — side by side at bottom */}
+                <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '500', padding: '2px 9px', borderRadius: '20px', background: chip.bg, color: chip.color }}>
+                    {chip.label}
+                  </span>
+                  {garaged
+                    ? <span style={{ fontSize: '11px', padding: '2px 9px', borderRadius: '20px', background: '#1e1b4b', color: '#a5b4fc' }}>🏠 Garaged</span>
+                    : <span style={{ fontSize: '11px', padding: '2px 9px', borderRadius: '20px', background: 'var(--bg-base)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>In service</span>
+                  }
+                </div>
+
+              </div>
+            </div>
           </div>
 
           {/* Tab bar */}
