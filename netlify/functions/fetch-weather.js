@@ -32,7 +32,7 @@ function getIcon(code, isDay) {
   return (isDay ? CODE_ICONS_DAY : CODE_ICONS_NIGHT)[code] || '🌡';
 }
 
-exports.handler = async function(event) {
+const handler = async function(event) {
   const tomorrowKey  = process.env.REACT_APP_TOMORROW_API_KEY;
   const supabaseUrl  = process.env.REACT_APP_SUPABASE_URL;
   const supabaseKey  = process.env.REACT_APP_SUPABASE_ANON_KEY;
@@ -153,3 +153,7 @@ exports.handler = async function(event) {
     return { statusCode: 500, body: e.message };
   }
 };
+
+// Plain handler — works for both manual POST and scheduled invocation
+// Schedule is defined in netlify.toml [functions."fetch-weather"]
+exports.handler = handler;
