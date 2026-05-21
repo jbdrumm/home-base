@@ -32,6 +32,7 @@ import { useWeather } from '../hooks/useWeather';
 import { seedGroceries, seedBills } from '../lib/seedData';
 import { seedVehicles } from '../lib/vehicleData';
 import { useTilePreferences } from '../hooks/useTilePreferences';
+import { useVehicleData } from '../hooks/useVehicleData';
 import LayoutSettings from '../components/LayoutSettings';
 
 function Tile({ onClick, children, style }) {
@@ -76,6 +77,8 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   const resolvedMember = primaryMember
     || Object.keys(householdTokens || {}).find(m => householdTokens[m]?.isValid)
     || 'jacob';
+
+  const { vehicles, maintenance, fuelLogs, loading: vehiclesLoading, reload: reloadVehicles } = useVehicleData();
 
   const multiData = useMultiAccountData(getTokenFor || (() => null), householdTokens || {});
 
@@ -209,7 +212,47 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   if (view === 'vehicles') return (
     <VehicleFullView
       initialVehicleId={activeVehicleId}
+      vehicles={vehicles}
+      maintenance={maintenance}
+      fuelLogs={fuelLogs}
+      loading={vehiclesLoading}
+      resolvedMember={resolvedMember}
       onBack={() => { setView(null); setActiveVehicleId(null); }}
+      onSaveFillup={async (data) => {
+        try {
+          const { vehicleId, odometer_mi, gallons, price_per_gal, total_cost, station } = data;
+          let mpg = null;
+          if (odometer_mi && gallons) {
+            const { data: prior } = await supabase
+              .from('fuel_log')
+              .select('odometer_mi')
+              .eq('vehicle_id', vehicleId)
+              .not('odometer_mi', 'is', null)
+              .order('logged_at', { ascending: false })
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .single();
+            if (prior?.odometer_mi) {
+              const rawMpg = (odometer_mi - prior.odometer_mi) / gallons;
+              if (rawMpg >= 5 && rawMpg <= 40) mpg = Math.round(rawMpg * 10) / 10;
+            }
+          }
+          const { error } = await supabase.from('fuel_log').insert({
+            vehicle_id:    vehicleId,
+            odometer_mi:   odometer_mi   || null,
+            gallons:       gallons        || null,
+            price_per_gal: price_per_gal  || null,
+            total_cost:    total_cost      || null,
+            mpg,
+            station:       station         || null,
+            created_by:    resolvedMember,
+          });
+          if (error) throw error;
+          reloadVehicles();
+        } catch (e) {
+          console.error('[VehicleFillup] Save failed:', e.message);
+        }
+      }}
     />
   );
 
@@ -265,7 +308,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
               case 'vehicles':
                 return (
                   <div key="vehicles">
-                    <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
+                    <VehicleWidget vehicles={vehicles} maintenance={maintenance} fuelLogs={fuelLogs} loading={vehiclesLoading} onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
                   </div>
                 );
               case 'finances':
@@ -323,7 +366,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
 
           {/* Col 3 Rows 3-4: Vehicles */}
           <div style={{ gridColumn: '3', gridRow: '3 / 5' }}>
-            <VehicleWidget onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
+            <VehicleWidget vehicles={vehicles} maintenance={maintenance} fuelLogs={fuelLogs} loading={vehiclesLoading} onSelectVehicle={id => { setActiveVehicleId(id); setView('vehicles'); }} />
           </div>
 
           {/* Col 1 Row 4: Cameras */}
