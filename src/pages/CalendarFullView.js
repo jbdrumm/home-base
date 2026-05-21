@@ -8,16 +8,15 @@ const ownerColors = {
   family: '#2563EB',
   jacob:  '#059669',
   wife:   '#9333EA',
+  katelin:'#9333EA',
 };
 
 function getEventsForDay(events, day) {
   return events.filter(e => {
-    // Parse rawDate safely — all-day events are "YYYY-MM-DD", timed are ISO strings
     const raw = e.rawDate;
     if (!raw) return false;
     let eventDate;
     if (raw.length === 10) {
-      // all-day: "2026-05-08" — parse as local date
       const [y, m, d] = raw.split('-').map(Number);
       eventDate = new Date(y, m - 1, d);
     } else {
@@ -27,16 +26,22 @@ function getEventsForDay(events, day) {
   });
 }
 
-export default function CalendarFullView({ events, onBack }) {
+export default function CalendarFullView({ events = [], onBack }) {
   const [current,  setCurrent]  = useState(new Date());
-  const [selected, setSelected] = useState(null); // selected event object
-  const [expanded, setExpanded] = useState(null); // day date object for detail panel
+  const [selected, setSelected] = useState(null);
+  const [expanded, setExpanded] = useState(null);
 
   const monthStart = startOfMonth(current);
   const monthEnd   = endOfMonth(current);
   const calStart   = startOfWeek(monthStart, { weekStartsOn: 0 });
   const calEnd     = endOfWeek(monthEnd,     { weekStartsOn: 0 });
   const days       = eachDayOfInterval({ start: calStart, end: calEnd });
+
+  function jumpToToday() {
+    setCurrent(new Date());
+    setExpanded(null);
+    setSelected(null);
+  }
 
   function handleEventClick(e, event) {
     e.stopPropagation();
@@ -53,8 +58,20 @@ export default function CalendarFullView({ events, onBack }) {
 
   const expandedEvents = expanded ? getEventsForDay(events, expanded) : [];
 
+  const isCurrentMonth = isSameMonth(new Date(), current);
+
+  const topbarActions = (
+    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      {!isCurrentMonth && (
+        <button onClick={jumpToToday} style={navBtn}>
+          Today
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <FullScreenView title="Calendar" onBack={onBack}>
+    <FullScreenView title="Calendar" onBack={onBack} actions={topbarActions}>
       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
 
         {/* Month nav */}
@@ -64,9 +81,17 @@ export default function CalendarFullView({ events, onBack }) {
               <path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <span style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: '600', color: 'var(--text-primary)' }}>
-            {format(current, 'MMMM yyyy')}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: '24px', fontWeight: '600', color: 'var(--text-primary)' }}>
+              {format(current, 'MMMM yyyy')}
+            </span>
+            {isCurrentMonth && (
+              <span style={{
+                fontSize: '11px', padding: '3px 9px', borderRadius: '20px',
+                background: 'var(--accent)', color: 'white', fontWeight: '600',
+              }}>This month</span>
+            )}
+          </div>
           <button onClick={() => setCurrent(addMonths(current, 1))} style={navBtn}>
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M7 4l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -108,7 +133,6 @@ export default function CalendarFullView({ events, onBack }) {
                   overflow: 'hidden',
                 }}
               >
-                {/* Day number */}
                 <div style={{ flexShrink: 0, marginBottom: '3px' }}>
                   {todayDay ? (
                     <span style={{
@@ -125,7 +149,6 @@ export default function CalendarFullView({ events, onBack }) {
                   )}
                 </div>
 
-                {/* Events inside cell — title first, no time in pill */}
                 {dayEvents.slice(0, 3).map(event => (
                   <div key={event.id}
                     onClick={e => handleEventClick(e, event)}
@@ -162,7 +185,7 @@ export default function CalendarFullView({ events, onBack }) {
           })}
         </div>
 
-        {/* Event detail panel — expands below grid when day is clicked */}
+        {/* Day detail panel */}
         {expandedEvents.length > 0 && expanded && (
           <div style={{
             marginTop: '20px', padding: '20px 24px',
@@ -177,7 +200,11 @@ export default function CalendarFullView({ events, onBack }) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {expandedEvents.map(event => (
-                <div key={event.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
+                <div key={event.id} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: '14px',
+                  padding: '14px 16px', background: 'var(--bg-base)',
+                  borderRadius: '10px', border: '1px solid var(--border)',
+                }}>
                   <div style={{
                     width: '4px', alignSelf: 'stretch', minHeight: '40px',
                     borderRadius: '4px', flexShrink: 0,
@@ -186,17 +213,24 @@ export default function CalendarFullView({ events, onBack }) {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)' }}>{event.title}</div>
                     <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{event.time}</div>
+                    {event.location && (
+                      <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '3px' }}>
+                        📍 {event.location}
+                      </div>
+                    )}
                     {event.details && (
                       <div style={{
                         marginTop: '8px', padding: '10px 14px',
-                        background: 'var(--bg-base)', borderRadius: '8px',
+                        background: 'var(--bg-card)', borderRadius: '8px',
                         fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.6,
                       }}>{event.details}</div>
                     )}
                   </div>
                   <span style={{
                     fontSize: '11px', padding: '3px 10px', borderRadius: '20px',
-                    background: 'var(--accent-soft)', color: 'var(--accent-text)', fontWeight: '500',
+                    background: (ownerColors[event.owner] || 'var(--accent)') + '22',
+                    color: ownerColors[event.owner] || 'var(--accent)', fontWeight: '600',
+                    flexShrink: 0,
                   }}>{event.owner}</span>
                 </div>
               ))}
@@ -204,7 +238,7 @@ export default function CalendarFullView({ events, onBack }) {
           </div>
         )}
 
-        {/* Single event detail panel — when clicking directly on an event pill */}
+        {/* Single event detail */}
         {selected && !expanded && (
           <div style={{
             marginTop: '20px', padding: '20px 24px',
@@ -215,6 +249,11 @@ export default function CalendarFullView({ events, onBack }) {
               <div>
                 <div style={{ fontSize: '17px', fontWeight: '600', color: 'var(--text-primary)' }}>{selected.title}</div>
                 <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '3px' }}>{selected.time}</div>
+                {selected.location && (
+                  <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '3px' }}>
+                    📍 {selected.location}
+                  </div>
+                )}
               </div>
               <button onClick={() => setSelected(null)} style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -239,14 +278,27 @@ export default function CalendarFullView({ events, onBack }) {
           </div>
         )}
 
+        {events.length === 0 && (
+          <div style={{
+            textAlign: 'center', padding: '48px 24px',
+            color: 'var(--text-tertiary)', fontSize: '14px',
+          }}>
+            <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
+            No events loaded — make sure your Google accounts are connected.
+          </div>
+        )}
+
       </div>
+      <style>{`@keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
     </FullScreenView>
   );
 }
 
 const navBtn = {
   background: 'var(--bg-card)', border: '1px solid var(--border)',
-  borderRadius: '8px', width: '36px', height: '36px',
+  borderRadius: '8px', padding: '7px 14px',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   cursor: 'pointer', color: 'var(--text-secondary)',
+  fontSize: '13px', fontWeight: '500', fontFamily: 'var(--font-body)',
+  gap: '4px',
 };
