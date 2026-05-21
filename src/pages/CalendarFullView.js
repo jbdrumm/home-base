@@ -4,6 +4,19 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval,
          addMonths, subMonths } from 'date-fns';
 import FullScreenView from '../components/FullScreenView';
 
+function getPillColor(event) {
+  const cal   = (event.calendarName || '').toLowerCase();
+  const owner = event.owner || '';
+  if (cal.includes('family'))  return '#2563EB';  // blue
+  if (cal.includes('holiday')) return '#F97316';  // orange
+  if (cal === 'my calendar' && owner === 'jacob')   return '#059669'; // green
+  if (cal === 'my calendar' && owner === 'katelin') return '#9333EA'; // purple
+  if (cal === 'my calendar' && owner === 'wife')    return '#9333EA'; // purple
+  // Subscribed / public calendars
+  return '#6B7280'; // gray
+}
+
+// Keep for detail view owner chip
 const ownerColors = {
   family:  '#2563EB',
   jacob:   '#059669',
@@ -150,7 +163,7 @@ export default function CalendarFullView({ events = [], onBack }) {
                       lineHeight: '13px',
                       padding: '0 3px',
                       borderRadius: '3px',
-                      background: ownerColors[event.owner] || 'var(--accent)',
+                      background: getPillColor(event),
                       color: 'white',
                       overflow: 'hidden',
                       textOverflow: 'clip',
