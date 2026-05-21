@@ -308,6 +308,8 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | # | Description | Priority | Status |
 |---|---|---|---|
 | 1 | Fillup modal — pump photo parse occasionally hangs (30s timeout now in place, errors log to `error_logs` table) | Medium | Monitoring |
+| 16 | Calendar full view — missing "katelin" owner color mapping (showed wrong color), missing empty state when no events loaded, no location display on event detail | Low | ✅ Fixed |
+| 17 | Log Fillup modal — no backdrop dismiss (tap outside didn't close), no close X button, z-index too low (300) causing stacking issues on some devices, desktop centering broken (always showed as bottom sheet) | Medium | ✅ Fixed |
 | 2 | Camera tile is placeholder only | Low | Blocked by Sprint 23 |
 | 3 | Vehicle photos stored as seed data URLs — need Supabase Storage for user-added photos | Low | Sprint TBD |
 | 4 | Fuel log MPG needs previous odometer for accuracy | Low | Sprint TBD |
