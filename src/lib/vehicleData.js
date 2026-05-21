@@ -2,7 +2,7 @@
 
 export const seedVehicles = [
   {
-    id: 'v1',
+    id: '768beac4-bb0a-4e40-836a-b0963f97be83',
     name: '2017 Dodge Durango GT',
     make: 'Dodge',
     model: 'Durango',
@@ -24,7 +24,7 @@ export const seedVehicles = [
     photo_scale: '70%',
   },
   {
-    id: 'v2',
+    id: '3c848956-d7f6-4a54-b20a-c1c37f1ba24a',
     name: '2018 Honda Odyssey Elite',
     make: 'Honda',
     model: 'Odyssey',
@@ -46,7 +46,7 @@ export const seedVehicles = [
     photo_scale: '100%',
   },
   {
-    id: 'v3',
+    id: '94f8441a-dbe5-4fd1-a9c3-6959f5da4d97',
     name: '2000 Honda S2000',
     make: 'Honda',
     model: 'S2000',
@@ -66,7 +66,7 @@ export const seedVehicles = [
     photo_position: 'center',
   },
   {
-    id: 'v4',
+    id: 'b5e271d8-6992-4b19-b531-378c2139da97',
     name: '1994 Ford Ranger Splash',
     make: 'Ford',
     model: 'Ranger',
