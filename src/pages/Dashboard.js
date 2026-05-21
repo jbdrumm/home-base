@@ -71,6 +71,11 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
     linkMember, unlinkMember, linkingMember, error: authError,
   } = householdAuth || {};
 
+  // Resolved before any hooks that depend on member identity
+  const resolvedMember = primaryMember
+    || Object.keys(householdTokens || {}).find(m => householdTokens[m]?.isValid)
+    || 'jacob';
+
   const multiData = useMultiAccountData(getTokenFor || (() => null), householdTokens || {});
 
   function handleTaskToggle(params) { multiData.toggleTask && multiData.toggleTask(params); }
@@ -132,11 +137,6 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
   function toggleBillPaid(id) {
     bills.updateItem(id, { paid_this_month: !bills.items.find(b => b.id === id).paid_this_month });
   }
-  // Fall back to first valid linked member if primaryMember hasn't resolved yet
-  const resolvedMember = primaryMember
-    || Object.keys(householdTokens || {}).find(m => householdTokens[m]?.isValid)
-    || 'jacob';
-
   function handleQuickAdd(item) {
     if (modal === 'grocery') groceries.addItem({ ...item, created_by: resolvedMember });
     if (modal === 'todo')    multiData.addTask(item);
