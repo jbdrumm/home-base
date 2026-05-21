@@ -271,25 +271,41 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
           <span style={{ color: 'var(--border-strong)', fontSize: '18px' }}>|</span>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: '600' }}>Vehicles</span>
         </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {vehicles.map(v => (
-            <button key={v.id}
-              onClick={() => { setActiveVehicleId(v.id); setActiveTab('maintenance'); }}
-              className={vehicle.id === v.id ? 'btn btn-primary' : 'btn btn-ghost'}
-              style={{ fontSize: '12px', padding: '5px 12px' }}
-            >
-              {v.emoji || '🚗'} {v.model}
-            </button>
-          ))}
-        </div>
+
       </div>
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 40px' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
+          {/* Vehicle selector */}
+          <div style={{
+            display: 'flex', gap: '8px', justifyContent: 'center',
+            marginBottom: '16px', flexWrap: 'wrap',
+          }}>
+            {vehicles.map(v => (
+              <button key={v.id}
+                onClick={() => { setActiveVehicleId(v.id); setActiveTab('maintenance'); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 16px', borderRadius: '20px',
+                  border: vehicle.id === v.id ? 'none' : '1px solid var(--border)',
+                  background: vehicle.id === v.id ? 'var(--accent)' : 'var(--bg-card)',
+                  color: vehicle.id === v.id ? 'white' : 'var(--text-secondary)',
+                  cursor: 'pointer', fontSize: '13px', fontWeight: '500',
+                  fontFamily: 'var(--font-body)',
+                  transition: 'all 0.15s',
+                  boxShadow: vehicle.id === v.id ? '0 2px 8px rgba(0,122,255,0.3)' : 'var(--shadow)',
+                }}
+              >
+                <span>{v.emoji || '🚗'}</span>
+                <span>{v.year} {v.make} {v.model}</span>
+              </button>
+            ))}
+          </div>
+
           {/* Vehicle hero card */}
-          <div className="card" style={{ padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '16px', overflow: 'hidden' }}>
+          <div className="card" style={{ padding: '16px', marginBottom: '20px', display: 'grid', gridTemplateColumns: '120px 1fr auto', alignItems: 'center', gap: '14px', overflow: 'hidden' }}>
 
             {/* Photo — fixed size, never shrinks */}
             <div style={{
