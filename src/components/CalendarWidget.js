@@ -6,29 +6,51 @@ const ownerColors = {
   other:  '#9333EA',
 };
 
+function isPast(e) {
+  // All-day events never get the Past badge
+  if (e.time === 'All day') return false;
+  // rawDate is an ISO string for timed events
+  return e.rawDate && new Date(e.rawDate) < new Date();
+}
+
 export default function CalendarWidget({ events }) {
   const today    = events.filter(e => e.date === 'today');
   const tomorrow = events.filter(e => e.date === 'tomorrow');
-  // Next 7 days beyond tomorrow
   const upcoming = events.filter(e => e.date !== 'today' && e.date !== 'tomorrow').slice(0, 3);
 
   return (
     <div className="card" style={{ padding: '18px 20px', height: '100%' }}>
       <div className="section-label">Today</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {today.map(e => (
-          <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{
-              width: '3px', height: '36px', borderRadius: '3px',
-              background: ownerColors[e.owner] || 'var(--accent)',
-              flexShrink: 0,
-            }}/>
-            <div>
-              <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-primary)', lineHeight: 1.2 }}>{e.title}</div>
-              <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{e.time}</div>
+        {today.map(e => {
+          const past = isPast(e);
+          return (
+            <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '3px', height: '36px', borderRadius: '3px',
+                background: past ? 'var(--border-strong)' : (ownerColors[e.owner] || 'var(--accent)'),
+                flexShrink: 0,
+              }}/>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: '500', lineHeight: 1.2,
+                  color: past ? 'var(--text-tertiary)' : 'var(--text-primary)',
+                }}>{e.title}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{e.time}</div>
+              </div>
+              {past && (
+                <span style={{
+                  flexShrink: 0,
+                  fontSize: '9px', fontWeight: '600',
+                  padding: '2px 5px', borderRadius: '4px',
+                  background: 'var(--bg-base)',
+                  color: 'var(--text-tertiary)',
+                  border: '1px solid var(--border-strong)',
+                  letterSpacing: '0.03em',
+                }}>Past</span>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
         {today.length === 0 && (
           <div style={{ color: 'var(--text-tertiary)', fontSize: '13px', padding: '4px 0' }}>Nothing scheduled today</div>
         )}
