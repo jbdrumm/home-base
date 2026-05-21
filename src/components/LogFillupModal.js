@@ -128,13 +128,18 @@ function FillupSection({ section, vehicleId, onData }) {
 
     const prompt = isOdometer
       ? 'This is a vehicle odometer. Find the TOTAL odometer mileage (not trip). Respond ONLY with valid JSON: {"odometer_mi": <integer>}. If unreadable: {"odometer_mi": null}.'
-      : 'This is a gas pump screen after fill-up. Extract gallons, price per gallon, total cost. Respond ONLY with valid JSON: {"gallons": <number>, "price_per_gal": <number>, "total_cost": <number>}. Unreadable fields = null.';
+      : 'This is a gas pump screen after fill-up. Extract the total GALLONS pumped and the TOTAL COST paid. Ignore the price-per-gallon display — there may be multiple (one per octane level). Respond ONLY with valid JSON: {"gallons": <number>, "total_cost": <number>}. Unreadable fields = null. Do NOT include price_per_gal.';
 
     try {
       const parsed = await parsePhotoWithClaude(file, prompt);
       const valid  = isOdometer ? parsed?.odometer_mi != null : parsed?.gallons != null;
 
       if (!valid) throw new Error('Could not read values from photo.');
+
+      // Calculate PPG from total/gallons — pump shows multiple prices per octane level
+      if (!isOdometer && parsed?.gallons && parsed?.total_cost) {
+        parsed.price_per_gal = Math.round((parsed.total_cost / parsed.gallons) * 1000) / 1000;
+      }
 
       setResult(parsed);
       setDone(true);
@@ -270,7 +275,7 @@ function FillupSection({ section, vehicleId, onData }) {
             color: 'var(--text-tertiary)', textDecoration: 'underline',
             fontFamily: 'var(--font-body)',
           }}>
-            Enter manually instead
+            Enter manually
           </button>
         </>
       )}
