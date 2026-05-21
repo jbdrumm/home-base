@@ -316,7 +316,7 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 21 | Log Fillup camera button opened gallery instead of camera, no gallery option | Medium | ✅ Fixed — split into Take Photo (camera, 2x size) and Gallery buttons |
 | 22 | Calendar tile on dashboard showing no Past indicator for elapsed today events | Low | ✅ Fixed — "Past" badge + muted text/bar for timed events past current time, all-day events excluded |
 | 23 | Layout settings page not working | High | Queued for tomorrow |
-| 24 | User-created events still triggering notifications on the creating device | Medium | Queued |
+| 24 | User-created events still triggering notifications on the creating device | Medium | ✅ Fixed — root cause was created_by column missing from groceries table (null ≠ primaryMember always triggered notification). Column added, created_by now populates correctly, self-notification check works as intended |
 | 27 | Layout settings drag-and-drop not working on mobile — HTML5 drag events don't fire on touch screens. Need to replace with touch event handlers (onTouchStart, onTouchMove, onTouchEnd) | Medium | Queued |
 | 26 | Grocery list adds appear briefly then disappear — likely write target mismatch after grocery_items table was deleted. Suspect code writes to grocery_items but reads from groceries, causing optimistic UI update to get wiped on refetch. Need to audit all grocery read/write paths and consolidate to groceries table. | High | Queued |
 | 25 | Odometer photo parse failing silently — need to: (1) save the uploaded photo to Supabase Storage on parse failure so it can be manually read, (2) surface a manual entry fallback field when parse fails, (3) ensure error details (model response, image metadata) are logged to error_logs table | Medium | Queued |
