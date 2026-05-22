@@ -267,12 +267,6 @@ function MaintenanceTab({ schedule, maintLogs, estimatedOdo, vehicleId, resolved
 
   return (
     <>
-      {/* Add maintenance button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px' }}>
-        <button className="btn btn-primary" style={{ fontSize: '12px', padding: '6px 14px' }}
-          onClick={() => setShowLog(true)}>+ Log service</button>
-      </div>
-
       {/* Table with independent scroll */}
       <div className="card" style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {/* Sticky header */}
