@@ -225,21 +225,45 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 - Desktop: settings page rendered but greyed out with "Coming Soon" overlay
 
 ### Sprint 13 — Vehicle Data Feeds ✅ Built
-- Remove all seed data from VehicleWidget and VehicleFullView
-- Load vehicles from Supabase `vehicles` table
-- Load `maintenance_schedule` from Supabase per vehicle (empty state handled gracefully)
-- Load `fuel_log` from Supabase per vehicle — real rows from fillup logging
-- Wire `getVehicleStatus` and `estimateOdometer` to live data
-- Wire inline fillup modal in VehicleFullView to save to Supabase (same as Dashboard)
-- Fuel log stats (avg MPG, PPG, cost/mile, monthly spend) calculated from real rows
-- Empty states throughout for tables/logs with no data yet
+- Remove all seed data, live vehicles/maintenance/fuel_log from Supabase
+- `useVehicleData` hook, display config keyed by UUID
+- Maintenance tab: sortable headers, independent scroll, task history modal, log service modal
+- Fuel log tab: stats + fillup modal with Claude Vision
+- `maintenance_log` table created and migrated from seed data
+- MPG validation (5–40 range), station extracted from pump photo
 
-### Sprint 14 — Packages (Next)
+### Sprint 14 — Vehicle Data Enhancements (Next)
+- Edit capability for maintenance schedule rows, details fields, and fuel log entries
+- Details page stacks vertically on mobile (single column)
+- Remove ⚠ symbol from Due At column — status chip already communicates overdue
+- Maintenance table Interval column fits on one line (no wrapping)
+- S2000 photo spilling outside container in vehicle tile — fix object-fit/scale
+
+### Sprint 15 — Weather Enhancements
+- Dashboard tile: replace rain drop humidity icon with distinct symbol
+- 6-day forecast: show condition icon per day (not just thermometer)
+- 6-day forecast: include precipitation % per day
+- Hero card: stretch current condition tiles to match left buffer alignment
+
+### Sprint 16 — Calendar Enhancements
+- Event edit function in full screen view
+- Tapping an event on the dashboard tile opens full screen scrolled to that event
+
+### Sprint 17 — To-Do Enhancements
+- Fix tasks lingering after completion
+- Add "reminder" function to tasks — surfaces on Google Hub and push notifications
+
+### Sprint 18 — Header & Navigation Restructure
+- Add "Profile" option under avatar: accounts, notifications, future vehicle setup page
+- "Settings" holds Layout and future items only
+- Clean separation of user profile vs app settings
+
+### Sprint 19 — Packages
 - Auto-import via Make.com + Yahoo Mail
 - Carrier, status, ETA, progress bar
 - No Packages source files exist yet — clean build from scratch
 
-### Sprint 15 — Financial Integration (Monarch Money)
+### Sprint 20 — Financial Integration (Monarch Money)
 See `FINANCIAL_DECISIONS.md` for full evaluation.
 - Monarch Money ($99/yr) — unofficial API (`bradleyseanf/monarchmoneycommunity`)
 - **Owner to-do:** Set Monarch Money password before this sprint (API requires password auth)
@@ -249,65 +273,61 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 - 3x daily sync, Zillow/VinAudit/Principal 401k via Monarch native integrations
 - **Setup step:** Delete bills seed data and enter real monthly bills during this sprint
 
-### Sprint 16 — Meal Planning
+### Sprint 21 — Meal Planning
 - Weekly grid (Mon–Sun)
 - Recipe library (URL import via Claude Vision or manual)
 - Auto-populate grocery list from recipes
-- **"Paste a shopping list" feature:** textarea input → Claude Vision parses items, quantities, categories → confirm screen → bulk-inserts into Supabase grocery list
+- **"Paste a shopping list" feature:** textarea → Claude Vision parses items/quantities/categories → confirm → bulk-insert into Supabase grocery list
 
-### Sprint 17 — Multi-Account Auth (Google Hub)
+### Sprint 22 — Multi-Account Auth (Google Hub)
 - Store Google tokens for Jacob, Katelin, and Family accounts in Supabase
 - Dashboard reads calendars and tasks from all 3 merged
 - Writes route to correct account via "Who is this for?" selector
 - Family tasks write to Family Google account so they appear on all Google Hubs
 - Personal phone views only show own account data
 
-### Sprint 18 — Jacob's Page
+### Sprint 23 — Jacob's Page
 - F1 and IndyCar news/calendar
 - Personal weather detail
 - World headlines
 
-### Sprint 19 — Katelin's Page
+### Sprint 24 — Katelin's Page
 - Homeschool daily planner
 - Meal plan view
 - Family-focused content
 
-### Sprint 20 — Home Assistant Integration
+### Sprint 25 — Home Assistant Integration
 - Connect HA API to Home Base Home Status tile
 - Read sensor states and trigger actions from dashboard
 - **Prerequisite:** HA must be accessible outside home network before this sprint
 
-### Sprint 21 — OBD Live Data
+### Sprint 26 — OBD Live Data
 - WiFi/cellular OBD dongle (e.g. Bouncie) for Odyssey & Durango
 - DTC push alert with Claude plain-English interpretation
 - Battery voltage trending, coolant temp anomaly
 - Trip data auto-feeds fuel log
 - S2000 and Ranger intentionally excluded
 
-### Sprint 22 — Countdowns Tile
+### Sprint 27 — Countdowns Tile
 - Recurring annual (e.g. Anniversary) — auto-recalculates each year
 - One-time (e.g. Vacation) — specific target date
 - User chooses type at creation
 
-### Sprint 23 — Pi Kiosk & Hardening
+### Sprint 28 — Pi Kiosk & Hardening
 - Fully Kiosk Browser on Android touchscreen
 - Offline graceful degradation
 - Auto-launch on boot
 
-### Sprint 24 — Cameras (Lorex RTSP)
+### Sprint 29 — Cameras (Lorex RTSP)
 - Lorex NVR: N862A63B, 6-8 cameras + doorbell, 4K
 - go2rtc on always-on desktop PC → HLS/WebRTC relay
 - Dashboard: featured front door + camera selector sidebar
 - Full screen: grid of all cameras, tap to expand
 
-### Sprint 25 — Chores & Rewards
+### Sprint 30 — Chores & Rewards
 - Assign chores with schedules, repeats, rotations
 - Point system + custom rewards
 - Kid-friendly UI for wall display
-
----
-
-## 🐛 Known Bugs / Backlog
 
 | # | Description | Priority | Status |
 |---|---|---|---|
