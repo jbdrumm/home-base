@@ -239,7 +239,9 @@ create table if not exists maintenance_log (
   vehicle_id    uuid not null references vehicles(id) on delete cascade,
   schedule_id   uuid references maintenance_schedule(id) on delete set null,
   task          text not null,
-  done_at       date not null default current_date,
+  done_at       date not null default current_date,  -- was performed_at, renamed
+  cost          numeric,
+  shop          text,
   odometer_mi   integer,
   notes         text,
   created_by    text,
