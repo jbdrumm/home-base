@@ -348,6 +348,14 @@ function MaintenanceTab({ schedule, maintLogs, estimatedOdo, vehicleId, resolved
         </div>
       </div>
 
+      {/* Log service button below table */}
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+        <button className="btn btn-primary" style={{ fontSize: '13px', padding: '8px 24px' }}
+          onClick={() => setShowLog(true)}>
+          🔧 Log service
+        </button>
+      </div>
+
       {/* Task history modal */}
       {selected && (
         <TaskHistoryModal
