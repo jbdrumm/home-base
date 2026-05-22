@@ -275,8 +275,7 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 12px 40px' }}>
-        <div style={{ width: '100%' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 12px 40px', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
 
           {/* Vehicle selector — centered, pills natural width */}
           <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '16px', gap: '6px', padding: '2px 0' }}>
@@ -390,7 +389,6 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
               vehicles={vehicles}
             />
           )}
-        </div>
       </div>
 
       {/* Log Fillup modal */}
