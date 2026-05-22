@@ -384,7 +384,6 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
 
       <QuickActionFAB onAction={type => {
         if (type === 'fillup') { setShowFillup(true); return; }
-        if (type === 'maintenance') { setView('vehicles'); setActiveVehicleId(vehicles?.[0]?.id || null); return; }
         setModal(type);
       }} />
       {modal && (
