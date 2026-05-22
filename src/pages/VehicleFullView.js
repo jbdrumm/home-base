@@ -659,7 +659,8 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
           </div>
 
           {/* Tab bar */}
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '20px', background: 'var(--bg-card)', borderRadius: '10px', padding: '4px', border: '1px solid var(--border)', width: 'fit-content' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+          <div style={{ display: 'inline-flex', gap: '4px', background: 'var(--bg-card)', borderRadius: '10px', padding: '4px', border: '1px solid var(--border)' }}>
             {['maintenance', 'details', 'fuel'].map(t => (
               <button key={t} onClick={() => setActiveTab(t)} style={{
                 padding: '7px 18px', borderRadius: '7px', border: 'none',
@@ -671,6 +672,8 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
                 {t === 'maintenance' ? 'Maintenance' : t === 'details' ? 'Details' : 'Fuel Log'}
               </button>
             ))}
+          </div>
+
           </div>
 
           {activeTab === 'maintenance' && <MaintenanceTab schedule={schedule} maintLogs={maintLogs} estimatedOdo={estimatedOdo} vehicleId={vehicle.id} resolvedMember={resolvedMember} onReload={onReload} />}
