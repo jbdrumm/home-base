@@ -53,6 +53,21 @@ export default function QuickActionFAB({ onAction }) {
             <span style={{ fontSize: '18px' }}>⛽</span>
             <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Log fillup</span>
           </div>
+          <div
+            onClick={() => { onAction('maintenance'); setOpen(false); }}
+            style={{
+              position: 'absolute', bottom: '232px', right: 0,
+              display: 'flex', alignItems: 'center', gap: '10px',
+              background: 'var(--bg-card)', border: '1px solid var(--border)',
+              borderRadius: '24px', padding: '10px 16px 10px 12px',
+              boxShadow: 'var(--shadow-card)', cursor: 'pointer',
+              animation: 'slideUp 0.35s ease',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ fontSize: '18px' }}>🔧</span>
+            <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>Log service</span>
+          </div>
           {/* Backdrop */}
           <div onClick={() => setOpen(false)} style={{
             position: 'fixed', inset: 0, zIndex: -1,
