@@ -41,9 +41,9 @@ function MaintenanceTab({ schedule, estimatedOdo }) {
           <tr>
             {['Task', 'Interval', 'Last Done', 'Due At', 'Status'].map(h => (
               <th key={h} style={{
-                fontSize: '10px', fontWeight: '600', textTransform: 'uppercase',
-                letterSpacing: '0.08em', color: 'var(--text-tertiary)',
-                padding: '10px 12px', textAlign: 'left',
+                fontSize: '9px', fontWeight: '600', textTransform: 'uppercase',
+                letterSpacing: '0.06em', color: 'var(--text-tertiary)',
+                padding: '6px 10px', textAlign: 'left',
                 borderBottom: '1px solid var(--border)',
               }}>{h}</th>
             ))}
@@ -66,17 +66,17 @@ function MaintenanceTab({ schedule, estimatedOdo }) {
                 onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-base)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
-                <td style={{ padding: '12px', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                  <div style={{ fontWeight: '500', fontSize: '13px' }}>{task.task}</div>
-                  {task.notes && <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{task.notes}</div>}
+                <td style={{ padding: '5px 10px', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <div style={{ fontWeight: '500', fontSize: '11px' }}>{task.task}</div>
+                  {task.notes && <div style={{ fontSize: '9px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{task.notes}</div>}
                 </td>
-                <td style={{ padding: '12px', fontFamily: 'var(--font-mono)', fontSize: '12px', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>{intervalStr}</td>
-                <td style={{ padding: '12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-secondary)', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>{lastDone}</td>
-                <td style={{ padding: '12px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: status === 'overdue' ? 'var(--color-danger)' : status === 'soon' ? 'var(--color-warn)' : 'var(--text-secondary)', fontWeight: status !== 'good' ? '600' : '400', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <td style={{ padding: '5px 10px', fontFamily: 'var(--font-mono)', fontSize: '11px', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>{intervalStr}</td>
+                <td style={{ padding: '5px 10px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-secondary)', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>{lastDone}</td>
+                <td style={{ padding: '5px 10px', fontFamily: 'var(--font-mono)', fontSize: '11px', color: status === 'overdue' ? 'var(--color-danger)' : status === 'soon' ? 'var(--color-warn)' : 'var(--text-secondary)', fontWeight: status !== 'good' ? '600' : '400', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>
                   {dueAt}{status === 'overdue' && ' ⚠'}
                 </td>
-                <td style={{ padding: '12px', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '500', padding: '2px 8px', borderRadius: '20px', background: ts.bg, color: ts.color }}>{ts.label}</span>
+                <td style={{ padding: '5px 10px', borderBottom: i < schedule.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                  <span style={{ fontSize: '9px', fontWeight: '600', padding: '1px 6px', borderRadius: '20px', background: ts.bg, color: ts.color }}>{ts.label}</span>
                 </td>
               </tr>
             );
@@ -276,13 +276,13 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
 
       {/* Scrollable content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 40px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div style={{ width: '100%' }}>
 
-          {/* Vehicle selector — single row, emoji + model only */}
+          {/* Vehicle selector — centered, pills natural width */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           <div style={{
-            display: 'flex', gap: '6px', justifyContent: 'center',
-            marginBottom: '16px', flexWrap: 'nowrap',
-            padding: '2px 0', width: '100%',
+            display: 'inline-flex', gap: '6px', flexWrap: 'nowrap',
+            padding: '2px 0',
           }}>
             {vehicles.map(v => (
               <button key={v.id}
@@ -302,6 +302,7 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
                 {v.emoji || '🚗'} {v.model}
               </button>
             ))}
+          </div>
           </div>
 
           {/* Vehicle hero card */}
