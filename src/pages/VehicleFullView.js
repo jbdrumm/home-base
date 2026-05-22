@@ -275,11 +275,11 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '28px 28px 40px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 12px 40px' }}>
         <div style={{ width: '100%' }}>
 
           {/* Vehicle selector — centered, pills natural width */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
           <div style={{
             display: 'inline-flex', gap: '6px', flexWrap: 'nowrap',
             padding: '2px 0',
