@@ -279,11 +279,7 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
         <div style={{ width: '100%' }}>
 
           {/* Vehicle selector — centered, pills natural width */}
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <div style={{
-            display: 'inline-flex', gap: '6px', flexWrap: 'nowrap',
-            padding: '2px 0',
-          }}>
+          <div style={{ display: 'flex', justifyContent: 'center', width: '100%', marginBottom: '16px', gap: '6px', padding: '2px 0' }}>
             {vehicles.map(v => (
               <button key={v.id}
                 onClick={() => { setActiveVehicleId(v.id); setActiveTab('maintenance'); }}
@@ -302,7 +298,6 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
                 {v.emoji || '🚗'} {v.model}
               </button>
             ))}
-          </div>
           </div>
 
           {/* Vehicle hero card */}
