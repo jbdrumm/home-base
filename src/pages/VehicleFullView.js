@@ -310,10 +310,10 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
 
               {/* Photo — flush left, fixed width */}
               <div style={{
-                width: '120px', flexShrink: 0,
+                width: '120px', height: '120px', flexShrink: 0, alignSelf: 'center',
                 background: vehicle.photo_url ? 'none' : 'linear-gradient(135deg, #E5E5EA, #D1D1D6)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '36px', position: 'relative', minHeight: '110px',
+                fontSize: '36px', position: 'relative',
               }}>
                 {vehicle.photo_url ? (
                   vehicle.photo_scale
