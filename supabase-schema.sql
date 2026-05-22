@@ -232,3 +232,20 @@ create policy "household read"  on fuel_log             for select using (true);
 create policy "household write" on fuel_log             for all    using (true);
 create policy "household read"  on maintenance_log      for select using (true);
 create policy "household write" on maintenance_log      for all    using (true);
+
+-- ── MAINTENANCE LOG ──────────────────────────────────────────────────────────
+create table if not exists maintenance_log (
+  id            uuid primary key default uuid_generate_v4(),
+  vehicle_id    uuid not null references vehicles(id) on delete cascade,
+  schedule_id   uuid references maintenance_schedule(id) on delete set null,
+  task          text not null,
+  done_at       date not null default current_date,
+  odometer_mi   integer,
+  notes         text,
+  created_by    text,
+  created_at    timestamptz not null default now()
+);
+create index if not exists idx_maint_log_vehicle  on maintenance_log(vehicle_id);
+create index if not exists idx_maint_log_schedule on maintenance_log(schedule_id);
+alter table maintenance_log enable row level security;
+create policy "allow_all_maintenance_log" on maintenance_log for all to public using (true) with check (true);
