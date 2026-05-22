@@ -282,7 +282,7 @@ export default function VehicleFullView({ initialVehicleId, vehicles, maintenanc
           <div style={{
             display: 'flex', gap: '6px', justifyContent: 'center',
             marginBottom: '16px', flexWrap: 'nowrap',
-            padding: '2px 0',
+            padding: '2px 0', width: '100%',
           }}>
             {vehicles.map(v => (
               <button key={v.id}
