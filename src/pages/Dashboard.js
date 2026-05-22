@@ -213,10 +213,12 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
       initialVehicleId={activeVehicleId}
       vehicles={vehicles}
       maintenance={maintenance}
+      maintLogs={maintLogs}
       fuelLogs={fuelLogs}
       loading={vehiclesLoading}
       resolvedMember={resolvedMember}
       onBack={() => { setView(null); setActiveVehicleId(null); }}
+      onReload={reloadVehicles}
       onSaveFillup={async (data) => {
         try {
           const { vehicleId, odometer_mi, gallons, price_per_gal, total_cost, station } = data;
