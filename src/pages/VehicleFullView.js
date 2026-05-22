@@ -27,6 +27,8 @@ function BackButton({ onClick }) {
 function LogMaintenanceModal({ task, vehicleId, resolvedMember, onClose, onSave }) {
   const [doneAt,     setDoneAt]     = useState(new Date().toISOString().slice(0, 10));
   const [odometer,   setOdometer]   = useState('');
+  const [cost,       setCost]       = useState('');
+  const [shop,       setShop]       = useState('');
   const [notes,      setNotes]      = useState('');
   const [saving,     setSaving]     = useState(false);
 
@@ -39,6 +41,8 @@ function LogMaintenanceModal({ task, vehicleId, resolvedMember, onClose, onSave 
         task:        task.task,
         done_at:     doneAt,
         odometer_mi: odometer ? parseInt(odometer.replace(/,/g, ''), 10) : null,
+        cost:        cost ? parseFloat(cost) : null,
+        shop:        shop || null,
         notes:       notes || null,
         created_by:  resolvedMember,
       });
@@ -81,9 +85,21 @@ function LogMaintenanceModal({ task, vehicleId, resolvedMember, onClose, onSave 
             <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>Odometer (miles)</label>
             <input className="input" type="number" placeholder="e.g. 153700" value={odometer} onChange={e => setOdometer(e.target.value)} />
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>Cost ($)</label>
+              <input className="input" type="number" step="0.01" placeholder="e.g. 89.99"
+                value={cost} onChange={e => setCost(e.target.value)} />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>Shop / Location</label>
+              <input className="input" type="text" placeholder="e.g. Jiffy Lube"
+                value={shop} onChange={e => setShop(e.target.value)} />
+            </div>
+          </div>
           <div>
             <label style={{ fontSize: '12px', color: 'var(--text-tertiary)', display: 'block', marginBottom: '5px' }}>Notes</label>
-            <textarea className="input" rows={3} placeholder="Brand used, qty, shop name, etc."
+            <textarea className="input" rows={3} placeholder="Brand used, qty, observations, etc."
               value={notes} onChange={e => setNotes(e.target.value)}
               style={{ resize: 'vertical', minHeight: '72px' }} />
           </div>
@@ -163,9 +179,15 @@ function TaskHistoryModal({ task, logs, vehicleId, resolvedMember, onClose, onSa
                       <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '20px', background: 'var(--color-success-bg)', color: 'var(--color-success)', fontWeight: '600' }}>Most recent</span>
                     )}
                   </div>
-                  {log.notes && (
-                    <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
-                      {log.notes}
+                  {(log.shop || log.cost || log.notes) && (
+                    <div style={{ marginTop: '8px', borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
+                      {(log.shop || log.cost) && (
+                        <div style={{ display: 'flex', gap: '12px', marginBottom: log.notes ? '6px' : 0 }}>
+                          {log.shop && <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>🔧 {log.shop}</span>}
+                          {log.cost && <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>💵 ${parseFloat(log.cost).toFixed(2)}</span>}
+                        </div>
+                      )}
+                      {log.notes && <div style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{log.notes}</div>}
                     </div>
                   )}
                   {log.created_by && (
