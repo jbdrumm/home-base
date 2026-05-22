@@ -211,6 +211,7 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 | 10b | Auth hardening — auth-code OAuth flow replaces implicit, refresh tokens in Supabase, silent 4-min refresh cycle, accounts never expire |
 | 11 | PWA — icons (all sizes + maskable), manifest, install banner, Firebase push infrastructure, background push via dedicated SW, `scripts/generate-firebase-config.js` prebuild |
 | 12 | Tile Customization — `tile_preferences` table, `useTilePreferences` hook, `LayoutSettings` component, mobile layout fully functional, desktop Coming Soon overlay |
+| 13 | Vehicle Data Feeds — removed all seed data; live vehicles/maintenance/fuel_log from Supabase; `useVehicleData` hook; vehicle display config keyed by UUID; maintenance tab with sortable headers, independent scroll, task history modal, log service modal (date/odometer/cost/shop/notes); fuel log tab with stats + fillup modal; `maintenance_log` table created and migrated; MPG validation (5–40 range); station extracted from pump photo; fillup saves from both FAB and vehicle full view |
 
 ---
 
@@ -223,7 +224,7 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 - Mobile: fully functional — preferences respected on dashboard render
 - Desktop: settings page rendered but greyed out with "Coming Soon" overlay
 
-### Sprint 13 — Vehicle Data Feeds (Current)
+### Sprint 13 — Vehicle Data Feeds ✅ Built
 - Remove all seed data from VehicleWidget and VehicleFullView
 - Load vehicles from Supabase `vehicles` table
 - Load `maintenance_schedule` from Supabase per vehicle (empty state handled gracefully)
@@ -233,7 +234,7 @@ Stored in: Codespace secrets, Netlify environment variables, local `.env` (never
 - Fuel log stats (avg MPG, PPG, cost/mile, monthly spend) calculated from real rows
 - Empty states throughout for tables/logs with no data yet
 
-### Sprint 14 — Packages
+### Sprint 14 — Packages (Next)
 - Auto-import via Make.com + Yahoo Mail
 - Carrier, status, ETA, progress bar
 - No Packages source files exist yet — clean build from scratch
@@ -321,6 +322,20 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 23 | Layout settings page not working | High | Queued for tomorrow |
 | 24 | User-created events still triggering notifications on the creating device | Medium | ✅ Fixed — root cause was created_by column missing from groceries table (null ≠ primaryMember always triggered notification). Column added, created_by now populates correctly, self-notification check works as intended |
 | 27 | Layout settings drag-and-drop not working on mobile — HTML5 drag events don't fire on touch screens. Need to replace with touch event handlers (onTouchStart, onTouchMove, onTouchEnd) | Medium | Queued |
+| 28 | Vehicle Data — edit capability needed for maintenance schedule rows, details fields, and fuel log entries | Medium | Queued |
+| 29 | Vehicle Data — details page should stack vertically (single column) instead of side-by-side grid on mobile | Low | Queued |
+| 30 | Vehicle Data — remove ⚠ symbol from Due At column; status column already communicates overdue | Low | Queued |
+| 31 | Vehicle Data — maintenance table Interval column wrapping to two lines (e.g. "15,000 mi" breaks); needs to fit on one line | Low | Queued |
+| 32 | Vehicle Data — S2000 photo spilling outside its container in vehicle tile | Low | Queued |
+| 33 | Weather — dashboard tile rain drop icon used for humidity looks like precipitation; needs distinct icon (e.g. 💧→ humidity symbol) | Low | Queued |
+| 34 | Weather — 6-day forecast only shows thermometer emoji for daily forecast cards; should show condition icon | Medium | Queued |
+| 35 | Weather — 6-day forecast missing precipitation % per day | Low | Queued |
+| 36 | Weather — hero card current condition tiles don't stretch to match left buffer alignment | Low | Queued |
+| 37 | Calendar — no event edit function in full screen view | Medium | Queued |
+| 38 | Calendar — tapping an event on the dashboard tile should open full screen calendar scrolled to that event | Medium | Queued |
+| 39 | To-Do — some tasks linger after completion instead of being removed/checked | High | Queued |
+| 40 | To-Do — need "reminder" function on tasks so they surface on Google Hub and push notifications | Medium | Queued |
+| 41 | Header — add "Profile" option under avatar for accounts, notifications, and future vehicle setup page. "Settings" to hold Layout and future items only | Medium | Queued |
 | 26 | Grocery list adds appear briefly then disappear — likely write target mismatch after grocery_items table was deleted. Suspect code writes to grocery_items but reads from groceries, causing optimistic UI update to get wiped on refetch. Need to audit all grocery read/write paths and consolidate to groceries table. | High | Queued |
 | 25 | Odometer photo parse failing silently — need to: (1) save the uploaded photo to Supabase Storage on parse failure so it can be manually read, (2) surface a manual entry fallback field when parse fails, (3) ensure error details (model response, image metadata) are logged to error_logs table | Medium | Queued |
 | 2 | Camera tile is placeholder only | Low | Blocked by Sprint 23 |
