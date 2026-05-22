@@ -77,7 +77,7 @@ export default function Dashboard({ token, profile, onSignOut, householdAuth, in
     || Object.keys(householdTokens || {}).find(m => householdTokens[m]?.isValid)
     || 'jacob';
 
-  const { vehicles, maintenance, fuelLogs, loading: vehiclesLoading, reload: reloadVehicles } = useVehicleData();
+  const { vehicles, maintenance, maintLogs, fuelLogs, loading: vehiclesLoading, reload: reloadVehicles } = useVehicleData();
 
   const multiData = useMultiAccountData(getTokenFor || (() => null), householdTokens || {});
 
