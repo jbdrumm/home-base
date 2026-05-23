@@ -24,6 +24,17 @@ function BackButton({ onClick }) {
 }
 
 export default function WeatherFullView({ onBack, weather, hourly = [], daily = [] }) {
+  const [pressedDay, setPressedDay] = React.useState(null);
+  const pressTimer = React.useRef(null);
+
+  function startPress(i) {
+    pressTimer.current = setTimeout(() => setPressedDay(i), 350);
+  }
+  function endPress() {
+    clearTimeout(pressTimer.current);
+    setPressedDay(null);
+  }
+
   if (!weather) return null;
 
   return (
@@ -31,7 +42,7 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
       position: 'fixed', inset: 0, background: 'var(--bg-base)', zIndex: 200,
       display: 'flex', flexDirection: 'column', animation: 'slideIn 0.22s ease', overflowY: 'auto',
     }}>
-      <style>{`@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}}`}</style>
+      <style>{`@keyframes slideIn{from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1}} @keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(4px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`}</style>
 
       {/* Topbar */}
       <div style={{
@@ -119,7 +130,7 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
           </div>
         )}
 
-        {/* 14-day forecast */}
+        {/* 7-day forecast */}
         {daily.length > 0 && (
           <div className="card" style={{ overflow: 'hidden' }}>
             <div style={{ padding: '18px 20px 10px' }}>
@@ -127,21 +138,78 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
             </div>
             {daily.map((d, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: '16px',
-                padding: '12px 20px',
+                display: 'flex', alignItems: 'center', gap: '0',
+                padding: '11px 20px',
                 borderTop: i > 0 ? '1px solid var(--border)' : 'none',
+                position: 'relative',
+                userSelect: 'none',
               }}>
-                <div style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>{d.icon}</div>
-                <div style={{ width: '90px', flexShrink: 0 }}>
-                  <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{d.label}</div>
+
+                {/* Day label */}
+                <div style={{ width: '108px', flexShrink: 0 }}>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{d.label}</span>
                 </div>
-                <div style={{ flex: 1, fontSize: '12px', color: 'var(--text-tertiary)' }}>{d.shortForecast || ''}</div>
-                <div style={{ fontSize: '12px', color: d.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)', minWidth: '44px', textAlign: 'right', flexShrink: 0 }}>💧{d.pop}%</div>
-                <div style={{ fontSize: '14px', minWidth: '80px', textAlign: 'right', flexShrink: 0 }}>
-                  {d.high !== null && <span style={{ fontWeight: '600', color: 'var(--danger)' }}>{d.high}°</span>}
-                  {d.high !== null && d.low !== null && <span style={{ color: 'var(--border-strong)', margin: '0 6px' }}>·</span>}
-                  {d.low !== null && <span style={{ color: 'var(--info)' }}>{d.low}°</span>}
+
+                {/* Icon — long press to show description */}
+                <div
+                  onMouseDown={() => startPress(i)}
+                  onMouseUp={endPress}
+                  onMouseLeave={endPress}
+                  onTouchStart={() => startPress(i)}
+                  onTouchEnd={endPress}
+                  onTouchCancel={endPress}
+                  style={{
+                    fontSize: '22px', width: '36px', textAlign: 'center',
+                    flexShrink: 0, cursor: 'pointer', position: 'relative',
+                    WebkitTapHighlightColor: 'transparent',
+                  }}
+                >
+                  {d.icon}
+
+                  {/* Description popup — visible while held */}
+                  {pressedDay === i && (
+                    <div style={{
+                      position: 'absolute', bottom: '36px', left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'var(--text-primary)', color: 'var(--bg-card)',
+                      fontSize: '12px', fontWeight: '500', lineHeight: 1.4,
+                      padding: '8px 12px', borderRadius: '8px',
+                      whiteSpace: 'nowrap', maxWidth: '220px',
+                      whiteSpace: 'normal', textAlign: 'center',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+                      zIndex: 10, pointerEvents: 'none',
+                      animation: 'fadeIn 0.12s ease',
+                    }}>
+                      {d.detailedForecast || d.shortForecast || ''}
+                      {/* Arrow */}
+                      <div style={{
+                        position: 'absolute', bottom: '-5px', left: '50%',
+                        transform: 'translateX(-50%)',
+                        width: 0, height: 0,
+                        borderLeft: '5px solid transparent',
+                        borderRight: '5px solid transparent',
+                        borderTop: '5px solid var(--text-primary)',
+                      }}/>
+                    </div>
+                  )}
                 </div>
+
+                {/* High / Low */}
+                <div style={{ flex: 1, fontSize: '13px', paddingLeft: '12px' }}>
+                  {d.low !== null && <span style={{ color: 'var(--info)', fontWeight: '500' }}>{d.low}°</span>}
+                  {d.high !== null && d.low !== null && <span style={{ color: 'var(--border-strong)', margin: '0 5px' }}>·</span>}
+                  {d.high !== null && <span style={{ color: 'var(--danger)', fontWeight: '600' }}>{d.high}°</span>}
+                </div>
+
+                {/* Precip */}
+                <div style={{
+                  fontSize: '13px', fontWeight: '500', flexShrink: 0,
+                  color: d.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)',
+                  minWidth: '52px', textAlign: 'right',
+                }}>
+                  💧{d.pop}%
+                </div>
+
               </div>
             ))}
           </div>
