@@ -112,9 +112,7 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
                   <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginBottom: '6px', whiteSpace: 'nowrap' }}>{h.time}</div>
                   <div style={{ fontSize: '20px', marginBottom: '4px' }}>{h.icon}</div>
                   <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{h.temp}°</div>
-                  {h.pop > 0 && (
-                    <div style={{ fontSize: '10px', color: 'var(--info)', marginTop: '3px' }}>💧{h.pop}%</div>
-                  )}
+                  <div style={{ fontSize: '10px', color: h.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)', marginTop: '3px' }}>💧{h.pop}%</div>
                 </div>
               ))}
             </div>
@@ -135,9 +133,7 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
               }}>
                 <div style={{ fontSize: '22px', width: '32px', textAlign: 'center' }}>{d.icon}</div>
                 <div style={{ flex: 1, fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{d.label}</div>
-                {d.pop > 0 && (
-                  <div style={{ fontSize: '12px', color: 'var(--info)', minWidth: '40px', textAlign: 'right' }}>💧{d.pop}%</div>
-                )}
+                  <div style={{ fontSize: '12px', color: d.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)', minWidth: '40px', textAlign: 'right' }}>💧{d.pop}%</div>
                 <div style={{ fontSize: '14px', minWidth: '80px', textAlign: 'right' }}>
                   <span style={{ fontWeight: '600', color: 'var(--danger)' }}>{d.high}°</span>
                   <span style={{ color: 'var(--border-strong)', margin: '0 6px' }}>·</span>
