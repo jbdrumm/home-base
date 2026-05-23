@@ -6,19 +6,32 @@ const ownerColors = {
   other:  '#9333EA',
 };
 
-function isPast(e) {
-  // All-day events never get the Past badge
+// isPastTimed: used for "Past" badge — only timed events, not all-day
+function isPastTimed(e) {
   if (e.time === 'All day') return false;
-  // rawDate is an ISO string for timed events
   return e.rawDate && new Date(e.rawDate) < new Date();
+}
+
+// isBeforeToday: used for Upcoming filter — excludes ANY event (including all-day)
+// whose date is strictly before today's date, regardless of time component.
+// All-day rawDate is "YYYY-MM-DD" — parse as local noon to avoid UTC offset issues.
+function isBeforeToday(e) {
+  const raw = e.rawDate;
+  if (!raw) return false;
+  const d = raw.length === 10
+    ? new Date(raw + 'T12:00:00')   // all-day: anchor to local noon
+    : new Date(raw);                 // timed: use full ISO string
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  return d < todayStart;
 }
 
 export default function CalendarWidget({ events }) {
   const today    = events.filter(e => e.date === 'today');
   const tomorrow = events.filter(e => e.date === 'tomorrow');
-  // Upcoming: exclude today/tomorrow AND exclude events whose rawDate is in the past
+  // Upcoming: not today/tomorrow, and not a past date
   const upcoming = events
-    .filter(e => e.date !== 'today' && e.date !== 'tomorrow' && !isPast(e))
+    .filter(e => e.date !== 'today' && e.date !== 'tomorrow' && !isBeforeToday(e))
     .slice(0, 3);
 
   return (
@@ -26,7 +39,7 @@ export default function CalendarWidget({ events }) {
       <div className="section-label">Today</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {today.map(e => {
-          const past = isPast(e);
+          const past = isPastTimed(e);
           return (
             <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
