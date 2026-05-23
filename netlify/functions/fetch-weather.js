@@ -102,34 +102,39 @@ async function fetchNWSDaily(forecastUrl) {
 
     if (p.isDaytime) {
       const night    = periods[i + 1] && !periods[i + 1].isDaytime ? periods[i + 1] : null;
-      const dayPop   = p.probabilityOfPrecipitation?.value    ?? 0;
+      // Use ONLY daytime pop — never merge with night.
+      // Night pop can be much higher (overnight storms) and would misrepresent the day.
+      // TWC shows daytime pop for the day column, which is what users expect.
+      const dayPop   = p.probabilityOfPrecipitation?.value ?? 0;
       const nightPop = night?.probabilityOfPrecipitation?.value ?? 0;
       days.push({
-        label:          days.length === 0 ? 'Today' : p.name,
-        high:           p.temperature,
-        low:            night ? night.temperature : null,
-        icon:           nwsIcon(p.shortForecast, true),
-        pop:            dayPop,      // daytime precip only — matches what TWC shows for the day
-        nightPop:       nightPop,    // stored separately, available for future night row display
-        shortForecast:  p.shortForecast,
+        label:           days.length === 0 ? 'Today' : p.name,
+        high:            p.temperature,
+        low:             night ? night.temperature : null,
+        icon:            nwsIcon(p.shortForecast, true),
+        pop:             dayPop,
+        nightPop:        nightPop,
+        shortForecast:   p.shortForecast,
         detailedForecast: p.detailedForecast,
-        windSpeed:      p.windSpeed,
-        windDirection:  p.windDirection,
+        windSpeed:       p.windSpeed,
+        windDirection:   p.windDirection,
       });
       i += night ? 2 : 1;
     } else {
-      // Night-only at start (fetched after sunset)
+      // Night-only period at start — means we're past sunset.
+      // Label as "Tonight", show night pop only.
+      const nightPop = p.probabilityOfPrecipitation?.value ?? 0;
       days.push({
-        label:          'Tonight',
-        high:           null,
-        low:            p.temperature,
-        icon:           nwsIcon(p.shortForecast, false),
-        pop:            p.probabilityOfPrecipitation?.value ?? 0,
-        nightPop:       p.probabilityOfPrecipitation?.value ?? 0,
-        shortForecast:  p.shortForecast,
+        label:           'Tonight',
+        high:            null,
+        low:             p.temperature,
+        icon:            nwsIcon(p.shortForecast, false),
+        pop:             nightPop,
+        nightPop:        nightPop,
+        shortForecast:   p.shortForecast,
         detailedForecast: p.detailedForecast,
-        windSpeed:      p.windSpeed,
-        windDirection:  p.windDirection,
+        windSpeed:       p.windSpeed,
+        windDirection:   p.windDirection,
       });
       i += 1;
     }
