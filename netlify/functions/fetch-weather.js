@@ -106,10 +106,11 @@ const handler = async function(event) {
       const h    = d.getHours();
       const iDay = h >= 6 && h < 20;
       return {
-        time: d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
-        temp: Math.round(item.values.temperature),
-        icon: getIcon(item.values.weatherCode, iDay),
-        pop:  Math.round(item.values.precipitationProbability),
+        time:    d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+        isoTime: item.time, // ISO timestamp — used by client to filter past hours
+        temp:    Math.round(item.values.temperature),
+        icon:    getIcon(item.values.weatherCode, iDay),
+        pop:     Math.round(item.values.precipitationProbability),
       };
     });
 
