@@ -47,7 +47,7 @@ export default function WeatherWidget() {
             <span style={{ color: 'var(--color-info)' }}>L {weather.low}°</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>
-            💧 {weather.humidity}%
+            〰️ {weather.humidity}%
             <span style={{ marginLeft: '8px', color: weather.precipitationProbability > 0 ? 'var(--color-info)' : 'var(--text-tertiary)' }}>
               🌂 {weather.precipitationProbability}%
             </span>
