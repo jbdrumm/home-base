@@ -38,18 +38,27 @@ const seedWeather = {
   location: 'Gurnee, IL', isLive: false,
 };
 
-// Filter hourly array to remove past entries — called client-side so stale
-// cached data never shows hours that have already passed. Allows a 30-min
-// grace window to account for cache age.
-function filterPastHours(hourlyArr) {
-  const cutoff = Date.now() - 30 * 60 * 1000; // 30 min grace
-  return (hourlyArr || []).filter(h => {
-    // Each hourly entry has a `time` field like "1 AM", "2 PM" etc.
-    // We need the original ISO timestamp to compare — store it as `isoTime`
-    // during the fetch-weather build step. If absent, fall back to keeping all.
-    if (!h.isoTime) return true;
-    return new Date(h.isoTime).getTime() >= cutoff;
-  });
+// Process hourly array client-side:
+// 1. Filter out past hours (cache may be up to 30 min old)
+// 2. Format time label using device's local timezone
+// 3. Recalculate day/night icon using local hour
+function processHourly(hourlyArr, codeToIconFn) {
+  const cutoff = Date.now() - 30 * 60 * 1000; // 30 min grace window
+  return (hourlyArr || [])
+    .filter(h => {
+      if (!h.isoTime) return true; // keep if no timestamp (shouldn't happen)
+      return new Date(h.isoTime).getTime() >= cutoff;
+    })
+    .map(h => {
+      const d         = new Date(h.isoTime);
+      const localHour = d.getHours(); // device local hour
+      const isDay     = localHour >= 6 && localHour < 20;
+      return {
+        ...h,
+        time: d.toLocaleTimeString([], { hour: 'numeric', hour12: true }), // device timezone
+        icon: h.weatherCode ? codeToIconFn(h.weatherCode, isDay) : h.icon,
+      };
+    });
 }
 
 export function useWeather() {
@@ -85,7 +94,7 @@ export function useWeather() {
         isLive: true,
       });
       // Filter past hours client-side — cache may be up to 30 min old
-      setHourly(filterPastHours(h));
+      setHourly(processHourly(h, codeToIcon));
       setDaily(d || []);
       setLastSync(new Date(data.fetched_at));
 
@@ -97,7 +106,7 @@ export function useWeather() {
         if (cached) {
           const parsed = JSON.parse(cached);
           setWeather({ ...parsed.current, isLive: false });
-          setHourly(filterPastHours(parsed.hourly));
+          setHourly(processHourly(parsed.hourly, codeToIcon));
           setDaily(parsed.daily || []);
         }
       } catch {}
