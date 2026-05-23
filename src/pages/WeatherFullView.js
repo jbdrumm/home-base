@@ -85,7 +85,7 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
             {/* Detail grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', minWidth: '260px' }}>
               {[
-                { label: 'Humidity',     value: `${weather.humidity}%`,                                             icon: '💧' },
+                { label: 'Humidity',     value: `${weather.humidity}%`,                                             icon: '〰️' },
                 { label: 'Dew Point',    value: `${weather.dewPoint}°`,                                             icon: '🌡' },
                 { label: 'Wind',         value: `${weather.windSpeed} mph ${windDir(weather.windDirection)}`,        icon: '💨' },
                 { label: 'Wind Gust',    value: `${weather.windGust} mph`,                                          icon: '🌬' },
