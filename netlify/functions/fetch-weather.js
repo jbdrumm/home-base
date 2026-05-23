@@ -181,7 +181,7 @@ const handler = async function(event) {
       precipitationProbability: Math.round(now.precipitationProbability),
       cloudCover:               Math.round(now.cloudCover),
       visibility:               now.visibility ? Math.round(now.visibility) : null,
-      pressure:                 now.pressureSurfaceLevel ? Math.round(now.pressureSurfaceLevel) : null,
+      pressure:                 now.pressureSurfaceLevel ? Math.round(now.pressureSurfaceLevel * 33.8639) : null, // inHg → hPa
       uvIndex:                  now.uvIndex ?? null,
       uvHealthConcern:          now.uvHealthConcern ?? null,
       location:                 'Gurnee, IL',
