@@ -174,7 +174,7 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
                       background: 'var(--text-primary)', color: 'var(--bg-card)',
                       fontSize: '12px', fontWeight: '500', lineHeight: 1.4,
                       padding: '8px 12px', borderRadius: '8px',
-                      whiteSpace: 'nowrap', maxWidth: '220px',
+                      maxWidth: '220px',
                       whiteSpace: 'normal', textAlign: 'center',
                       boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
                       zIndex: 10, pointerEvents: 'none',
