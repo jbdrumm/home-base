@@ -131,13 +131,16 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
                 padding: '12px 20px',
                 borderTop: i > 0 ? '1px solid var(--border)' : 'none',
               }}>
-                <div style={{ fontSize: '22px', width: '32px', textAlign: 'center' }}>{d.icon}</div>
-                <div style={{ flex: 1, fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{d.label}</div>
-                  <div style={{ fontSize: '12px', color: d.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)', minWidth: '40px', textAlign: 'right' }}>💧{d.pop}%</div>
-                <div style={{ fontSize: '14px', minWidth: '80px', textAlign: 'right' }}>
-                  <span style={{ fontWeight: '600', color: 'var(--danger)' }}>{d.high}°</span>
-                  <span style={{ color: 'var(--border-strong)', margin: '0 6px' }}>·</span>
-                  <span style={{ color: 'var(--info)' }}>{d.low}°</span>
+                <div style={{ fontSize: '22px', width: '32px', textAlign: 'center', flexShrink: 0 }}>{d.icon}</div>
+                <div style={{ width: '90px', flexShrink: 0 }}>
+                  <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-primary)' }}>{d.label}</div>
+                </div>
+                <div style={{ flex: 1, fontSize: '12px', color: 'var(--text-tertiary)' }}>{d.shortForecast || ''}</div>
+                <div style={{ fontSize: '12px', color: d.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)', minWidth: '44px', textAlign: 'right', flexShrink: 0 }}>💧{d.pop}%</div>
+                <div style={{ fontSize: '14px', minWidth: '80px', textAlign: 'right', flexShrink: 0 }}>
+                  {d.high !== null && <span style={{ fontWeight: '600', color: 'var(--danger)' }}>{d.high}°</span>}
+                  {d.high !== null && d.low !== null && <span style={{ color: 'var(--border-strong)', margin: '0 6px' }}>·</span>}
+                  {d.low !== null && <span style={{ color: 'var(--info)' }}>{d.low}°</span>}
                 </div>
               </div>
             ))}
