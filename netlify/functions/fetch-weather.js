@@ -4,19 +4,15 @@
 //  Runs every 30 minutes via cron.
 //
 //  DATA SOURCES:
-//  - Tomorrow.io  → current conditions + hourly (superior accuracy)
-//  - NWS API      → daily 7-day forecast (same source as Weather Channel,
-//                   includes real precipitation probability)
+//  - Tomorrow.io  → current conditions + hourly temp/icon
+//  - NWS API      → hourly precip probability + 7-day daily forecast
+//                   (same source as Weather Channel)
 //
 //  Writes merged result to Supabase weather_cache table.
-//  All client devices read from Supabase — zero direct API calls
-//  from browsers.
 // ─────────────────────────────────────────────────────────────
 
 const LAT = 42.3706;
-const LON = -87.9284;
-
-// NWS requires a User-Agent header identifying the app and contact
+const LON  = -87.9284;
 const NWS_UA = 'HomeBase/1.0 (jacob.b.drumm@gmail.com)';
 
 const WEATHER_CODES = {
@@ -37,22 +33,21 @@ const CODE_ICONS_DAY = {
   7000:'🌨️',7101:'🌨️',7102:'🌨️',8000:'⛈️',
 };
 
-// Map NWS shortForecast text to an emoji icon
 function nwsIcon(shortForecast, isDaytime) {
   const f = (shortForecast || '').toLowerCase();
-  if (f.includes('thunderstorm'))                       return '⛈️';
-  if (f.includes('snow') && f.includes('rain'))         return '🌨️';
-  if (f.includes('heavy snow') || f.includes('blizzard')) return '❄️';
-  if (f.includes('snow') || f.includes('flurr'))        return '🌨️';
-  if (f.includes('freezing rain') || f.includes('sleet')) return '🌧️';
-  if (f.includes('rain') || f.includes('shower'))       return '🌧️';
-  if (f.includes('drizzle'))                            return '🌦️';
-  if (f.includes('fog'))                                return '🌫️';
+  if (f.includes('thunderstorm'))                          return '⛈️';
+  if (f.includes('snow') && f.includes('rain'))            return '🌨️';
+  if (f.includes('heavy snow') || f.includes('blizzard'))  return '❄️';
+  if (f.includes('snow') || f.includes('flurr'))           return '🌨️';
+  if (f.includes('freezing rain') || f.includes('sleet'))  return '🌧️';
+  if (f.includes('rain') || f.includes('shower'))          return '🌧️';
+  if (f.includes('drizzle'))                               return '🌦️';
+  if (f.includes('fog'))                                   return '🌫️';
   if (f.includes('mostly cloudy') || f.includes('considerable cloud')) return '🌥';
   if (f.includes('partly cloudy') || f.includes('partly sunny'))       return isDaytime ? '⛅' : '🌤';
-  if (f.includes('mostly clear') || f.includes('mostly sunny'))        return isDaytime ? '🌤' : '🌙';
-  if (f.includes('clear') || f.includes('sunny'))       return isDaytime ? '☀️' : '🌙';
-  if (f.includes('cloudy') || f.includes('overcast'))   return '☁️';
+  if (f.includes('mostly clear')  || f.includes('mostly sunny'))       return isDaytime ? '🌤' : '🌙';
+  if (f.includes('clear') || f.includes('sunny'))          return isDaytime ? '☀️' : '🌙';
+  if (f.includes('cloudy') || f.includes('overcast'))      return '☁️';
   return isDaytime ? '🌤' : '🌙';
 }
 
@@ -64,65 +59,77 @@ function getIcon(code, isDay) {
 
 async function nwsFetch(url) {
   const res = await fetch(url, {
-    headers: {
-      'User-Agent': NWS_UA,
-      'Accept': 'application/geo+json',
-    },
+    headers: { 'User-Agent': NWS_UA, 'Accept': 'application/geo+json' },
   });
   if (!res.ok) throw new Error(`NWS ${res.status} at ${url}`);
   return res.json();
 }
 
-// Get NWS grid point for our lat/lon (cached — rarely changes)
-async function getNWSForecastUrl() {
+async function getNWSUrls() {
   const data = await nwsFetch(`https://api.weather.gov/points/${LAT},${LON}`);
-  return data.properties.forecast; // e.g. https://api.weather.gov/gridpoints/LOT/65,73/forecast
+  return {
+    forecast:       data.properties.forecast,
+    forecastHourly: data.properties.forecastHourly,
+  };
 }
 
-// Fetch and shape NWS daily forecast periods into Home Base daily format.
-// NWS returns day/night split periods — we merge each day+night pair into
-// one daily entry with high, low, daytime icon, and combined max precip %.
-async function fetchNWSDaily() {
-  const forecastUrl = await getNWSForecastUrl();
-  const data        = await nwsFetch(forecastUrl);
-  const periods     = data.properties.periods || [];
+// Fetch NWS hourly forecast — returns array of { isoTime, pop } for next 24hrs
+async function fetchNWSHourlyPop(forecastHourlyUrl) {
+  const data    = await nwsFetch(forecastHourlyUrl);
+  const periods = data.properties.periods || [];
+  const nowMs   = Date.now();
+  return periods
+    .filter(p => new Date(p.startTime).getTime() >= nowMs - 30 * 60 * 1000)
+    .slice(0, 24)
+    .map(p => ({
+      isoTime: p.startTime,
+      pop:     p.probabilityOfPrecipitation?.value ?? 0,
+    }));
+}
 
-  // Merge day/night pairs into single daily entries
+// Fetch NWS 7-day daily forecast
+// Uses DAYTIME pop for the daily display value — night pop shown separately.
+// Max(day, night) was causing Tuesday night 20% to override Tuesday day 2%.
+async function fetchNWSDaily(forecastUrl) {
+  const data    = await nwsFetch(forecastUrl);
+  const periods = data.properties.periods || [];
+
   const days = [];
   let i = 0;
 
-  // If first period is night-only (e.g. fetched after sunset), handle gracefully
   while (i < periods.length && days.length < 7) {
     const p = periods[i];
 
     if (p.isDaytime) {
-      // Pair with next night period if available
-      const night = periods[i + 1] && !periods[i + 1].isDaytime ? periods[i + 1] : null;
-      const pop   = Math.max(
-        p.probabilityOfPrecipitation?.value ?? 0,
-        night?.probabilityOfPrecipitation?.value ?? 0,
-      );
+      const night    = periods[i + 1] && !periods[i + 1].isDaytime ? periods[i + 1] : null;
+      const dayPop   = p.probabilityOfPrecipitation?.value    ?? 0;
+      const nightPop = night?.probabilityOfPrecipitation?.value ?? 0;
       days.push({
-        label:         days.length === 0 ? 'Today' : p.name,
-        high:          p.temperature,
-        low:           night ? night.temperature : null,
-        icon:          nwsIcon(p.shortForecast, true),
-        pop:           pop,
-        shortForecast: p.shortForecast,
-        detail:        p.detailedForecast,
+        label:          days.length === 0 ? 'Today' : p.name,
+        high:           p.temperature,
+        low:            night ? night.temperature : null,
+        icon:           nwsIcon(p.shortForecast, true),
+        pop:            dayPop,      // daytime precip only — matches what TWC shows for the day
+        nightPop:       nightPop,    // stored separately, available for future night row display
+        shortForecast:  p.shortForecast,
+        detailedForecast: p.detailedForecast,
+        windSpeed:      p.windSpeed,
+        windDirection:  p.windDirection,
       });
       i += night ? 2 : 1;
     } else {
-      // Night-only period at start (after sunset) — use it as today with no high
-      const pop = p.probabilityOfPrecipitation?.value ?? 0;
+      // Night-only at start (fetched after sunset)
       days.push({
-        label:         'Tonight',
-        high:          null,
-        low:           p.temperature,
-        icon:          nwsIcon(p.shortForecast, false),
-        pop:           pop,
-        shortForecast: p.shortForecast,
-        detail:        p.detailedForecast,
+        label:          'Tonight',
+        high:           null,
+        low:            p.temperature,
+        icon:           nwsIcon(p.shortForecast, false),
+        pop:            p.probabilityOfPrecipitation?.value ?? 0,
+        nightPop:       p.probabilityOfPrecipitation?.value ?? 0,
+        shortForecast:  p.shortForecast,
+        detailedForecast: p.detailedForecast,
+        windSpeed:      p.windSpeed,
+        windDirection:  p.windDirection,
       });
       i += 1;
     }
@@ -143,16 +150,16 @@ const handler = async function(event) {
   }
 
   try {
-    // ── 1. Tomorrow.io — current conditions + hourly ─────────
+    // ── 1. Tomorrow.io — current conditions + hourly temp/icon ──
     const fields = [
-      'temperature','temperatureApparent','temperatureMax','temperatureMin',
-      'humidity','dewPoint','windSpeed','windDirection','windGust',
-      'precipitationProbability','cloudCover','visibility',
-      'pressureSurfaceLevel','uvIndex','uvHealthConcern','weatherCode',
+      'temperature','temperatureApparent','humidity','dewPoint',
+      'windSpeed','windDirection','windGust','precipitationProbability',
+      'cloudCover','visibility','pressureSurfaceLevel',
+      'uvIndex','uvHealthConcern','weatherCode',
     ].join(',');
 
     const endTime = new Date();
-    endTime.setDate(endTime.getDate() + 2); // only need 24hrs, request 2 days
+    endTime.setDate(endTime.getDate() + 2);
 
     const tUrl = `https://api.tomorrow.io/v4/weather/forecast?location=${LAT},${LON}&fields=${fields}&units=imperial&timesteps=1h&endTime=${endTime.toISOString()}&apikey=${tomorrowKey}`;
     const tRes = await fetch(tUrl);
@@ -166,54 +173,80 @@ const handler = async function(event) {
     const hour  = new Date().getHours();
     const isDay = hour >= 6 && hour < 20;
 
-    // Current conditions from first hourly entry
+    // ── 2. NWS — hourly precip + 7-day daily ────────────────
+    let nwsHourlyPop = [];
+    let daily        = [];
+    let todayPop     = 0;
+
+    try {
+      const { forecast, forecastHourly } = await getNWSUrls();
+
+      // Fetch both NWS endpoints in parallel
+      const [nwsPop, nwsDays] = await Promise.all([
+        fetchNWSHourlyPop(forecastHourly),
+        fetchNWSDaily(forecast),
+      ]);
+
+      nwsHourlyPop = nwsPop;
+      daily        = nwsDays;
+      // Today's daytime precip for the dashboard tile
+      todayPop     = nwsDays[0]?.pop ?? 0;
+      console.log(`[fetch-weather] NWS: ${nwsDays.length} days, ${nwsPop.length} hourly pop values`);
+    } catch (nwsErr) {
+      console.error('[fetch-weather] NWS fetch failed:', nwsErr.message);
+    }
+
+    // ── 3. Build current conditions ──────────────────────────
+    // precipitationProbability: use NWS today's daytime pop (accurate)
+    // rather than Tomorrow.io instantaneous value (always 0 on free tier)
     const current = {
       temp:                     Math.round(now.temperature),
       feelsLike:                Math.round(now.temperatureApparent),
       weatherCode:              now.weatherCode,
       condition:                WEATHER_CODES[now.weatherCode] || 'Unknown',
       icon:                     getIcon(now.weatherCode, isDay),
+      high:                     daily[0]?.high ?? null,
+      low:                      daily[0]?.low  ?? null,
       humidity:                 Math.round(now.humidity),
       dewPoint:                 Math.round(now.dewPoint),
       windSpeed:                Math.round(now.windSpeed),
       windGust:                 Math.round(now.windGust),
       windDirection:            Math.round(now.windDirection),
-      precipitationProbability: Math.round(now.precipitationProbability),
+      precipitationProbability: todayPop,   // NWS today daytime pop
       cloudCover:               Math.round(now.cloudCover),
       visibility:               now.visibility ? Math.round(now.visibility) : null,
-      pressure:                 now.pressureSurfaceLevel ? Math.round(now.pressureSurfaceLevel * 33.8639) : null, // inHg → hPa
+      pressure:                 now.pressureSurfaceLevel ? Math.round(now.pressureSurfaceLevel * 33.8639) : null,
       uvIndex:                  now.uvIndex ?? null,
       uvHealthConcern:          now.uvHealthConcern ?? null,
       location:                 'Gurnee, IL',
     };
 
-    // Hourly: store raw isoTime — client formats label in device timezone
+    // ── 4. Build hourly — Tomorrow.io temp/icon + NWS pop ───
+    // Create a lookup map from NWS hourly pop by hour (rounded to top of hour)
+    const popByHour = {};
+    for (const entry of nwsHourlyPop) {
+      const key = new Date(entry.isoTime).toISOString().slice(0, 13); // "2026-05-23T14"
+      popByHour[key] = entry.pop;
+    }
+
     const nowMs = Date.now();
     const hourly = hourlyRaw
       .filter(item => new Date(item.time).getTime() >= nowMs - 30 * 60 * 1000)
       .slice(0, 24)
-      .map(item => ({
-        isoTime:     item.time,
-        temp:        Math.round(item.values.temperature),
-        weatherCode: item.values.weatherCode,
-        icon:        getIcon(item.values.weatherCode, true), // client refines day/night
-        pop:         Math.round(item.values.precipitationProbability),
-      }));
-
-    // ── 2. NWS — 7-day daily forecast ───────────────────────
-    let daily = [];
-    try {
-      daily = await fetchNWSDaily();
-      // Patch today's high/low from Tomorrow.io daily if NWS starts with Tonight
-      console.log(`[fetch-weather] NWS: ${daily.length} days fetched`);
-    } catch (nwsErr) {
-      console.error('[fetch-weather] NWS daily fetch failed:', nwsErr.message);
-      // Non-fatal — daily will be empty, app degrades gracefully
-    }
+      .map(item => {
+        const hourKey = new Date(item.time).toISOString().slice(0, 13);
+        return {
+          isoTime:     item.time,
+          temp:        Math.round(item.values.temperature),
+          weatherCode: item.values.weatherCode,
+          icon:        getIcon(item.values.weatherCode, true), // client refines day/night
+          pop:         popByHour[hourKey] ?? 0,  // NWS hourly precip probability
+        };
+      });
 
     const payload = { current, hourly, daily };
 
-    // ── 3. Write to Supabase ─────────────────────────────────
+    // ── 5. Write to Supabase ─────────────────────────────────
     const sbRes = await fetch(`${supabaseUrl}/rest/v1/weather_cache`, {
       method: 'POST',
       headers: {
@@ -231,10 +264,10 @@ const handler = async function(event) {
 
     if (!sbRes.ok) throw new Error(`Supabase write failed: ${await sbRes.text()}`);
 
-    console.log(`[fetch-weather] Success — ${daily.length} days (NWS), ${hourly.length} hours (Tomorrow.io)`);
+    console.log(`[fetch-weather] Success — ${daily.length} days, ${hourly.length} hours`);
     return {
       statusCode: 200,
-      body: JSON.stringify({ ok: true, days: daily.length, hours: hourly.length }),
+      body: JSON.stringify({ ok: true, days: daily.length, hours: hourly.length, todayPop }),
     };
 
   } catch (e) {
