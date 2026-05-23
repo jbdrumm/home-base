@@ -14,15 +14,34 @@
 | **Netlify URL** | https://home-base22.netlify.app |
 | **Netlify site ID** | 69cb2bbc-ed1d-453b-9b93-4c19fc36d0d1 |
 | **Dev environment** | GitHub Codespaces (port 3000, keep public for mobile testing) |
-| **Netlify deploys** | Manual only — auto-publish is OFF to conserve build credits. Trigger from Netlify dashboard or `npm run build && npx netlify-cli deploy --prod --dir=build` |
+| **Netlify deploys** | Manual only — auto-builds disabled, auto-publish OFF. Deploy only when a sprint/milestone is complete. |
 | **PWA URL** | https://home-base22.netlify.app — installed on Jacob's and Katelin's Android phones |
+
+### ⚠️ Branch Strategy
+
+All day-to-day development, bug fixes, and sprint work happens on the `dev` branch. `main` is production-only — never push directly to it during active development.
+
+**Merge to main only when a sprint or batch of fixes is ready to ship:**
+```bash
+git checkout main && git merge dev && git push origin main
+```
+Then manually deploy:
+```bash
+netlify deploy --prod
+```
+
+**Netlify is configured to watch `main` with auto-builds disabled.** Pushing to `dev` never triggers a Netlify build. Pushing to `main` also does not auto-build — you must run `netlify deploy --prod` manually.
+
+To disable auto-builds in Netlify: Site configuration → Build & deploy → uncheck "Build automatically".
+
+---
 
 ### ⚠️ Codespaces Dev Workflow
 
 Always use this sequence when starting a Codespaces session or pulling updates:
 
 ```bash
-git stash && git pull origin main && git stash pop && npm install && rm -rf node_modules/.cache && netlify dev
+git stash && git pull origin dev && git stash pop && npm install && rm -rf node_modules/.cache && netlify dev
 ```
 
 **First time setup only** (once per Codespace):
@@ -339,9 +358,9 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 20 | Calendar pills showing CSS ellipsis (...) truncation, emojis from public calendar event titles cluttering pills, all day cells different heights, max 4 pills per day causing uneven row heights | Medium | ✅ Fixed — textOverflow clip, emoji stripped in pill render only (detail view keeps emoji), max 3 pills, fixed 92px cell height |
 | 21 | Log Fillup camera button opened gallery instead of camera, no gallery option | Medium | ✅ Fixed — split into Take Photo (camera, 2x size) and Gallery buttons |
 | 22 | Calendar tile on dashboard showing no Past indicator for elapsed today events | Low | ✅ Fixed — "Past" badge + muted text/bar for timed events past current time, all-day events excluded |
-| 23 | Layout settings page not working | High | Queued for tomorrow |
+| 23 | Layout settings page not working | High | ✅ Fixed |
 | 24 | User-created events still triggering notifications on the creating device | Medium | ✅ Fixed — root cause was created_by column missing from groceries table (null ≠ primaryMember always triggered notification). Column added, created_by now populates correctly, self-notification check works as intended |
-| 27 | Layout settings drag-and-drop not working on mobile — HTML5 drag events don't fire on touch screens. Need to replace with touch event handlers (onTouchStart, onTouchMove, onTouchEnd) | Medium | Queued |
+| 27 | Layout settings drag-and-drop not working on mobile — HTML5 drag events don't fire on touch screens. Need to replace with touch event handlers (onTouchStart, onTouchMove, onTouchEnd) | Medium | ✅ Fixed |
 | 28 | Vehicle Data — edit capability needed for maintenance schedule rows, details fields, and fuel log entries | Medium | Queued |
 | 29 | Vehicle Data — details page should stack vertically (single column) instead of side-by-side grid on mobile | Low | Queued |
 | 30 | Vehicle Data — remove ⚠ symbol from Due At column; status column already communicates overdue | Low | Queued |
@@ -356,8 +375,8 @@ See `FINANCIAL_DECISIONS.md` for full evaluation.
 | 39 | To-Do — some tasks linger after completion instead of being removed/checked | High | Queued |
 | 40 | To-Do — need "reminder" function on tasks so they surface on Google Hub and push notifications | Medium | Queued |
 | 41 | Header — add "Profile" option under avatar for accounts, notifications, and future vehicle setup page. "Settings" to hold Layout and future items only | Medium | Queued |
-| 26 | Grocery list adds appear briefly then disappear — likely write target mismatch after grocery_items table was deleted. Suspect code writes to grocery_items but reads from groceries, causing optimistic UI update to get wiped on refetch. Need to audit all grocery read/write paths and consolidate to groceries table. | High | Queued |
-| 25 | Odometer photo parse failing silently — need to: (1) save the uploaded photo to Supabase Storage on parse failure so it can be manually read, (2) surface a manual entry fallback field when parse fails, (3) ensure error details (model response, image metadata) are logged to error_logs table | Medium | Queued |
+| 26 | Grocery list adds appear briefly then disappear — likely write target mismatch after grocery_items table was deleted. Suspect code writes to grocery_items but reads from groceries, causing optimistic UI update to get wiped on refetch. Need to audit all grocery read/write paths and consolidate to groceries table. | High | ✅ Fixed |
+| 25 | Odometer photo parse failing silently — need to: (1) save the uploaded photo to Supabase Storage on parse failure so it can be manually read, (2) surface a manual entry fallback field when parse fails, (3) ensure error details (model response, image metadata) are logged to error_logs table | Medium | ✅ Fixed |
 | 2 | Camera tile is placeholder only | Low | Blocked by Sprint 23 |
 | 3 | Vehicle photos stored as seed data URLs — need Supabase Storage for user-added photos | Low | Sprint TBD |
 | 4 | Fuel log MPG needs previous odometer for accuracy | Low | Sprint TBD |
@@ -470,3 +489,4 @@ Ideas captured for future consideration — not committed to a sprint yet.
 | 2018 Honda Odyssey Elite | photo_scale: 110%, position: 20% 60% |
 | 2000 Honda S2000 | Extended use plate |
 | 1994 Ford Ranger Splash | Extended use plate |
+
