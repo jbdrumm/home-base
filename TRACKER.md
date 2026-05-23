@@ -14,7 +14,7 @@
 | **Netlify URL** | https://home-base22.netlify.app |
 | **Netlify site ID** | 69cb2bbc-ed1d-453b-9b93-4c19fc36d0d1 |
 | **Dev environment** | GitHub Codespaces (port 3000, keep public for mobile testing) |
-| **Netlify deploys** | Manual only — auto-builds disabled, auto-publish OFF. Deploy only when a sprint/milestone is complete. |
+| **Netlify deploys** | Auto-deploy on `main` only. Merging `dev` → `main` is the deploy trigger. Never push directly to `main` during active development. |
 | **PWA URL** | https://home-base22.netlify.app — installed on Jacob's and Katelin's Android phones |
 
 ### ⚠️ Branch Strategy
@@ -30,9 +30,7 @@ Then manually deploy:
 netlify deploy --prod
 ```
 
-**Netlify is configured to watch `main` with auto-builds disabled.** Pushing to `dev` never triggers a Netlify build. Pushing to `main` also does not auto-build — you must run `netlify deploy --prod` manually.
-
-To disable auto-builds in Netlify: Site configuration → Build & deploy → uncheck "Build automatically".
+**Netlify auto-deploys `main` only.** Pushing to `dev` never triggers a Netlify build. Merging `dev` → `main` is the intentional deploy trigger — no separate `netlify deploy --prod` command needed.
 
 ---
 
@@ -489,4 +487,5 @@ Ideas captured for future consideration — not committed to a sprint yet.
 | 2018 Honda Odyssey Elite | photo_scale: 110%, position: 20% 60% |
 | 2000 Honda S2000 | Extended use plate |
 | 1994 Ford Ranger Splash | Extended use plate |
+
 
