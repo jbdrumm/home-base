@@ -209,25 +209,26 @@ export function useNotificationTriggers({
 
     for (const item of newItems) {
       const key = todayKey('grocery', item.id);
+      // Always mark seen on first encounter regardless of who added it,
+      // so re-renders never treat the same item as "new" again.
       if (notifiedToday(key)) continue;
+      markNotified(key);
 
       const addedByMe = item.created_by === primaryMember;
 
-      // Local notify only if someone else added it
+      // Local notify only if someone else added it AND pref is on
       if (!addedByMe && prefs.new_grocery) {
         notify.newGrocery(item.name);
-        markNotified(key);
       }
 
       // Push to other members who didn't add it — only if pref is on
-      if (prefs.new_grocery) {
+      if (prefs.new_grocery && !addedByMe) {
         for (const m of householdMembers) {
           if (m !== primaryMember && m !== item.created_by) {
             sendPushToMember(m, '🛒 Grocery Item Added', item.name, { view: 'grocery', prefKey: 'new_grocery' });
           }
         }
       }
-      markNotified(key);
     }
 
     prevGrocery.current = groceries;
