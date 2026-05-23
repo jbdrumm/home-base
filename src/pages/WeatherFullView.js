@@ -114,6 +114,8 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
               display: 'flex', gap: '8px',
               overflowX: 'auto', paddingBottom: '6px',
               scrollbarWidth: 'thin',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
             }}>
               {hourly.map((h, i) => (
                 <div key={i} style={{
