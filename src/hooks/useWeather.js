@@ -18,7 +18,6 @@ const CODE_ICONS_NIGHT = { ...CODE_ICONS_DAY, 1000:'🌙' };
 // Using local time is accurate enough for icon selection.
 export function getIsDay() {
   return new Date().getHours() >= 6 && new Date().getHours() < 20;  // 6am–8pm = daytime
-
 }
 
 export function codeToIcon(code, isDay = true) {
@@ -38,6 +37,20 @@ const seedWeather = {
   visibility: 10, pressure: 1013, uvIndex: 3,
   location: 'Gurnee, IL', isLive: false,
 };
+
+// Filter hourly array to remove past entries — called client-side so stale
+// cached data never shows hours that have already passed. Allows a 30-min
+// grace window to account for cache age.
+function filterPastHours(hourlyArr) {
+  const cutoff = Date.now() - 30 * 60 * 1000; // 30 min grace
+  return (hourlyArr || []).filter(h => {
+    // Each hourly entry has a `time` field like "1 AM", "2 PM" etc.
+    // We need the original ISO timestamp to compare — store it as `isoTime`
+    // during the fetch-weather build step. If absent, fall back to keeping all.
+    if (!h.isoTime) return true;
+    return new Date(h.isoTime).getTime() >= cutoff;
+  });
+}
 
 export function useWeather() {
   const [weather,  setWeather]  = useState(seedWeather);
@@ -71,7 +84,8 @@ export function useWeather() {
         icon: current.weatherCode ? codeToIcon(current.weatherCode, isDay) : current.icon,
         isLive: true,
       });
-      setHourly(h || []);
+      // Filter past hours client-side — cache may be up to 30 min old
+      setHourly(filterPastHours(h));
       setDaily(d || []);
       setLastSync(new Date(data.fetched_at));
 
@@ -83,7 +97,7 @@ export function useWeather() {
         if (cached) {
           const parsed = JSON.parse(cached);
           setWeather({ ...parsed.current, isLive: false });
-          setHourly(parsed.hourly || []);
+          setHourly(filterPastHours(parsed.hourly));
           setDaily(parsed.daily || []);
         }
       } catch {}
