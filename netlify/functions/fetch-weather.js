@@ -48,7 +48,7 @@ const handler = async function(event) {
       'humidity','dewPoint','windSpeed','windDirection','windGust',
       'precipitationProbability','rainIntensity','snowIntensity',
       'cloudCover','visibility','pressureSurfaceLevel',
-      'uvIndex','uvHealthConcern','weatherCode',
+      'uvIndex','uvHealthConcern','weatherCode','weatherCodeMax',
     ].join(',');
 
     const endTime = new Date();
@@ -95,7 +95,13 @@ const handler = async function(event) {
       location:                 'Gurnee, IL',
     };
 
-    const hourly = hourlyRaw.slice(0, 24).map(item => {
+    // Filter out past hours so the 24-hr strip always starts at/near current time.
+    // Tomorrow.io returns data from the top of the hour at fetch time — the cached
+    // result can be up to 30 min old, so we trim any hours already in the past.
+    const nowMs = Date.now();
+    const futureHourly = hourlyRaw.filter(item => new Date(item.time).getTime() >= nowMs - 30 * 60 * 1000);
+
+    const hourly = futureHourly.slice(0, 24).map(item => {
       const d    = new Date(item.time);
       const h    = d.getHours();
       const iDay = h >= 6 && h < 20;
@@ -107,14 +113,18 @@ const handler = async function(event) {
       };
     });
 
+    // Daily: Tomorrow.io uses weatherCodeMax for the representative daily code
     const daily = dailyRaw.slice(0, 14).map((item, i) => {
       const d = new Date(item.time);
+      // weatherCodeMax is the dominant weather code for the day on the daily timeline
+      // weatherCode may be absent on daily — fall back gracefully
+      const dayCode = item.values.weatherCodeMax ?? item.values.weatherCode ?? 1001;
       return {
         label: i === 0 ? 'Today' : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
         high:  Math.round(item.values.temperatureMax),
         low:   Math.round(item.values.temperatureMin),
-        icon:  getIcon(item.values.weatherCode, true),
-        pop:   Math.round(item.values.precipitationProbability),
+        icon:  getIcon(dayCode, true),
+        pop:   Math.round(item.values.precipitationProbability ?? 0),
       };
     });
 
