@@ -123,7 +123,7 @@ export default function WeatherFullView({ onBack, weather, hourly = [], daily = 
                   <div style={{ fontSize: '10px', color: 'var(--text-tertiary)', marginBottom: '6px', whiteSpace: 'nowrap' }}>{h.time}</div>
                   <div style={{ fontSize: '20px', marginBottom: '4px' }}>{h.icon}</div>
                   <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)' }}>{h.temp}°</div>
-                  <div style={{ fontSize: '10px', color: h.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)', marginTop: '3px' }}>💧{h.pop}%</div>
+                  <div style={{ fontSize: '10px', color: h.pop > 0 ? 'var(--info)' : 'var(--text-tertiary)', marginTop: '3px', textAlign: 'center', width: '100%' }}>💧{h.pop}%</div>
                 </div>
               ))}
             </div>
