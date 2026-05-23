@@ -16,7 +16,10 @@ function isPast(e) {
 export default function CalendarWidget({ events }) {
   const today    = events.filter(e => e.date === 'today');
   const tomorrow = events.filter(e => e.date === 'tomorrow');
-  const upcoming = events.filter(e => e.date !== 'today' && e.date !== 'tomorrow').slice(0, 3);
+  // Upcoming: exclude today/tomorrow AND exclude events whose rawDate is in the past
+  const upcoming = events
+    .filter(e => e.date !== 'today' && e.date !== 'tomorrow' && !isPast(e))
+    .slice(0, 3);
 
   return (
     <div className="card" style={{ padding: '18px 20px', height: '100%' }}>
