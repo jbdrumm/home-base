@@ -101,12 +101,17 @@ const handler = async function(event) {
     const nowMs = Date.now();
     const futureHourly = hourlyRaw.filter(item => new Date(item.time).getTime() >= nowMs - 30 * 60 * 1000);
 
+    // Use America/Chicago for all time labels — server runs UTC, display must be local.
+    const TZ = 'America/Chicago';
     const hourly = futureHourly.slice(0, 24).map(item => {
       const d    = new Date(item.time);
-      const h    = d.getHours();
-      const iDay = h >= 6 && h < 20;
+      // Derive local hour in Chicago for isDay calculation and time label
+      const localHour = parseInt(
+        d.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: TZ }), 10
+      );
+      const iDay = localHour >= 6 && localHour < 20;
       return {
-        time:    d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+        time:    d.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true, timeZone: TZ }),
         isoTime: item.time, // ISO timestamp — used by client to filter past hours
         temp:    Math.round(item.values.temperature),
         icon:    getIcon(item.values.weatherCode, iDay),
